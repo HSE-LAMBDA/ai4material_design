@@ -1,0 +1,4 @@
+outs:
+- md5: 8286426afe4f8de94b0032bad4caa628
+  size: 19283
+  path: energy_comparison.csv
