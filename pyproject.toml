@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "mos2-potential-learning"
+version = "0.1.0"
+description = ""
+authors = []
+
+[tool.poetry.dependencies]
+python = "^3.8"
+scikit-learn = "^0.24.1"
+pandas = "^1.2.4"
+matplotlib = "^3.4.1"
+ase = "^3.21.1"
+optuna = "^2.7.0"
+torch = "^1.8.1"
+madgrad = "^1.1"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
