@@ -13,3 +13,20 @@ add new directory:
 
 get data:
 - `dvc pull <directory_name>`
+
+## Example:
+
+```
+cd ai4material_design/data/
+mkdir raw_pengru_202104_MoS2-vacancies
+mv /home/jupyter/mnt/a.tgz raw_pengru_202104_MoS2-vacancies/vacancies_MoS2.tgz
+dvc add raw_pengru_202104_MoS2-vacancies/
+dvc commit
+git add raw_pengru_202104_MoS2-vacancies.dvc datasets/.gitignore
+git commit -m "DFT from Pengru" -a
+git push
+dvc push
+```
+
+## References:
+- DVC reference: https://dvc.org/doc/command-reference/
