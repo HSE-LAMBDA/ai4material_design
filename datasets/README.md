@@ -3,6 +3,10 @@
 This directory contains datasets versioned by DVC. 
 Git stores metadata in `.dvc` files, the files are saved in Azure storage. 
 
+## Contents
+- raw_ruslan_202104_gpaw-MoS2 - relaxed states of MoS2 lattices, GPAW, 2021-04
+- raw_pengru_202104_MoS2-vacancies - relaxation (?) of MoS2 lattices, VASP, 2021-04
+
 ## Cheatsheet:
 
 add new directory:
@@ -10,6 +14,7 @@ add new directory:
 - `dvc add new_directory` and `dvc commit`
 - add metadata to git: `git add new_directory.dvc` and `git commit`
 - push changes to git and Azure: `git push` and `dvc push`
+- **NB** update README.md with brief explanation of `new_directory` contents
 
 get data:
 - `dvc pull <directory_name>`
