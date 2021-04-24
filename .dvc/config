@@ -1,6 +1,7 @@
 [core]
     remote = ai4materialdesign
-    
+[cache]
+    type = symlink
 ['remote "ai4materialdesign"']
     url = azure://ai4materialdesign
     connection_string = DefaultEndpointsProtocol=https;AccountName=ai4materialdesign;AccountKey=iYaRVvFsEEhR0PmmHK/c8aEfPniX021wiJltl3W6q2C1+ntm9SCrUgaAqMhZpQ12I1piIDPhtb/XJrzqPewIuQ==;EndpointSuffix=core.windows.net
