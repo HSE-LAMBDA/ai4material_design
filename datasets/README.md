@@ -4,9 +4,9 @@ This directory contains datasets versioned by DVC.
 Git stores metadata in `.dvc` files, the files are saved in Azure storage. 
 
 ## Contents
-- raw_ruslan_202104 - relaxed states, relaxation trajectories, electronic properties, GPAW, 2021-04
-- processed_ruslan_202104 - processed table of the above (without the relaxation trjectory), GPAW, 2021-04
-- raw_pengru_202104_MoS2-vacancies - relaxation (?) of MoS2 lattices, VASP, 2021-04
+- `raw_ruslan_202104` - relaxed states, relaxation trajectories, electronic properties, GPAW, 2021-04
+- `processed_ruslan_202104` - processed table of the above (without the relaxation trjectory), GPAW, 2021-04
+- `raw_pengru_202104_MoS2-vacancies` - relaxation (?) of MoS2 lattices, VASP, 2021-04
 
 ## Cheatsheet:
 
