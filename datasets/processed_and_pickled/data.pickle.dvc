@@ -1,0 +1,4 @@
+outs:
+- md5: 0800fc3ac268f9f8f12b18d08b9acfd8
+  size: 252584791
+  path: data.pickle
