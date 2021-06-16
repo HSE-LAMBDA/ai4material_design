@@ -8,7 +8,6 @@ Git stores metadata in `.dvc` files, the files are saved in Azure storage.
 - `processed_ruslan_202104` - processed table of the above (without the relaxation trjectory), GPAW, 2021-04
 - `raw_pengru_202104_MoS2-vacancies` - relaxation (?) of MoS2 lattices, VASP, 2021-04
 - `dichalcogenides_innopolis_202105` - relaxed structures for MoS2, WS2, MoSe2, WSe2 defects with 4x4, 5x5 and 6x6 supercells, GPAW, 2021-05
-- `dichalcogenides_innopolis_202105` - relaxed structures for MoS2, WS2, MoSe2, WSe2 defects with 4x4, 5x5 and 6x6 supercells, GPAW, 2021-05
 
 ## Cheatsheet:
 
