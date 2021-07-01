@@ -1,0 +1,94 @@
+[
+    {
+        "description": "WS2 vacancy 2S 2x2",
+        "cell": [
+            3,
+            3,
+            1
+        ],
+        "pbc" : [true, true, false],
+        "defects_number": "all",
+        "defects": [
+            {
+                "type": "vacancy",
+                "element": "S"
+            },
+            {
+                "type": "vacancy",
+                "element": "S"
+            }
+        ],
+        "base": "WS2"
+    },
+    {
+        "description": "WS2 vacancy W2S 4x4",
+        "cell": [
+            3,
+            3,
+            1
+        ],
+        "pbc" : [true, true, false],
+        "defects_number": "all",
+        "defects": [
+            {
+                "type": "vacancy",
+                "element": "W"
+            },
+            {
+                "type": "vacancy",
+                "element": "S"
+            },
+            {
+                "type": "vacancy",
+                "element": "S"
+            }
+        ],
+        "base": "WS2"
+    },
+    {
+        "description": "MoS2 2S -> SeO 6x6",
+        "cell": [
+            3,
+            3,
+            1
+        ],
+        "pbc" : [true, true, false],
+        "defects_number": "all",
+        "defects": [
+            {
+                "type": "substitution",
+                "from": "S",
+                "to": "Se"
+            },
+            {
+                "type": "substitution",
+                "from": "S",
+                "to": "O"
+            }
+        ],
+        "base": "MoS2"
+    },
+    {
+        "description": "MoS2 2Mo -> 2Te 6x6",
+        "cell": [
+            3,
+            3,
+            1
+        ],
+        "pbc" : [true, true, false],
+        "defects_number": "all",
+        "defects": [
+            {
+                "type": "substitution",
+                "from": "Mo",
+                "to": "Te"
+            },
+            {
+                "type": "substitution",
+                "from": "Mo",
+                "to": "Te"
+            }
+        ],
+        "base": "MoS2"
+    }
+]
