@@ -1,0 +1,5 @@
+outs:
+- md5: 689d2ffd4043ac2dc0e0d88d07513c1e.dir
+  size: 185317
+  nfiles: 30
+  path: cgcnn_data_format
