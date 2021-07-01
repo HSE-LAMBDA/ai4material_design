@@ -1,0 +1,3 @@
+[submodule "cgcnn"]
+	path = cgcnn
+	url = https://github.com/txie-93/cgcnn
