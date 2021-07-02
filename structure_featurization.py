@@ -21,7 +21,7 @@ def featurize(structure: pymatgen.core.structure.Structure) -> dict:
                                         StructuralComplexity(),
                                         ])
     features = feature_calculator.featurize(structure)
-    features = dict(zip(feature_calculator.feature_labels(), features)),
+    features = dict(zip(feature_calculator.feature_labels(), features))
     return features
 
 
