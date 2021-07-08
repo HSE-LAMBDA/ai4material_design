@@ -13,6 +13,7 @@ ase = "^3.21.1"
 optuna = "^2.7.0"
 torch = "^1.8.1"
 madgrad = "^1.1"
+megnet = "^1.2.8"
 
 [tool.poetry.dev-dependencies]
 
