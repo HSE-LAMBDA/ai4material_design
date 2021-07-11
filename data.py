@@ -1,5 +1,8 @@
 import os
+import pandas as pd
 import ase.io
+import pymatgen.io.cif
+from tqdm.notebook import tqdm
 from collections import defaultdict
 
 def get_gpaw_trajectories(defect_db_path:str):
@@ -15,3 +18,13 @@ def get_gpaw_trajectories(defect_db_path:str):
                 pass
     return res
 
+
+def get_dichalcogenides_innopolis_202105(data_path:str="datasets/dichalcogenides_innopolis_202105"):
+    structures = pd.read_csv(os.path.join(data_path, "defects.csv"), index_col=0)
+    initial_structures = dict()
+    structures_folder = os.path.join(data_path, "initial")
+    for structure_file in tqdm(os.listdir(structures_folder)):
+        this_file = pymatgen.io.cif.CifParser(os.path.join(structures_folder, structure_file))
+        initial_structures[os.path.splitext(structure_file)[0]] = this_file.get_structures(primitive=False)[0]
+    structures["initial_structure"] = structures.apply(lambda row: initial_structures[row._id], axis=1)
+    return structures
