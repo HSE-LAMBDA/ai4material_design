@@ -3,6 +3,9 @@
 * [Data preparation](https://github.com/HSE-LAMBDA/ai4material_design/blob/main/Defect%20representation.ipynb)
 * [HOMO](https://github.com/HSE-LAMBDA/ai4material_design/blob/main/megnet-05-data-defect-only-HOMO-all.ipynb), 13.07 checkpoint is `callback/val_mae_04187_0.016599.hdf5`
 * [Energy per atom](https://github.com/HSE-LAMBDA/ai4material_design/blob/main/megnet-05-data-defect-only-E-per-atom.ipynb), 13.07 checkpoint is `callback/val_mae_01768_0.014190.hdf5`
+* [Plot and predict](https://github.com/HSE-LAMBDA/ai4material_design/blob/main/megnet-05-data-defect-only-plot-predict.ipynb)
+
+The models are saved into `https://github.com/HSE-LAMBDA/ai4material_design/blob/main/models/MEGNet-defect-only.dvc`
 
 ## Potential fitting on relaxation trajectories
 * Graph neural network [training](https://github.com/HSE-LAMBDA/ai4material_design/blob/main/GNN-traj.ipynb), [relaxation](https://github.com/HSE-LAMBDA/ai4material_design/blob/main/GNN-relaxation.ipynb)
