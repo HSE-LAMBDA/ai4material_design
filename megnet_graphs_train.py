@@ -36,7 +36,11 @@ def main():
     gc = VacancyAwareStructureGraph(
         bond_converter=GaussianDistance(np.linspace(0, 15, nfeat_edge), 0.5),
         cutoff=15)
-    model = MEGNetModel(nfeat_edge=nfeat_edge, nfeat_global=2, graph_converter=gc, npass=2)
+    model = MEGNetModel(nfeat_edge=nfeat_edge,
+                        nfeat_node=gc.n_atom_features,
+                        nfeat_global=2,
+                        graph_converter=gc,
+                        npass=2)
     scaler = StandardScaler.from_training_data(train.defect_representation,
                                                train[args.target],
                                                is_intensive=args.is_intensive)
