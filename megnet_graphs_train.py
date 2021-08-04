@@ -13,6 +13,13 @@ from megnet.data.graph import GaussianDistance
 
 from defect_representation import VacancyAwareStructureGraph, FlattenGaussianDistance
 
+IS_INTENSIVE = {
+    "homo": True,
+    "formation_energy": False
+}
+TRAIN_CORE_PATH = r"datasets/train_defects{}.pickle.gzip"
+MODEL_PATH_ROOT = os.path.join("models", "MEGNet-defect-only")
+
 
 def get_free_gpu():
     nvmlInit()
@@ -22,13 +29,6 @@ def get_free_gpu():
     ])
 
 
-IS_INTENSIVE = {
-    "homo": True,
-    "formation_energy": False
-}
-
-TRAIN_CORE_PATH = r"datasets/train_defects{}.pickle.gzip"
-MODEL_PATH_ROOT = os.path.join("models", "MEGNet-defect-only")
 class Experiment():
     def __init__(self,
                  target: str,
