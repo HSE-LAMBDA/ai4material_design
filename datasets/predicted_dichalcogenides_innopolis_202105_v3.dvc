@@ -1,0 +1,5 @@
+outs:
+- md5: d516c7364d8d85e64fffaa7bfdd3fbf1.dir
+  size: 5901753
+  nfiles: 113
+  path: predicted_dichalcogenides_innopolis_202105_v3
