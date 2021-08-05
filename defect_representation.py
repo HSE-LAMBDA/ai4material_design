@@ -10,7 +10,7 @@ from megnet.data.crystal import CrystalGraph
 from megnet.data.graph import Converter
 from megnet.data.graph import GaussianDistance
 
-
+# TODO(kazeevn) separate scales per axis, as dZ << dXY usually
 class FlattenGaussianDistance(GaussianDistance):
     def convert(self, d: np.ndarray) -> np.ndarray:
         """
@@ -23,7 +23,7 @@ class FlattenGaussianDistance(GaussianDistance):
         resulting vectors to serve as edge features.
         """
         if len(d.shape) != 2:
-            return ValueError("Input array must be 2-dimensional")
+            return ValueError("Input array must be 2-dimensional. Use plain GaussianDistance.")
         return np.concatenate(
             [super(FlattenGaussianDistance, self).convert(arr) for arr in d.T],
             axis=1)
@@ -35,7 +35,7 @@ class VacancyAwareStructureGraph(CrystalGraph):
                  atom_converter: Converter = None,
                  bond_converter: Converter = None,
                  cutoff: float = 5.0,
-                 add_displaced_species: bool = True,
+                 atom_features: str = "embed",
                  add_bond_z_coord: bool = True):
         """"
         Args:
@@ -45,8 +45,11 @@ class VacancyAwareStructureGraph(CrystalGraph):
            bond_converter (Converter): bond features converter
            cutoff (float): cutoff radius
          Added:
-           add_displaced_species (bool): if set, add the species that
-               occupied the defects sites in the pristine material
+           atom_features (str):
+                "embed": preserves the vanilla CrystalGraph behaviour, atomic number for embedding
+                "Z": charge as 1-d feature
+                "werespecies": vector of [Z, were_Z], where were_Z is the charge of the species that
+                occupied the defects site in the pristine material
            add_bond_z_coord: if set, add abs(atom_1.z_coord - atom_2.z_coord) as a bond feature.
                 Useful, as in our 2D materials z axis is special
         """
@@ -56,11 +59,15 @@ class VacancyAwareStructureGraph(CrystalGraph):
             bond_converter=bond_converter,
             cutoff=cutoff)
 
-        self.add_displaced_species = add_displaced_species
-        if add_displaced_species:
+        self.atom_features = atom_features
+        if atom_features == "werespecies":
             self.nfeat_node = 2
-        else:
+        elif atom_features == "Z":
             self.nfeat_node = 1
+        elif atom_features == "embed":
+            self.nfeat_node = None
+        else:
+            raise ValueError("Invalid atom_features")
         
         self.add_bond_z_coord = add_bond_z_coord
         if add_bond_z_coord:
@@ -68,12 +75,15 @@ class VacancyAwareStructureGraph(CrystalGraph):
         else:
             self.nfeat_edge = 1
 
-    def get_atom_features(self, structure):
-        if self.add_displaced_species:
+    def get_atom_features(self, structure: Structure):
+        if self.atom_features == "werespecies":
             return [[0 if isinstance(i.specie, DummySpecies) else i.specie.Z,
                      i.properties['was']] for i in structure.sites]
-        else:
+        elif self.atom_features == "Z":
             return [[0 if isinstance(i, DummySpecies) else i.Z]
+                    for i in structure.species]
+        elif self.atom_features == "embed":
+            return [0 if isinstance(i, DummySpecies) else i.Z
                     for i in structure.species]
 
     def convert(self, structure: Structure) -> Dict:
@@ -100,5 +110,5 @@ class VacancyAwareStructureGraph(CrystalGraph):
         new_graph["bond"] = np.empty((graph["bond"].shape[0], 2), graph["bond"].dtype)
         new_graph["bond"][:, 0] = graph["bond"]
         for k, (i, j) in enumerate(zip(graph["index1"], graph["index2"])):
-            new_graph["bond"][k] = abs(z_coords[i] - z_coords[j])
+            new_graph["bond"][k, 1] = abs(z_coords[i] - z_coords[j])
         return new_graph
