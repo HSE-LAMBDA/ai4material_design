@@ -1,23 +1,19 @@
 # AI for material design
 ## Pure-defect GNN
 * Step 1: [data preparation](https://github.com/HSE-LAMBDA/ai4material_design/blob/main/Defect%20representation.ipynb).
-* Step 2: trainining with `megnet_graphs_train.py`.
-```
-python megnet_graphs_train.py --train datasets/train_defects.pickle.gzip --target homo --is-intensive True --experiment-name clean_full
-python megnet_graphs_train.py --train datasets/train_defects.pickle.gzip --target formation_energy --is-intensive False --experiment-name clean_full
-python megnet_graphs_train.py --train datasets/train_defects_vac_only.pickle.gzip --target homo --is-intensive True --experiment-name clean_vac_only
-python megnet_graphs_train.py --train datasets/train_defects_vac_only.pickle.gzip --target formation_energy --is-intensive False --experiment-name clean_vac_only
-```
-* [Plot and predict](https://github.com/HSE-LAMBDA/ai4material_design/blob/main/megnet-05-data-defect-only-plot-predict.ipynb)
+* Step 2: Trainining with `python megnet_graphs_train.py`.
+* Step 3: [Plot and predict](https://github.com/HSE-LAMBDA/ai4material_design/blob/main/megnet-05-data-defect-only-plot-predict.ipynb)
+* Step 4: [Summary analysis of experiments](https://github.com/HSE-LAMBDA/ai4material_design/blob/main/Summary%20analysis.ipynb)
 
-The models are saved into `https://github.com/HSE-LAMBDA/ai4material_design/blob/main/models/MEGNet-defect-only.dvc` and predictions to `https://github.com/HSE-LAMBDA/ai4material_design/blob/main/datasets/predicted_dichalcogenides_innopolis_202105_v2`.
+The models are saved into [MEGNet-defect-only.dvc](https://github.com/HSE-LAMBDA/ai4material_design/blob/main/models/MEGNet-defect-only.dvc), predictions and plots to [predicted_dichalcogenides_innopolis_202105_v3](https://github.com/HSE-LAMBDA/ai4material_design/blob/main/datasets/predicted_dichalcogenides_innopolis_202105_v3).
+
+## Defect screening with matminer
+* [Defect generation](https://github.com/HSE-LAMBDA/ai4material_design/blob/main/defects_generation/generation.ipynb)
+* [Defect featurization](https://github.com/HSE-LAMBDA/ai4material_design/blob/main/structure_featurization.py), featurize - simple structure features (~2k), featurize_expanded - wide set of features (~10k)
 
 ## Potential fitting on relaxation trajectories
 * Graph neural network [training](https://github.com/HSE-LAMBDA/ai4material_design/blob/main/GNN-traj.ipynb), [relaxation](https://github.com/HSE-LAMBDA/ai4material_design/blob/main/GNN-relaxation.ipynb)
 
-## Defect screening
-* [Defect generation](https://github.com/HSE-LAMBDA/ai4material_design/blob/main/defects_generation/generation.ipynb)
-* [Defect featurization](https://github.com/HSE-LAMBDA/ai4material_design/blob/main/structure_featurization.py), featurize - simple structure features (~2k), featurize_expanded - wide set of features (~10k)
 ## Old MoS2 experiments
 * CGCNN: [Paper](https://journals.aps.org/prl/pdf/10.1103/PhysRevLett.120.145301), [code](https://github.com/HSE-LAMBDA/ai4material_design/blob/main/cgcnn.ipynb).
 * Behler-Parrinello: [paper](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.98.146401), [code](https://github.com/HSE-LAMBDA/ai4material_design/blob/main/BP-wide-tuned-no-force.ipynb) Nikita has modified the potential to provide more information about the atom species, and made the descriptor parameters learnable, to no avail.
