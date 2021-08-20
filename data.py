@@ -2,7 +2,7 @@ import os
 import pandas as pd
 import ase.io
 import pymatgen.io.cif
-from tqdm.notebook import tqdm
+from tqdm.auto import tqdm
 from collections import defaultdict
 
 def get_gpaw_trajectories(defect_db_path:str):
@@ -19,7 +19,7 @@ def get_gpaw_trajectories(defect_db_path:str):
     return res
 
 
-def get_dichalcogenides_innopolis_202105(data_path:str="datasets/dichalcogenides_innopolis_202105"):
+def get_dichalcogenides_innopolis(data_path:str):
     structures = pd.read_csv(os.path.join(data_path, "defects.csv"), index_col=0)
     initial_structures = dict()
     structures_folder = os.path.join(data_path, "initial")
