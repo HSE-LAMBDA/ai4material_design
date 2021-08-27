@@ -1,3 +1,5 @@
+
+
 import os
 import pandas as pd
 import ase.io
@@ -20,7 +22,7 @@ def get_gpaw_trajectories(defect_db_path:str):
 
 
 def get_dichalcogenides_innopolis(data_path:str):
-    structures = pd.read_csv(os.path.join(data_path, "defects.csv"), index_col=0)
+    structures = pd.read_csv(os.path.join(data_path, "defects.csv"))
     initial_structures = dict()
     structures_folder = os.path.join(data_path, "initial")
     for structure_file in tqdm(os.listdir(structures_folder)):
