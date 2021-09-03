@@ -1,4 +1,16 @@
 # AI for material design
+## Running on HSE HPC
+* Clone the repo in the cluster
+* Pull the data `dvc pull`
+* Load singularity `module load singularity`
+* Set `WANDB_ENTITY`, `WANDB_API_KEY` in `singularity.sbatch
+* Get the image `singularity pull --docker-login  docker://abdalazizrashis/ai4material_design:latest`
+* Preprocess the data by running `singularity run singularity run ai4material_design_latest.sif python Defect_representation.py`
+* Submit the the jon `sbatch singularity.sbatch`
+* You can run the job interactively `srun -G 1 -c 4 --pty bash` to get interactive shell the run whatever script i.e. `singularity run --nv ai4material_design_latest.sif python megnet_grahps_train.py`
+
+
+
 ## Pure-defect GNN
 * Step 1: [data preparation](https://github.com/HSE-LAMBDA/ai4material_design/blob/main/Defect%20representation.ipynb).
 * Step 2: Trainining with `python megnet_graphs_train.py`.

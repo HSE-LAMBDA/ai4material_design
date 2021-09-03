@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import argparse
 from multiprocessing import Pool
+import pynvml
 from pynvml import nvmlInit, nvmlDeviceGetHandleByIndex, nvmlDeviceGetMemoryInfo, nvmlDeviceGetCount
 import wandb
 
@@ -78,7 +79,7 @@ class Experiment():
         train = pd.read_pickle(self.train_path)
         test = pd.read_pickle(self.test_path)
         run = wandb.init(project='ai4material_design',
-                         entity='kazeev',
+                         entity=os.environ["WANDB_ENTITY"],
                          config=self.__dict__,
                          reinit=True)
         nfeat_edge_per_dim = 10
@@ -104,7 +105,10 @@ class Experiment():
         os.environ['CUDA_DEVICE_ORDER']='PCI_BUS_ID'
         os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = "true"
         if gpu is None:
-            os.environ['CUDA_VISIBLE_DEVICES'] = str(get_free_gpu())
+            try:
+                os.environ['CUDA_VISIBLE_DEVICES'] = str(get_free_gpu())
+            except pynvml.nvml.NVMLError_LibraryNotFound:
+                pass
         else:
             os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu)
         model = MEGNetModel(nfeat_edge=graph_converter.nfeat_edge*nfeat_edge_per_dim,
@@ -225,7 +229,7 @@ def generate_ss_experiments():
 
 
 def run_on_gpu(index_experiment):
-    return index_experiment[1].run(gpu=str(index_experiment[0] % 4))
+    return index_experiment[1].run()
 
 
 def main():
