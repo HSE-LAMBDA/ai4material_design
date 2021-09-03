@@ -1,5 +1,5 @@
 outs:
-- md5: 9acce629f4a061218b67c935c2b2d23d.dir
-  size: 333131759
-  nfiles: 249
+- md5: c666b08f9a638d458da20df5280e94d6.dir
+  size: 486214603
+  nfiles: 351
   path: MEGNet-defect-only
