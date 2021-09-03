@@ -1,0 +1,11 @@
+#!/bin/bash
+#SBATCH --gres=gpu:1              # Number of GPU(s) per node
+#SBATCH --cpus-per-task=6         # CPU cores/threads
+#SBATCH --time=0-24:00            # time (DD-HH:MM)
+export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
+export WANDB_ENTITY=<???????????????????????>
+export WANDB_API_KEY=<???????????????????????>
+
+module purge
+module load singularity
+singularity run --nv ai4material_design_latest.sif python megnet_graphs_train.py
