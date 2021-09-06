@@ -17,7 +17,7 @@
 * Step 3: [Plot and predict](https://github.com/HSE-LAMBDA/ai4material_design/blob/main/megnet-05-data-defect-only-plot-predict.ipynb)
 * Step 4: [Summary analysis of experiments](https://github.com/HSE-LAMBDA/ai4material_design/blob/main/Summary%20analysis.ipynb)
 
-The models are saved into [MEGNet-defect-only.dvc](https://github.com/HSE-LAMBDA/ai4material_design/blob/main/models/MEGNet-defect-only.dvc), predictions and plots to [predicted_dichalcogenides_innopolis_202105_v3](https://github.com/HSE-LAMBDA/ai4material_design/blob/main/datasets/predicted_dichalcogenides_innopolis_202105_v3).
+The models are saved into [MEGNet-defect-only.dvc](https://github.com/HSE-LAMBDA/ai4material_design/blob/main/models/MEGNet-defect-only.dvc), predictions and plots to `predicted_dichalcogenides_innopolis_202105_v*`.
 
 ## Defect screening with matminer
 * [Defect generation](https://github.com/HSE-LAMBDA/ai4material_design/blob/main/defects_generation/generation.ipynb)
