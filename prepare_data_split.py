@@ -39,7 +39,7 @@ def main():
     structures = list(map(read_structures_descriptions, args.datasets))
     if any(map(indices_intersect, combinations(structures, 2))):
         raise ValueError("Structures contain duplicate indices")
-    structures = pd.concat(structures, axis=0)
+    structures = pd.concat(structures, axis=0).dropna()
 
     defects = list(map(read_defects_descriptions, args.datasets))
     if any(map(indices_intersect, combinations(defects, 2))):

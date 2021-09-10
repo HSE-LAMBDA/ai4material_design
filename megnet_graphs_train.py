@@ -22,7 +22,7 @@ IS_INTENSIVE = {
     "band_gap": True,
     "formation_energy_per_site": True
 }
-CORE_PATH = r"datasets/{}_defects{}.pickle.gzip"
+
 MODEL_PATH_ROOT = os.path.join("models", "MEGNet-defect-only")
 
 
@@ -36,28 +36,17 @@ def get_free_gpu():
 
 class Experiment():
     def __init__(self,
+                 data_path: str,
+                 folds_path: str,
+                 total_folds: int,
+                 test_fold: list,
                  target: str,
-                 vacancy_only: bool,
                  atom_features: str,
                  add_bond_z_coord: bool,
                  epochs: int = 1000,
-                 path_suffix: str = None,
                  learning_rate: float = 1e-3,
                  supercell_replication = None):
-        if path_suffix is None:
-            if vacancy_only:
-                self.train_path = CORE_PATH.format("train", "_vac_only")
-                self.test_path = CORE_PATH.format("test", "_vac_only")
-                self.data_name = "vac_only"
-            else:
-                self.train_path = CORE_PATH.format("train", "")
-                self.test_path = CORE_PATH.format("test", "")
-                self.data_name = "full"
-        else:
-            self.data_name = path_suffix
-            self.train_path = CORE_PATH.format("train", "_"+path_suffix)
-            self.test_path = CORE_PATH.format("test", "_"+path_suffix)
-        self.name = (f"{self.data_name}"
+        self.name = (f"fold_{test_fold}"
                      f"{'_bond_z' if add_bond_z_coord else ''}"
                      f"_{atom_features}"
                      f"{'_ss_replication' if supercell_replication else ''}"
@@ -69,15 +58,25 @@ class Experiment():
         self.model_path = os.path.join(MODEL_PATH_ROOT, self.target, self.name)
         self.learning_rate = learning_rate
         self.supercell_replication = supercell_replication
+        self.data_path = data_path
+        self.folds_path = folds_path
+        self.total_folds = total_folds
+        self.test_fold = test_fold
         if epochs is not None and supercell_replication:
             print("Warning: epochs is ignored if supercell_replication is set")
-        # This parameter is not used in run(), but is saved for reference
-        self.vacancy_only = vacancy_only
 
 
     def run(self, gpu=None):
-        train = pd.read_pickle(self.train_path)
-        test = pd.read_pickle(self.test_path)
+        data =  pd.read_pickle(self.data_path)
+        folds = pd.read_csv(self.folds_path, squeeze=True, index_col="_id")
+
+        train_folds = set(range(self.total_folds)) - set((self.test_fold,))
+        train_ids = folds[folds.isin(train_folds)]
+        train = data.reindex(index=train_ids.index)
+
+        test_ids = folds[folds == self.test_fold]
+        test = data.reindex(index=test_ids.index)
+
         run = wandb.init(project='ai4material_design',
                          entity=os.environ["WANDB_ENTITY"],
                          config=self.__dict__,
@@ -192,53 +191,39 @@ def product_dict(**kwargs):
         yield dict(zip(keys, instance))
 
 
-def generate_promissing_experiments():
+def generate_paper_experiments():
     params = {
         "atom_features": ("Z",),
         "add_bond_z_coord": (True,),
         "learning_rate": (2e-4,),
-        "target": ("formation_energy_per_site", "homo", "band_gap"),
-        "vacancy_only": (True, False),
-        "epochs": (1000,),
+        "target": ("formation_energy_per_site",),# "homo", "band_gap"),
+        "epochs": (10,),
         "supercell_replication": (None,),
-    }
-    return [Experiment(**params) for params in product_dict(**params)]
-
-
-def generate_ss_experiments():
-    params = {
-        "atom_features": ("Z",),
-        "add_bond_z_coord": (True,),
-        "learning_rate": (2e-4,),
-        "target": ("formation_energy_per_site", "homo", "band_gap"),
-        "vacancy_only": (True,),
-        "epochs": (1000,),
-        "path_suffix": (
-            None,
-            "vac_only_8x8_split",
-            "vac_only_no_8x8_in_train"),
-        "supercell_replication": (
-            None,
-            {"epochs_per_replication_variant": 100,
-             "replication_iterations": 10,
-             "max_replications": 4,
-             "random_seed": 42}
-        )
+        "total_folds": (8,),
+        "test_fold": range(8),
+        "data_path": ("datasets/all_structures_defects.pickle.gzip",),
+        "folds_path": ("datasets/paper_experiments/inputs/full.csv",)
     }
     return [Experiment(**params) for params in product_dict(**params)]
 
 
 def run_on_gpu(index_experiment):
-    return index_experiment[1].run()
+    return index_experiment[1].run(gpu=index_experiment[0]%4)
 
 
 def main():
+    parser = argparse.ArgumentParser("Runs MEGENet on sparse defects training")
+    parser.add_argument("--gpu-by-index", action="store_true")
+    args = parser.parse_args()
     os.environ["WANDB_START_METHOD"] = "thread"
     os.environ["WANDB_RUN_GROUP"] = "Defect-only-MEGNet-" + wandb.util.generate_id()
-    experiments = generate_ss_experiments() + generate_promissing_experiments()
+    experiments = generate_paper_experiments()
     # We are light on GPU usage
     with Pool(12) as p:
-        p.map(run_on_gpu, enumerate(experiments))
+        if args.gpu_by_index:
+            p.map(run_on_gpu, enumerate(experiments))
+        else:
+            p.map(methodcaller("run"), experiments)
 
 
 if __name__ == '__main__':
