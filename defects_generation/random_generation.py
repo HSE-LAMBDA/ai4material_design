@@ -23,7 +23,7 @@ def is_copy(structure: pymatgen.core.Structure,
     return is_copy
 
 
-def check_in(site: pymatgen.core.sites.PeriodicSite, defect_sites: list):
+def check_in(site: pymatgen.core.sites.PeriodicSite, defect_sites: list) -> bool:
     """
     Determines if the given site is in the list of sites
     """
@@ -34,7 +34,9 @@ def check_in(site: pymatgen.core.sites.PeriodicSite, defect_sites: list):
     return is_in
 
 
-def generate_one_random_defect(defect_descriptor: dict, structure: pymatgen.core.Structure):
+def generate_one_random_defect(defect_descriptor: dict, 
+                               structure: pymatgen.core.Structure
+                              ) -> pymatgen.core.Structure:
     """
     Generates a random defect by the rules, described in **defect_descriptor**
     **structure** is the base for defect generation, e.g. MoS2 6x6 cell without defected sites
@@ -84,14 +86,12 @@ def create_supercell(defect_descriptor: dict) -> pymatgen.core.structure.Structu
     return bulk_structure
 
 
-def generate_defect_set(defect_descriptor: dict) -> None:
+def generate_defect_set(defect_descriptor: dict) -> list:
     """
     Computes set of defects
     Args:
-        defect_descriptor (dict): Dictionary with fields "cell", "defects_number", "defects", "base"
-        Descriptor examples can ve found in folder screening_pipeline/descriptors
-        
-        database (str): Where to add the defect
+        defect_descriptor (dict): Dictionary with fields "description", "defects", "cell", "pbc", "base"
+        Descriptor examples can be found in folder ./X1S6_descriptors.json
     """
     bulk_structure = create_supercell(defect_descriptor)
     prepare_sites(defect_descriptor, bulk_structure.copy())
