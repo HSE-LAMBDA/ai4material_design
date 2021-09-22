@@ -11,7 +11,7 @@
 `datasets/paper_experiments_catboost/` contains the data, generated during the experiment.   
 I isolated them to simplify the structure of experiment, we can change it later.
 * Prepare the matminer features for each defect. There are two ways for that:
-  * Copy generated features from `datasets/dichalcogenides_innopolis_features/` to `datasets/paper_experiments_catboost/`
+  * Copy generated features from `datasets/dichalcogenides_innopolis_features/` to `datasets/paper_experiments_catboost/features/`
   * Run `python catboost_experiment_reproduction/make_features.py` (switch parameter `compute_all` to `True` before, otherwise you will run the default version that computes just 5 defects). 
 * to be continued..
 

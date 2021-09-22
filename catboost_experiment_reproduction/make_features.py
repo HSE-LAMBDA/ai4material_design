@@ -40,7 +40,7 @@ def main():
     print("Computing features:")
     features = defects['initial_structure'].progress_apply(featurize_structure)
     features_df = pd.DataFrame(list(features), index = features.index)
-    features_df.to_csv('datasets/paper_experiments_catboost/computed_features.csv')
+    features_df.to_csv('datasets/paper_experiments_catboost/features/computed_features.csv')
     
     
 if __name__ == "__main__":
