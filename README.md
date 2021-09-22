@@ -6,6 +6,15 @@
 * Get the predictions and the plot from `megnet-05-data-defect-only-plot-predict.ipynb`
 * You now have `datasets/paper_experiments/results/full.csv.gz` in the format specified by our [RFC](https://docs.google.com/document/d/1Cc3772US-E73yQEMFn444OY9og9blKHpuP21sv9Gdxk/edit?usp=sharing) and a plot in `datasets/paper_experiments/plots`
 
+## Predicting energy with CatBoost and matminer experiment
+`catboost_experiment_reproduction/` contains scripts for the experiment reproduction.
+`datasets/paper_experiments_catboost/` contains the data, generated during the experiment.   
+I isolated them to simplify the structure of experiment, we can change it later.
+* Prepare the matminer features for each defect. There are two ways for that:
+  * Copy generated features from `datasets/dichalcogenides_innopolis_features/` to `datasets/paper_experiments_catboost/`
+  * Run `python catboost_experiment_reproduction/make_features.py` (switch parameter `compute_all` to `True` before, otherwise you will run the default version that computes just 5 defects). 
+* to be continued..
+
 ## Running on HSE HPC
 * Clone the repo in the cluster
 * Pull the data `dvc pull`
