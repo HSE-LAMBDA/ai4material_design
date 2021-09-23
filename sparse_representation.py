@@ -66,8 +66,10 @@ def get_sparse_defect(structure, unit_cell, supercell_size, single_atom_energies
 
 
 def main():
-    structures_small, defects_small = get_dichalcogenides_innopolis("datasets/dichalcogenides_innopolis_202105/")
-    structures_8x8, defects_8x8 = get_dichalcogenides_innopolis("datasets/dichalcogenides8x8_innopolis_202108/")
+    structures_small, defects_small = get_dichalcogenides_innopolis(
+      "datasets/dichalcogenides_innopolis_202105/")
+    structures_8x8, defects_8x8 = get_dichalcogenides_innopolis(
+      "datasets/dichalcogenides8x8_innopolis_202108/")
     assert len(structures_8x8.index.intersection(structures_small.index)) == 0
     defects = pd.concat([defects_small, defects_8x8], axis=0)
     materials = defects.base.unique()
@@ -92,7 +94,8 @@ def main():
     def get_defecs_from_row(row):
         defect_description = defects.loc[row.descriptor_id]
         unit_cell = unit_cells[defect_description.base]
-        initial_energy = initial_structure_properties.loc[defect_description.base, defect_description.cell[0]].energy
+        initial_energy = initial_structure_properties.loc[
+          defect_description.base, defect_description.cell[0]].energy
         defect_structure, formation_energy_part = get_sparse_defect(
             row.initial_structure,
             unit_cell,
@@ -115,10 +118,13 @@ def main():
         lambda row: len(row.defect_representation) == len(defects.loc[row.descriptor_id, "defects"]), 
         axis=1).all()
 
-    all_structures.to_pickle("datasets/all_structures_defects.pickle.gzip")
+    all_structures.to_pickle(os.path.join("datasets", "all_structures_defects.pickle.gzip"))
+    all_structures.to_csv(
+      os.path.join("datasets", "preprocessed_dichalcogenides_innopolis", "targets.csv"),
+      index_label="_id",
+      columns=["energy", "energy_per_atom", "formation_energy", "formation_energy_per_site",
+               "band_gap", "homo", "lumo", "fermi_level"])
 
 
 if __name__ == "__main__":
     main()
-
-
