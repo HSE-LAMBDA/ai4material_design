@@ -196,8 +196,8 @@ def generate_paper_experiments():
         "atom_features": ("Z",),
         "add_bond_z_coord": (True,),
         "learning_rate": (2e-4,),
-        "target": ("formation_energy_per_site",),# "homo", "band_gap"),
-        "epochs": (10,),
+        "target": ("formation_energy_per_site", "homo", "band_gap"),
+        "epochs": (1000,),
         "supercell_replication": (None,),
         "total_folds": (8,),
         "test_fold": range(8),
@@ -208,7 +208,7 @@ def generate_paper_experiments():
 
 
 def run_on_gpu(index_experiment):
-    return index_experiment[1].run(gpu=index_experiment[0]%4)
+    return index_experiment[1].run(gpu=1+index_experiment[0]%3)
 
 
 def main():
@@ -219,7 +219,7 @@ def main():
     os.environ["WANDB_RUN_GROUP"] = "Defect-only-MEGNet-" + wandb.util.generate_id()
     experiments = generate_paper_experiments()
     # We are light on GPU usage
-    with Pool(12) as p:
+    with Pool(9) as p:
         if args.gpu_by_index:
             p.map(run_on_gpu, enumerate(experiments))
         else:
