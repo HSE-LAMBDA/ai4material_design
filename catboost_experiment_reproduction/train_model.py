@@ -9,6 +9,7 @@ MODEL_PATH_ROOT = os.path.join("datasets", "paper_experiments_catboost", "models
 
 class Experiment():
     def __init__(self,
+                 experiment_id: int,
                  data_path: str,
                  folds_path: str,
                  features_path: str,
@@ -18,12 +19,13 @@ class Experiment():
                  epochs: int = 1000,
                  learning_rate: float = 0.1,
                  supercell_replication = None):
-        self.name = (f"fold_{test_fold}"
-                     f"_{epochs}"
-                     ".cbm")
+        self.model_folder = (f"{target}"
+                             f"_id{experiment_id}"
+                             f"_epochs{epochs}")
+        self.model_filename = f"fold_{test_fold}.cbm"
         self.target = target
         self.epochs = epochs
-        self.model_path = os.path.join(MODEL_PATH_ROOT, self.target, self.name)
+        self.model_path = os.path.join(MODEL_PATH_ROOT, self.model_folder, self.model_filename)
         self.learning_rate = learning_rate
         self.data_path = data_path
         self.folds_path = folds_path
@@ -32,6 +34,7 @@ class Experiment():
         self.test_fold = test_fold
         
     def run(self, gpu=None):
+        os.makedirs(os.path.dirname(self.model_path), exist_ok=True)
         self.__load_data()
         self.__train_model()
         
@@ -70,13 +73,14 @@ def product_dict(**kwargs):
         
 def generate_paper_experiments():
     params = {
-        "learning_rate": (0.2,),
+        "experiment_id": (0, ),
+        "learning_rate": (0.1,),
         "target": ("energy_per_atom",),# "homo", "band_gap"),
-        "epochs": (1000,),
+        "epochs": (5000,),
         "total_folds": (8,),
         "test_fold": range(8),
-        "data_path": ("datasets/paper_experiments_catboost/targets/defects.csv",),
-        "folds_path": ("datasets/paper_experiments_catboost/inputs/full.csv",),
+        "data_path": ("datasets/dichalcogenides_innopolis_202105/defects.csv",),
+        "folds_path": ("datasets/paper_experiments_catboost/folds/full.csv",),
         "features_path": ("datasets/paper_experiments_catboost/features/features.csv", )
     }
     return [Experiment(**params) for params in product_dict(**params)]
