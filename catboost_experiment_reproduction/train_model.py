@@ -73,13 +73,13 @@ def product_dict(**kwargs):
         
 def generate_paper_experiments():
     params = {
-        "experiment_id": (0, ),
+        "experiment_id": (1, ),
         "learning_rate": (0.1,),
-        "target": ("energy_per_atom",),# "homo", "band_gap"),
+        "target": ("formation_energy_per_site",),# "homo", "band_gap"),
         "epochs": (5000,),
         "total_folds": (8,),
         "test_fold": range(8),
-        "data_path": ("datasets/dichalcogenides_innopolis_202105/defects.csv",),
+        "data_path": ("datasets/preprocessed_dichalcogenides_innopolis/targets.csv",),
         "folds_path": ("datasets/paper_experiments_catboost/folds/full.csv",),
         "features_path": ("datasets/paper_experiments_catboost/features/features.csv", )
     }
