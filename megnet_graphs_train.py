@@ -201,14 +201,14 @@ def generate_paper_experiments():
         "supercell_replication": (None,),
         "total_folds": (8,),
         "test_fold": range(8),
-        "data_path": ("datasets/all_structures_defects.pickle.gzip",),
-        "folds_path": ("datasets/paper_experiments/inputs/full.csv",)
+        "data_path": ("datasets/tmp/all_structures_defects.pickle.gzip",),
+        "folds_path": ("datasets/paper_experiments_x1s6_202109/inputs/full.csv",)
     }
     return [Experiment(**params) for params in product_dict(**params)]
 
 
 def run_on_gpu(index_experiment):
-    return index_experiment[1].run(gpu=1+index_experiment[0]%3)
+    return index_experiment[1].run(gpu=index_experiment[0]%4)
 
 
 def main():
@@ -219,7 +219,7 @@ def main():
     os.environ["WANDB_RUN_GROUP"] = "Defect-only-MEGNet-" + wandb.util.generate_id()
     experiments = generate_paper_experiments()
     # We are light on GPU usage
-    with Pool(9) as p:
+    with Pool(12) as p:
         if args.gpu_by_index:
             p.map(run_on_gpu, enumerate(experiments))
         else:

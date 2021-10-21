@@ -8,8 +8,7 @@ from pymatgen.core import Structure
 from pymatgen.core.periodic_table import DummySpecies, Element
 from pymatgen.io.cif import CifParser
 
-SINGLE_ENENRGY_COLUMN = "energy_bulk_estimate"
-
+SINGLE_ENENRGY_COLUMN = "chemical_potential"
 
 def get_frac_coords_set(structure):
   return set(map(tuple, np.round(structure.frac_coords, 3)))
@@ -66,30 +65,19 @@ def get_sparse_defect(structure, unit_cell, supercell_size, single_atom_energies
 
 
 def main():
-    structures_small, defects_small = get_dichalcogenides_innopolis(
-      "datasets/dichalcogenides_innopolis_202105/")
-    structures_8x8, defects_8x8 = get_dichalcogenides_innopolis(
-      "datasets/dichalcogenides8x8_innopolis_202108/")
-    assert len(structures_8x8.index.intersection(structures_small.index)) == 0
-    defects = pd.concat([defects_small, defects_8x8], axis=0)
+    data_path = os.path.join("datasets", "dichalcogenides_x1s6_202109")
+    structures, defects = get_dichalcogenides_innopolis(data_path)
     materials = defects.base.unique()
     unit_cells = {}
     for material in materials:
         unit_cells[material] = CifParser(os.path.join(
             "defects_generation", "molecules", f"{material}.cif")).get_structures(primitive=True)[0]
-    initial_structure_properties = pd.concat([
-        pd.read_csv(os.path.join("datasets", "dichalcogenides_innopolis_202105", "initial_structures.csv"),
-                    index_col=["base", "cell_length"], usecols=[1,2,3,4]),
-        pd.read_csv(os.path.join("datasets", "dichalcogenides8x8_innopolis_202108", "initial_structures.csv"),
-                    index_col=["base", "cell_length"], usecols=[1,2,3,4])
-    ], axis=0)
-    single_atom_energies = pd.read_csv(os.path.join("datasets", "single_atom_energies.csv"),
-                                   index_col=0,
-                                   converters={0: Element})
-    temporary_energies = {"Mo": -10.85, "W": -12.96, "S": -4.24, "Se": -3.50, "O": -4.95}
-    for element_name, energy in temporary_energies.items():
-        single_atom_energies.loc[Element(element_name), SINGLE_ENENRGY_COLUMN] = energy
-
+    initial_structure_properties = pd.read_csv(
+      os.path.join(data_path, "initial_structures.csv"),
+      index_col=["base", "cell_length"], usecols=[1,2,3,4])
+    single_atom_energies = pd.read_csv(os.path.join(data_path, "elements.csv"),
+                                       index_col=0,
+                                       converters={0: Element})
     # TODO(kazeevn) this all is very ugly
     def get_defecs_from_row(row):
         defect_description = defects.loc[row.descriptor_id]
@@ -103,24 +91,23 @@ def main():
             single_atom_energies)
         return defect_structure, formation_energy_part + row.energy - initial_energy
 
-    all_structures = pd.concat([structures_small, structures_8x8.dropna()], axis=0)
-    defect_properties = all_structures.apply(
+    defect_properties = structures.apply(
         get_defecs_from_row,
         axis=1,
         result_type="expand")
     defect_properties.columns = ["defect_representation", "formation_energy"]
-    all_structures = all_structures.join(defect_properties)
+    structures = structures.join(defect_properties)
 
-    all_structures["formation_energy_per_site"] = all_structures["formation_energy"] / all_structures["defect_representation"].apply(len)
-    all_structures["band_gap"] = all_structures["lumo"] - all_structures["homo"]
+    structures["formation_energy_per_site"] = structures["formation_energy"] / structures["defect_representation"].apply(len)
+    structures["band_gap"] = structures["lumo"] - structures["homo"]
 
-    assert all_structures.apply(
+    assert structures.apply(
         lambda row: len(row.defect_representation) == len(defects.loc[row.descriptor_id, "defects"]), 
         axis=1).all()
 
-    all_structures.to_pickle(os.path.join("datasets", "all_structures_defects.pickle.gzip"))
-    all_structures.to_csv(
-      os.path.join("datasets", "preprocessed_dichalcogenides_innopolis", "targets.csv"),
+    structures.to_pickle(os.path.join("datasets", "tmp", "all_structures_defects.pickle.gzip"))
+    structures.to_csv(
+      os.path.join("datasets", "paper_experiments_x1s6_202109", "inputs", "targets.csv"),
       index_label="_id",
       columns=["energy", "energy_per_atom", "formation_energy", "formation_energy_per_site",
                "band_gap", "homo", "lumo", "fermi_level"])

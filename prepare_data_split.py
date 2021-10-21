@@ -25,12 +25,10 @@ def get_folds(length, n_folds, random_state):
 def main():
     parser = argparse.ArgumentParser("Prepares data splits for the paper")
     parser.add_argument("--datasets", nargs="+", default=[
-        os.path.join(DEFAULT_DATA_ROOT, "dichalcogenides_innopolis_202105"),
-        os.path.join(DEFAULT_DATA_ROOT, "dichalcogenides8x8_innopolis_202108")]
-                        )
+        os.path.join(DEFAULT_DATA_ROOT, "dichalcogenides_x1s6_202109")])
     parser.add_argument("--output-folder", type=str,
                         default=os.path.join(DEFAULT_DATA_ROOT,
-                                             "paper_experiments",
+                                             "paper_experiments_x1s6_202109",
                                              "inputs"))
     parser.add_argument("--random-seed", type=int, default=42)
     parser.add_argument("--n-folds", type=int, default=8)
