@@ -1,0 +1,5 @@
+outs:
+- md5: 2b60db3a0d3809858d5480216faa9daf.dir
+  size: 4013850712
+  nfiles: 1
+  path: dichalcogenides_vasp_nus_mos2_small_cell_202110
