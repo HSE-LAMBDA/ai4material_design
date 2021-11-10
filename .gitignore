@@ -2,3 +2,8 @@ __pycache__
 .ipynb_checkpoints
 callback
 wandb
+.vscode/settings.json
+**/*.tar.gz
+**/*.pickle
+**/*.csv
+**/*.gzip
