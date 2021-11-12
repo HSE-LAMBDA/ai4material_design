@@ -8,5 +8,9 @@ class Config:
 
         self.path = Path(parent_path).joinpath(
             name if name.endswith('.yaml') else f'{name}.yaml')
-        self.config = OmegaConf.load(self.path)
+        self._config = OmegaConf.load(self.path)
+    
+    @property
+    def config(self):
+        return self._config
         
