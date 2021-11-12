@@ -1,20 +1,34 @@
 from pathlib import Path
 import torch
-from omegaconf import OmegaConf
-
-
-def load_config(config_path):
-    config_path = Path(config_path)
-    return OmegaConf.load(config_path)
 
 from itertools import product
 from pathlib import Path
 
 import numpy as np
 import torch
-
+import pickle
+import functools
 from torch_scatter import segment_coo, segment_csr
 
+
+def cache(name):
+    """Argument decorator wrapper"""
+    def wrapper(func):
+        """Function decorator"""
+        @functools.wraps(func)
+        def _cache(*args, **kwargs):
+            cache_file = Path(f'{name}.cache')
+            if cache_file.exists():
+                with open(cache_file, 'rb') as file:
+                    pkl = pickle.load(file)
+                print('Loaded from cache')
+            else:
+                with open(cache_file, 'wb') as file:
+                    pkl = pickle.dump(func(*args, **kwargs), file)
+                print('File cached')
+            return pkl
+        return _cache
+    return wrapper
 
 
 
