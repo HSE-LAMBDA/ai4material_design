@@ -1,6 +1,5 @@
-import os
+import argparse
 from pathlib import Path
-
 import numpy as np
 import pandas as pd
 from pymatgen.core import Structure
@@ -69,15 +68,21 @@ def get_sparse_defect(structure, unit_cell, supercell_size,
     return res, defect_energy_correction
 
 
-def main(kind="dichalcogenides_x1s6_202109"):
-    data_path = Path("datasets").joinpath(kind)
-    structures, defects = get_dichalcogenides_innopolis(data_path)
+def main():
+    parser = argparse.ArgumentParser("Parses csv/cif into pickle and targets.csv")
+    parser.add_argument("--input-folder", type=str, required=True)
+    parser.add_argument("--output-folder", type=str, required=True)
+    parser.add_argument("--ignore-missing", action="store_true")
+    args = parser.parse_args()
+
+    structures, defects = get_dichalcogenides_innopolis(args.input_folder)
     materials = defects.base.unique()
     unit_cells = {}
     for material in materials:
         unit_cells[material] = CifParser(Path().joinpath(
             "defects_generation", "molecules",
             f"{material}.cif")).get_structures(primitive=True)[0]
+    data_path = Path(args.input_folder)
     initial_structure_properties = pd.read_csv(
         data_path.joinpath("initial_structures.csv"),
         index_col=["base", "cell_length"],
@@ -97,28 +102,31 @@ def main(kind="dichalcogenides_x1s6_202109"):
                 row.initial_structure, unit_cell, defect_description.cell,
                 single_atom_energies)
             return defect_structure, formation_energy_part + row.energy - initial_energy
-
         except KeyError:
-            return None, None
+            if args.ignore_missing:
+                return None, None
+            else:
+                raise
 
     defect_properties = structures.apply(get_defecs_from_row,
                                          axis=1,
                                          result_type="expand")
     defect_properties.columns = ["defect_representation", "formation_energy"]
     structures = structures.join(defect_properties)
-    structures = structures.dropna()
+    if args.ignore_missing:
+        structures = structures.dropna()
     structures["formation_energy_per_site"] = structures[
         "formation_energy"] / structures["defect_representation"].apply(len)
     structures["band_gap"] = structures["lumo"] - structures["homo"]
 
-    assert structures.apply(lambda row: len(row.defect_representation) == len(
-        defects.loc[row.descriptor_id, "defects"]),
-                            axis=1).all()
+    # assert structures.apply(lambda row: len(row.defect_representation) == len(
+    #    defects.loc[row.descriptor_id, "defects"]),
+    #                        axis=1).all()
 
-    save_dir = Path("datasets", "processed", kind)
+    save_dir = Path(args.output_folder)
     save_dir.mkdir(exist_ok=True)
     structures.to_pickle(
-        save_dir.joinpath("all_structures_defects.pickle.gzip"))
+        save_dir.joinpath("data.pickle.gzip"))
     structures.to_csv(save_dir.joinpath("targets.csv"),
                       index_label="_id",
                       columns=[

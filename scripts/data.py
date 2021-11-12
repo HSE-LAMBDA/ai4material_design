@@ -1,9 +1,22 @@
 import os
+import pathlib
 import pandas as pd
 import ase.io
 import pymatgen.io.cif
 from tqdm.auto import tqdm
 from collections import defaultdict
+
+
+def get_pickle_path(csv_cif_path):
+    return os.path.join(csv_cif_path.replace("csv_cif"), "processed")
+
+
+def get_experiment_name(experiment_path):
+    return pathlib.PurePath(experiment_path).name
+
+
+def get_trial_name(trial_file):
+    return pathlib.PurePath(trial_file).stem
 
 
 def get_gpaw_trajectories(defect_db_path:str):
