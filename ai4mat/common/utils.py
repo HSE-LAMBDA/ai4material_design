@@ -24,7 +24,8 @@ def cache(name):
                 print('Loaded from cache')
             else:
                 with open(cache_file, 'wb') as file:
-                    pkl = pickle.dump(func(*args, **kwargs), file)
+                    pkl = func(*args, **kwargs)
+                    pickle.dump(pkl, file)
                 print('File cached')
             return pkl
         return _cache
