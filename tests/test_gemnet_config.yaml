@@ -14,7 +14,6 @@ task:
   grad_input: atomic forces
   train_on_free_atoms: True
   eval_on_free_atoms: True
-
   name: gemnet
 
 model:
@@ -45,7 +44,7 @@ model:
   otf_graph: True
   output_init: HeOrthogonal
   activation: silu
-  scale_file: scaling_factors/gemnet.json
+  scale_file: gemnet.json
 
   regress_forces: False
   direct_forces: False
