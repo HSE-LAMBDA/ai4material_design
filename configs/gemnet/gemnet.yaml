@@ -41,8 +41,8 @@ model:
     exponent: 5
   cbf:
     name: spherical_harmonics
-  extensive: True
-  otf_graph: False
+  extensive: False
+  otf_graph: True
   output_init: HeOrthogonal
   activation: silu
   scale_file: configs/gemnet/scaling_factors/gemnet.json
@@ -51,6 +51,7 @@ model:
   direct_forces: False
 
 optim:
+  max_epochs: 80
   batch_size: 32
   eval_batch_size: 32
   eval_every: 5000
@@ -62,7 +63,6 @@ optim:
   mode: min
   factor: 0.8
   patience: 3
-  max_epochs: 80
   force_coefficient: 100
   energy_coefficient: 1
   ema_decay: 0.999
