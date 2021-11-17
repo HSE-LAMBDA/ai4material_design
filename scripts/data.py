@@ -8,7 +8,7 @@ from collections import defaultdict
 
 
 def get_pickle_path(csv_cif_path):
-    return os.path.join(csv_cif_path.replace("csv_cif"), "processed")
+    return os.path.join(csv_cif_path.replace("csv_cif", "processed"), "data.pickle.gzip")
 
 
 def get_experiment_name(experiment_path):
@@ -18,6 +18,22 @@ def get_experiment_name(experiment_path):
 def get_trial_name(trial_file):
     return pathlib.PurePath(trial_file).stem
 
+
+def get_column_from_data_type(data_type):
+    if data_type == 'sparse':
+        return "defect_representation"
+    elif data_type == 'full':
+        return "initial_structure"
+    else:
+        raise ValueError("Unknown data_type")
+
+
+IS_INTENSIVE = {
+    "homo": True,
+    "formation_energy": False,
+    "band_gap": True,
+    "formation_energy_per_site": True
+}
 
 def get_gpaw_trajectories(defect_db_path:str):
     res = defaultdict(list)
@@ -43,7 +59,6 @@ def read_structures_descriptions(data_path:str):
                        # doesn't
                        usecols=["_id",
                                 "descriptor_id",
-                                "defect_id",
                                 "energy",
                                 "energy_per_atom",
                                 "fermi_level",
