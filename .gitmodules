@@ -1,6 +1,0 @@
-[submodule "cgcnn"]
-	path = ai4mat/models/cgcnn
-	url = https://github.com/txie-93/cgcnn
-[submodule "megnet"]
-	path = ai4mat/models/megnet
-	url = git@github.com:materialsvirtuallab/megnet.git

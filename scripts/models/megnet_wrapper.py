@@ -67,7 +67,8 @@ def get_megnet_predictions(
                     callbacks=[wandb.keras.WandbCallback(save_model=False)],
                     save_checkpoint=False,
                     verbose=1)
-    return model.predict_structures(test_structures)
+    predictions = model.predict_structures(test_structures)
+    return predictions.ravel()
 
 
 def train_with_supercell_replication(

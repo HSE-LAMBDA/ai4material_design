@@ -1,0 +1,8 @@
+datasets:
+- datasets/csv_cif/dichalcogenides_x1s6_202109_MoS2
+n-folds: 8
+strategy: cv
+targets:
+- band_gap
+- homo
+- formation_energy_per_site

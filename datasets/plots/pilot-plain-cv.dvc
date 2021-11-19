@@ -1,0 +1,5 @@
+outs:
+- md5: 74961341580706c36775529cb65be44c.dir
+  size: 50239
+  nfiles: 3
+  path: pilot-plain-cv

@@ -1,0 +1,6 @@
+csv_cif: datasets/csv_cif
+processed: datasets/processed
+experiments: datasets/experiments
+predictions: datasets/predictions
+plots: datasets/plots
+trials: trials

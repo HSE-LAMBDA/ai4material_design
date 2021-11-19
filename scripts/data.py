@@ -1,23 +1,42 @@
 import os
-import pathlib
+import shutil
+from pathlib import Path
+import yaml
 import pandas as pd
 import ase.io
 import pymatgen.io.cif
 from tqdm.auto import tqdm
 from collections import defaultdict
 
+class StorageResolver:
+    def __init__(self,
+                 config_name=Path(__file__).parent.parent.joinpath("storage.yaml")):
+        self.root_folder = config_name.parents[0].absolute()
+        with open(config_name) as config_file:
+            self.config = yaml.safe_load(config_file)
 
-def get_pickle_path(csv_cif_path):
-    return os.path.join(csv_cif_path.replace("csv_cif", "processed"), "data.pickle.gzip")
+    def __getitem__(self, key):
+        return Path(self.root_folder, self.config[key])
 
 
 def get_experiment_name(experiment_path):
-    return pathlib.PurePath(experiment_path).name
+    return Path(experiment_path).name
 
 
 def get_trial_name(trial_file):
-    return pathlib.PurePath(trial_file).stem
+    return Path(trial_file).stem
 
+
+def get_prediction_path(experiment_name,
+                        target_name,
+                        this_trial_name):
+    return Path(experiment_name,
+                target_name,
+                f"{this_trial_name}.csv.gz")
+
+
+def get_targets_path(csv_cif_path):
+    return Path(csv_cif_path.replace("csv_cif", "processed"), "targets.csv.gz")
 
 def get_column_from_data_type(data_type):
     if data_type == 'sparse':
@@ -28,12 +47,30 @@ def get_column_from_data_type(data_type):
         raise ValueError("Unknown data_type")
 
 
+def copy_indexed_structures(structures, input_folder, output_folder):
+    save_path = Path(output_folder)
+    save_path.mkdir(parents=True)
+    # since we don't clean, raise if output exists
+    for file_name in ("descriptors.csv", "elements.csv", "initial_structures.csv"):
+        shutil.copy2(Path(input_folder, file_name),
+                     save_path.joinpath(file_name))
+    structures_folder = save_path.joinpath("initial")
+    structures_folder.mkdir()
+    input_structures_folder = Path(input_folder, "initial")
+    for structure_id in structures.index:
+        file_name = f"{structure_id}.cif"
+        shutil.copy2(input_structures_folder.joinpath(file_name),
+                     structures_folder.joinpath(file_name))
+    structures.to_csv(save_path.joinpath("defects.csv"),
+                      index_label="_id")
+
 IS_INTENSIVE = {
     "homo": True,
     "formation_energy": False,
     "band_gap": True,
     "formation_energy_per_site": True
 }
+
 
 def get_gpaw_trajectories(defect_db_path:str):
     res = defaultdict(list)

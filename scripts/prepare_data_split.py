@@ -4,7 +4,11 @@ import yaml
 from itertools import combinations
 import pandas as pd
 import numpy as np
-from data import read_structures_descriptions, read_defects_descriptions
+from data import (
+    read_structures_descriptions,
+    read_defects_descriptions,
+    StorageResolver
+)
 
 
 def indices_intersect(dataframes):
@@ -22,16 +26,18 @@ def get_folds(length, n_folds, random_state):
 
 def main():
     parser = argparse.ArgumentParser("Prepares CV data splits")
-    parser.add_argument("--datasets", nargs="+")
-    parser.add_argument("--output-folder", type=str)
+    parser.add_argument("--datasets", nargs="+", required=True)
+    parser.add_argument("--experiment-name", type=str, required=True)
     parser.add_argument("--random-seed", type=int, default=42)
     parser.add_argument("--n-folds", type=int, default=8)
+    parser.add_argument("--targets", type=str, nargs="+",
+                        default=["band_gap", "homo", "formation_energy_per_site"])
 
     args = parser.parse_args()
     structures = list(map(read_structures_descriptions, args.datasets))
     if any(map(indices_intersect, combinations(structures, 2))):
         raise ValueError("Structures contain duplicate indices")
-    structures = pd.concat(structures, axis=0).dropna()
+    structures = pd.concat(structures, axis=0)
 
     defects = list(map(read_defects_descriptions, args.datasets))
     if any(map(indices_intersect, combinations(defects, 2))):
@@ -40,7 +46,7 @@ def main():
 
     random_state = np.random.RandomState(args.random_seed)
     
-    output_path = Path(args.output_folder)
+    output_path = StorageResolver()["experiments"].joinpath(args.experiment_name)
     output_path.mkdir(exist_ok=True)
     fold_full = pd.Series(data=get_folds(len(structures), args.n_folds, random_state),
                           index=structures.index, name="fold")
@@ -49,7 +55,8 @@ def main():
     config = {
         "datasets": args.datasets,
         "strategy": "cv",
-        "n-folds": args.n_folds
+        "n-folds": args.n_folds,
+        "targets": args.targets
     }
     with open(output_path.joinpath("config.yaml"), "wt") as config_file:
         yaml.dump(config, config_file)
