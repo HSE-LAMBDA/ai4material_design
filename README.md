@@ -29,7 +29,8 @@ Make sure you are logged in to WanDB and use WanDB entity you have access to. Ad
 poetry run python scripts/run_experiments.py --experiments pilot-plain-cv --trials megnet-sparse-pilot --gpus 0 1 2 3 --wandb-entity hse_lambda
 ```
 This creates predictions in `datasets/predictions/pilot-plain-cv` and run information at [WanDB](https://wandb.ai/hse_lambda/ai4material_design).
-4.  Plot the plots
+
+4. Plot the plots
 ```
 poetry run python scripts/plot.py --experiments pilot-plain-cv --trials megnet-sparse-pilot
 ```
