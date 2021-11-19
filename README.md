@@ -5,21 +5,25 @@
 
 ## Running the pipepline
 Below we descrbie a lightweight test run
-0.  Pull the inputs from DVC
+
+0. Pull the inputs from DVC
 ```
 dvc pull datasets/csv_cif/pilot.dvc datasets/experiments/pilot-plain-cv.dvc
 ```
-1.  Prepare splits for experiments. Splits are shared between people, so don't overwrite them.
+
+1. Prepare splits for experiments. Splits are shared between people, so don't overwrite them.
 ```
 poetry run python scripts/prepare_data_split.py --datasets=datasets/csv_cif/pilot --experiment-name=pilot-plain-cv
 ```
 This creates the experiment definition in `datasets/experiments/pilot-plain-cv`
-2.  Preprocess the data to get targets, pickled full and sparse structures
+
+2. Preprocess the data to get targets, pickled full and sparse structures
 ```
 poetry run python scripts/parse_csv_cif.py --input-name=pilot
 ```
 This creates `datasets/processed/pilot/{data.pickle.gzip,targets.csv}`
-3.  Run the experiments
+
+3. Run the experiments
 Make sure you are logged in to WanDB and use WanDB entity you have access to. Adjust the `gpus` option to the GPUs you have
 ```
 poetry run python scripts/run_experiments.py --experiments pilot-plain-cv --trials megnet-sparse-pilot --gpus 0 1 2 3 --wandb-entity hse_lambda
