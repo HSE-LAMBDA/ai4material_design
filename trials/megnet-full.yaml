@@ -1,9 +1,9 @@
 model: 'megnet'
-representation: 'sparse'
+representation: 'full'
 model_params:
   add_bond_z_coord: true
-  atom_features: 'werespecies'
+  atom_features: 'Z'
   learning_rate: 2.e-4
   epochs: 800
   nfeat_edge_per_dim: 10
-  cutoff: 15
+  cutoff: 4
