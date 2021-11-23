@@ -1,0 +1,5 @@
+outs:
+- md5: 647da6b56c0da9b4c7ce0f747b7d04d5.dir
+  size: 160341
+  nfiles: 2
+  path: MoS2-plain-cv

@@ -1,0 +1,5 @@
+outs:
+- md5: dd07eb04ebb42d5db0aa73b7ae6bced0.dir
+  size: 2231331
+  nfiles: 204
+  path: pilot

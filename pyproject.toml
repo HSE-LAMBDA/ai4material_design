@@ -1,11 +1,12 @@
 [tool.poetry]
-name = "mos2-potential-learning"
-version = "0.1.0"
+name = "2d-defects-potential-learning"
+version = "0.2.0"
 description = ""
-authors = []
+authors = ["Abdalaziz Rashid Al-Maeeni <al-maeeni@hse.ru>",
+	   "Nikita Kazeev <nikita.kazeev@cern.ch>"]
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = ">=3.8,<3.10"
 scikit-learn = "^0.24.1"
 pandas = "^1.2.4"
 matplotlib = "^3.4.1"
@@ -13,12 +14,13 @@ ase = "^3.21.1"
 optuna = "^2.7.0"
 torch = "^1.8.1"
 madgrad = "^1.1"
-megnet = "^1.2.8"
+megnet = {version = "^1.2.9", extras = ["tensorflow with gpu"]}
 nglview = "^3.0.3"
 pynvml = "^11.0.0"
 wandb = "^0.12.1"
 dvc = {extras = ["azure"], version = "^2.8.3"}
 omegaconf = "^2.1.1"
+tensorflow-gpu = "^2.7"
 
 [tool.poetry.dev-dependencies]
 yapf = "^0.31.0"
