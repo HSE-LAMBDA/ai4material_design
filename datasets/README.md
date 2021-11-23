@@ -7,6 +7,7 @@
 4. `experiments` contains the definitions of the data splits for different experiments
 5. `predictions` contains predictions from different models
 6. `plots` contains plots with the results
+7. `others` contains situational files that don't fall into above categories
 
 ## Datasets
 ### `dichalcogenides_x1s6_202109`
