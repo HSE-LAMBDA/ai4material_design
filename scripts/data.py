@@ -19,6 +19,14 @@ class StorageResolver:
         return Path(self.root_folder, self.config[key])
 
 
+NICE_TARGET_NAMES = {
+    "homo": "HOMO, eV",
+    "lumo": "LUMO, eV",
+    "band_gap": "Band gap, eV",
+    "formation_energy_per_site": "Formation energy per site, eV"
+}
+
+
 def get_experiment_name(experiment_path):
     return Path(experiment_path).name
 
