@@ -66,8 +66,8 @@ class GemNetTrainer(Trainer):
                 self.ema.update()
                 self.optimizers.zero_grad()
 
-                self.step += 1
-                self.log({"loss": np.mean(_loss), "grad_norm": np.mean(_grad_norm)})
+                self.log({"loss": np.mean(_loss), "grad_norm": np.mean(_grad_norm)}, epoch)
+            self.save()
             self.scheduler.step(loss)
             torch.cuda.empty_cache()
             print(
