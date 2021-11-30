@@ -32,12 +32,16 @@ def main():
     parser.add_argument("--n-folds", type=int, default=8)
     parser.add_argument("--targets", type=str, nargs="+",
                         default=["band_gap", "homo", "formation_energy_per_site"])
+    parser.add_argument("--drop-na", action="store_true",
+                        help="Drop the ids for which fields are missing")
 
     args = parser.parse_args()
     structures = list(map(read_structures_descriptions, args.datasets))
     if any(map(indices_intersect, combinations(structures, 2))):
         raise ValueError("Structures contain duplicate indices")
     structures = pd.concat(structures, axis=0)
+    if args.drop_na:
+        structures.dropna(inplace=True)
 
     defects = list(map(read_defects_descriptions, args.datasets))
     if any(map(indices_intersect, combinations(defects, 2))):
