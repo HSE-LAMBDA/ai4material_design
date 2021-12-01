@@ -9,7 +9,7 @@
 poetry shell
 poetry install
 ```
-
+[Log in to WanDB](https://docs.wandb.ai/ref/cli/wandb-login)
 ## Running the pipepline
 Below we descrbie a lightweight test run. The commands are assumed to be ran inside the poetry shell.
 
