@@ -10,14 +10,14 @@ import pandas as pd
 from typing import Callable, List, Dict
 from multiprocessing import Pool
 
-from data import (
+from ai4mat.data.data import (
     StorageResolver,
     get_column_from_data_type,
     get_prediction_path,
     IS_INTENSIVE,
     get_experiment_name)
 
-from models import get_predictor_by_name
+from ai4mat.models import get_predictor_by_name
 
 
 def main():
