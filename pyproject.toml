@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "2d-defects-potential-learning"
-version = "0.2.0"
+version = "0.2.1"
 description = ""
 authors = ["Abdalaziz Rashid Al-Maeeni <al-maeeni@hse.ru>",
 	   "Nikita Kazeev <nikita.kazeev@cern.ch>"]
