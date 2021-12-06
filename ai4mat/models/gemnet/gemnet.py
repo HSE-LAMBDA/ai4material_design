@@ -363,7 +363,7 @@ class GemNetT(torch.nn.Module):
 
         # Create indexing array
         edge_reorder_idx = repeat_blocks(
-            neighbors_new // 2,
+            torch.div(neighbors_new, 2, rounding_mode='floor'),
             repeats=2,
             continuous_indexing=True,
             repeat_inc=edge_index_new.size(1),
@@ -473,7 +473,7 @@ class GemNetT(torch.nn.Module):
         )
 
         # Indices for swapping c->a and a->c (for symmetric MP)
-        block_sizes = neighbors // 2
+        block_sizes = torch.div(neighbors, 2, rounding_mode='floor')
         id_swap = repeat_blocks(
             block_sizes,
             repeats=2,
