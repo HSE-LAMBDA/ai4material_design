@@ -1,10 +1,11 @@
 import ase.db.sqlite
 import ase.io.trajectory
 import numpy as np
+import pandas as pd
 import torch
 from torch_geometric.data import Data
 
-from ai4mat.common.gemnet_utils import collate
+from ai4mat.common.utils import collate
 
 try:
     from pymatgen.io.ase import AseAtomsAdaptor
@@ -64,6 +65,8 @@ class AtomsToGraphs:
         r_fixed=True,
         r_homo=True,
         r_lumo=True,
+        r_band_gap=True,
+        r_other_metadata = True,
     ):
         self.max_neigh = max_neigh
         self.radius = radius
@@ -74,6 +77,8 @@ class AtomsToGraphs:
         self.r_edges = r_edges
         self.r_homo = r_homo
         self.r_lumo = r_lumo
+        self.r_band_gap = r_band_gap
+        self.r_other_metadata = r_other_metadata
 
     def _get_neighbors_pymatgen(self, atoms):
         """Preforms nearest neighbor search and returns edge index, distances,
@@ -124,7 +129,7 @@ class AtomsToGraphs:
 
         Args:
             atoms (ase.atoms.Atoms): An ASE atoms object.
-            data pd.DataFrame: other metadata
+            metadata pd.DataFrame: other metadata
 
         Returns:
             data (torch_geometric.data.Data): A torch geometic data object with edge_index, positions, atomic_numbers,
@@ -133,9 +138,9 @@ class AtomsToGraphs:
         """
 
         # set the atomic numbers, positions, and cell
-        atomic_numbers = torch.Tensor(atoms.get_atomic_numbers())
-        positions = torch.Tensor(atoms.get_positions())
-        cell = torch.Tensor(atoms.get_cell()).view(1, 3, 3)
+        atomic_numbers = torch.Tensor(np.array(atoms.get_atomic_numbers()))
+        positions = torch.Tensor(np.array(atoms.get_positions()))
+        cell = torch.Tensor(np.array(atoms.get_cell())).view(1, 3, 3)
         natoms = positions.shape[0]
 
         # put the minimum data in torch geometric data object
@@ -177,7 +182,10 @@ class AtomsToGraphs:
             data.homo = metadata.homo
         if self.r_lumo:
             data.lumo = metadata.lumo
-
+        if self.r_band_gap:
+            data.band_gap = metadata.band_gap
+        if self.r_other_metadata:
+            data.metadata = torch.tensor(metadata.values)
         return data
 
     def convert_all(
@@ -227,8 +235,12 @@ class AtomsToGraphs:
             # check if atoms is an ASE Atoms object this for the ase.db case
             if not isinstance(atoms, ase.atoms.Atoms):
                 atoms = atoms.toatoms()
-            if self.r_homo or self.r_lumo:
-                data = self.convert(atoms, metadata_collection.iloc[i])
+            if self.r_homo or self.r_lumo or self.r_band_gap or self.r_other_metadata:
+                if metadata_collection is not None:
+                    data = self.convert(atoms, metadata_collection.iloc[i])
+                else:
+                    data = self.convert(atoms)
+
             else:
                 data = self.convert(atoms)
             data_list.append(data)
