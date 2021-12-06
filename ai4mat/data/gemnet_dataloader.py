@@ -37,8 +37,11 @@ class GemNetFullStructFolds:
     
     # @cache(name="graph_list_cache")
     def prepare(self, atoms, targets):
+        print(targets)
         a2g = AtomsToGraphs(**self.graph_construction_config)
-        return a2g.convert_all(atoms, metadata_collection=targets.to_frame())
+        if targets is not None:
+            targets = targets.to_frame()
+        return a2g.convert_all(atoms, metadata_collection=targets)
 
     def _data_list_collater(self, data_list):
         batch = Batch.from_data_list(data_list)

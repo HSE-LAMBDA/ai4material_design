@@ -185,7 +185,8 @@ class AtomsToGraphs:
         if self.r_band_gap:
             data.band_gap = metadata.band_gap
         if self.r_other_metadata:
-            data.metadata = torch.tensor(metadata.values)
+            if metadata is not None:
+                data.metadata = torch.tensor(metadata.values)
         return data
 
     def convert_all(
