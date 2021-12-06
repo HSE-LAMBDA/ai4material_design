@@ -10,7 +10,7 @@ from collections import defaultdict
 
 class StorageResolver:
     def __init__(self,
-                 config_name=Path(__file__).parent.parent.joinpath("storage.yaml")):
+                 config_name=Path(__file__).parent.parent.parent.joinpath("storage.yaml")):
         self.root_folder = config_name.parents[0].absolute()
         with open(config_name) as config_file:
             self.config = yaml.safe_load(config_file)
