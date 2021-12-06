@@ -8,7 +8,7 @@ from itertools import cycle, product
 from functools import partial
 import pandas as pd
 from typing import Callable, List, Dict
-from multiprocessing import Pool
+import multiprocessing.pool
 
 from ai4mat.data.data import (
     StorageResolver,
@@ -20,6 +20,29 @@ from ai4mat.data.data import (
 from ai4mat.models import get_predictor_by_name
 
 
+
+
+# This should be moved to somewhere else probaby utils 
+class NoDaemonProcess(multiprocessing.Process):
+    @property
+    def daemon(self):
+        return False
+
+    @daemon.setter
+    def daemon(self, value):
+        pass
+
+
+class NoDaemonContext(type(multiprocessing.get_context())):
+    Process = NoDaemonProcess
+
+class NestablePool(multiprocessing.pool.Pool):
+    def __init__(self, *args, **kwargs):
+        kwargs['context'] = NoDaemonContext()
+        super(NestablePool, self).__init__(*args, **kwargs)
+
+
+
 def main():
     parser = argparse.ArgumentParser("Runs experiments")
     parser.add_argument("--experiments", type=str, nargs="+")
@@ -28,6 +51,7 @@ def main():
     parser.add_argument("--wandb-entity", type=str)
     parser.add_argument("--processes-per-gpu", type=int, default=1)
     args = parser.parse_args()
+
     os.environ["WANDB_START_METHOD"] = "thread"
     os.environ["WANDB_RUN_GROUP"] = "2D-crystal-" + wandb.util.generate_id()
     if args.wandb_entity:
@@ -102,7 +126,9 @@ def cross_val_predict(data: pd.Series,
 
     n_folds = folds.max() + 1
     assert set(folds.unique()) == set(range(n_folds))
-    with Pool(len(gpus) * processes_per_gpu) as pool:
+
+    with NestablePool(len(gpus) * processes_per_gpu) as pool:
+
         predictions = pool.starmap(partial(
             predict_on_fold,
             n_folds=n_folds,
@@ -114,7 +140,6 @@ def cross_val_predict(data: pd.Series,
             model_params=model_params,
             wandb_config=wandb_config
         ), zip(range(n_folds), cycle(gpus)))
-
     # TODO(kazeevn)
     # Should we add explicit Structure -> graph preprocessing with results shared?
     predictions_pd = pd.Series(index=targets.index, data=np.empty_like(targets.array))
@@ -145,7 +170,9 @@ def predict_on_fold(test_fold,
     this_wandb_config["test_fold"] = test_fold
     with wandb.init(project='ai4material_design',
                     entity=os.environ["WANDB_ENTITY"],
-                    config=this_wandb_config) as run:
+                    config=this_wandb_config, 
+                    # mode="disabled",
+                    ) as run: 
         return predict_func(train, targets.reindex(index=train_ids.index),
                             test, targets.reindex(index=test_ids.index),
                             target_is_intensive,
