@@ -4,7 +4,10 @@ import yaml
 from itertools import combinations
 import pandas as pd
 import numpy as np
-from data import (
+import sys
+sys.path.append('.')
+
+from ai4mat.data.data import (
     read_structures_descriptions,
     read_defects_descriptions,
     StorageResolver

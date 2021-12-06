@@ -6,8 +6,10 @@ from pymatgen.core import Structure
 from pymatgen.core.periodic_table import DummySpecies, Element
 from pymatgen.core.sites import PeriodicSite
 from pymatgen.io.cif import CifParser
+import sys
+sys.path.append('.')
 
-from data import get_dichalcogenides_innopolis, StorageResolver
+from ai4mat.data.data import get_dichalcogenides_innopolis, StorageResolver
 
 SINGLE_ENENRGY_COLUMN = "chemical_potential"
 

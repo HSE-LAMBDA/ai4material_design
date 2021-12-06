@@ -6,8 +6,9 @@ import pandas as pd
 import numpy as np
 import getpass
 import matplotlib.pyplot as plt
-
-from data import StorageResolver, get_prediction_path, get_targets_path
+import sys
+sys.path.append('.')
+from ai4mat.data.data import StorageResolver, get_prediction_path, get_targets_path
 
 
 def main():
