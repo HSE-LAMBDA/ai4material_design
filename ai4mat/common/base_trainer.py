@@ -79,7 +79,7 @@ class Trainer(ABC):
             'logged_params': self.logged_params
         }
         if self.ema:
-            state_dict |= {'ema': self.ema.state_dict()}
+            state_dict['ema'] = self.ema.state_dict()
 
         torch.save(state_dict, self.run_dir.joinpath(f'{self.run_id}_{self.name}_{step}.pth'))
     
@@ -96,7 +96,7 @@ class Trainer(ABC):
         self.epoch = epoch
         self.step()
         if self._step % self.log_freq == 0:
-            self.logged_params |= item
+            self.logged_params.update(item)
             wandb.log(item)
         
     @abstractmethod
