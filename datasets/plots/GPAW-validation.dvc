@@ -1,0 +1,5 @@
+outs:
+- md5: 2e8dd780e819404dd1f22066b5bf736d.dir
+  size: 198404
+  nfiles: 3
+  path: GPAW-validation

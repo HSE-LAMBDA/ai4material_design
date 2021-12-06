@@ -1,12 +1,12 @@
 [tool.poetry]
 name = "2d-defects-potential-learning"
-version = "0.2.0"
+version = "0.2.1"
 description = ""
 authors = ["Abdalaziz Rashid Al-Maeeni <al-maeeni@hse.ru>",
 	   "Nikita Kazeev <nikita.kazeev@cern.ch>"]
 
 [tool.poetry.dependencies]
-python = ">=3.8,<3.10"
+python = ">=3.8,<3.9"
 scikit-learn = "^0.24.1"
 pandas = "^1.2.4"
 matplotlib = "^3.4.1"
