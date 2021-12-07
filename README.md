@@ -33,8 +33,14 @@ This creates `datasets/processed/pilot/{data.pickle.gzip,targets.csv}`
 3. Run the experiments
 Make sure you are logged in to WanDB and use WanDB entity you have access to. Adjust the `gpus` option to the GPUs you have
 ```
-python scripts/run_experiments.py --experiments pilot-plain-cv --trials megnet-sparse-pilot --gpus 0 1 2 3 --wandb-entity hse_lambda
+python run_experiments.py --experiments pilot-plain-cv --trials megnet-sparse-pilot --gpus 0 1 2 3 --wandb-entity hse_lambda
 ```
+Or if you want to submit it as slurm job then modify `slurm-job.sh` with the desired argument and export the required enviroment variables
+then run
+```
+./slurm-job.sh
+```
+
 This creates predictions in `datasets/predictions/pilot-plain-cv` and run information at [WanDB](https://wandb.ai/hse_lambda/ai4material_design).
 
 4. Plot the plots
