@@ -4,18 +4,18 @@ import wandb.keras
 from megnet.utils.preprocessing import StandardScaler
 from megnet.models import MEGNetModel
 from megnet.data.graph import GaussianDistance
-
-from defect_representation import VacancyAwareStructureGraph, FlattenGaussianDistance
+from typing import Dict
+from ai4mat.common.defect_representation import VacancyAwareStructureGraph, FlattenGaussianDistance
 
 
 def get_megnet_predictions(
-        train_structures,
-        train_targets,
-        test_structures,
-        test_targets,
-        target_is_intensive,
-        model_params,
-        gpu):
+        train_structures, # series of pymatgen object
+        train_targets, # series of scalars
+        test_structures, # series of pymatgen object
+        test_targets, # series of scalars
+        target_is_intensive: bool,
+        model_params: Dict,
+        gpu: int):
     # TODO(kazeevn) elegant device configration
     os.environ['CUDA_DEVICE_ORDER']='PCI_BUS_ID'
     os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = "true"
