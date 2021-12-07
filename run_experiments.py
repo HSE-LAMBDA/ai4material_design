@@ -114,7 +114,7 @@ def cross_val_predict(data: pd.Series,
                       folds: pd.Series,
                       predict_func: Callable,
                       # predict_func(train, train_targets, test, test_targets, model_params, gpu)
-                      # returns (train_predictions, test_predictions)
+                      # returns predictions on test
                       # test_targets are used for monitoring
                       target_is_intensive: bool,
                       model_params: Dict,
