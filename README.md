@@ -3,12 +3,35 @@
 - Some design decisions are outlined in [RFC](https://docs.google.com/document/d/1Cc3772US-E73yQEMFn444OY9og9blKHpuP21sv9Gdxk/edit?usp=sharing)
 - Project log is in [Notion](https://www.notion.so/AI-for-material-design-1f8f321d2ac54245a7af410d838929ae)
 
+## Setting up the envirotment on slurm cluster
+
+0. ssh to the cluster head node if you gonna run on a slurm cluster
+1. Install poetry ```curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -```
+2. create new conda enviroment ```conda create -n exp1 python=3.8``` then activate it `conda activate exp1`
+3. cd to porject director and run `poetry install` if you having internal poetry problem due to the fact you are already using poetry and didn't install it run ```pip install poetry```
+4. run `poetry install`
+5. then run 
+```
+pip install torch==1.10.0+cu113 torchvision==0.11.1+cu113 torchaudio==0.10.0+cu113 -f https://download.pytorch.org/whl/cu113/torch_stable.html
+pip install torch-scatter -f https://data.pyg.org/whl/torch-1.10.0+cu113.html
+pip install torch-sparse -f https://data.pyg.org/whl/torch-1.10.0+cu113.html
+pip install torch-geometric
+```
+if you have error make sure to run and repeat the previous step
+```
+pip uninstall torch-geometric torch-sparse torch-scatter torch-spline-conv torch-cluster
+```
+this step is very ugly but this the fastest way to have a working enviroment
+
+
+
 ## Setting up the envirotment
 [Install Poetry](https://python-poetry.org/docs/#installation)
 ```
 poetry shell
 poetry install
 ```
+
 [Log in to WanDB](https://docs.wandb.ai/ref/cli/wandb-login)
 ## Running the pipepline
 Below we descrbie a lightweight test run. The commands are assumed to be ran inside the poetry shell.
