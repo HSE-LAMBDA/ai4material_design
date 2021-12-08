@@ -6,14 +6,16 @@
 ## Setting up the envirotment on slurm cluster
 
 0. ssh to the cluster head node if you gonna run on a slurm cluster
-1. Install poetry ```curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -```
-2. create new conda enviroment ```conda create -n exp1 python=3.8``` then activate it `conda activate exp1`
-3. cd to porject director and run `poetry install` if you having internal poetry problem due to the fact you are already using poetry and didn't install it run ```pip install poetry```
-4. then run 
+1. Load the module `module load Python/Anaconda_v11.2020`
+2. Install poetry ```curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -```
+3. create new conda enviroment ```conda create -n exp1 python=3.8``` then activate it `conda activate exp1`
+4. cd to porject director and run `poetry install` if you having internal poetry problem due to the fact you are already using poetry and didn't install it run ```pip install poetry```
+5. find out cuda version, then `export CUDA=cu113` replace the `cu113` with your version
+6. run
 ```
-pip install torch==1.10.0+cu113 torchvision==0.11.1+cu113 torchaudio==0.10.0+cu113 -f https://download.pytorch.org/whl/cu113/torch_stable.html
-pip install torch-scatter -f https://data.pyg.org/whl/torch-1.10.0+cu113.html
-pip install torch-sparse -f https://data.pyg.org/whl/torch-1.10.0+cu113.html
+pip install torch==1.10.0+${CUDA} torchvision==0.11.1+${CUDA} torchaudio==0.10.0+${CUDA} -f https://download.pytorch.org/whl/${CUDA}/torch_stable.html
+pip install torch-scatter -f https://data.pyg.org/whl/torch-1.10.0+${CUDA}.html
+pip install torch-sparse -f https://data.pyg.org/whl/torch-1.10.0+${CUDA}.html
 pip install torch-geometric
 ```
 if you have error make sure to run and repeat the previous step
@@ -83,13 +85,3 @@ I isolated them to simplify the structure of experiment, we can change it later.
 * Run the training with `python catboost_experiment_reproduction/train_model.py`. This should produce models in `datasets/paper_experiments_catboost/models/`.
 * Get the predictions and the plot from `catboost_experiment_reproduction/catboost_predictions.ipynb`
 * You now have `datasets/paper_experiments_catboost/results/full.csv.gz`
-
-## Running on HSE HPC
-* Clone the repo in the cluster
-* Pull the data `dvc pull`
-* Load singularity `module load singularity`
-* Set `WANDB_ENTITY`, `WANDB_API_KEY` in `singularity.sbatch
-* Get the image `singularity pull --docker-login  docker://abdalazizrashis/ai4material_design:latest`
-* Preprocess the data by running `singularity run singularity run ai4material_design_latest.sif python Defect_representation.py`
-* Submit the the jon `sbatch singularity.sbatch`
-* You can run the job interactively `srun -G 1 -c 4 --pty bash` to get interactive shell the run whatever script i.e. `singularity run --nv ai4material_design_latest.sif python megnet_grahps_train.py`    
