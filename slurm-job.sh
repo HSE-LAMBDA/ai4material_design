@@ -4,7 +4,7 @@
 #SBATCH --output experiment-%J.log
 #SBATCH --export=ALL
 
-module load Python/Anaconda_v10.2019
+module load Python/Anaconda_v11.2020
 
 
 source /home/${USER}/.bashrc
