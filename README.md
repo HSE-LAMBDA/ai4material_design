@@ -9,8 +9,7 @@
 1. Install poetry ```curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -```
 2. create new conda enviroment ```conda create -n exp1 python=3.8``` then activate it `conda activate exp1`
 3. cd to porject director and run `poetry install` if you having internal poetry problem due to the fact you are already using poetry and didn't install it run ```pip install poetry```
-4. run `poetry install`
-5. then run 
+4. then run 
 ```
 pip install torch==1.10.0+cu113 torchvision==0.11.1+cu113 torchaudio==0.10.0+cu113 -f https://download.pytorch.org/whl/cu113/torch_stable.html
 pip install torch-scatter -f https://data.pyg.org/whl/torch-1.10.0+cu113.html
