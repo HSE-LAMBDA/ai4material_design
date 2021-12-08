@@ -9,7 +9,7 @@
 1. Load the module `module load Python/Anaconda_v11.2020`
 2. Install poetry ```curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -```
 3. create new conda enviroment ```conda create -n exp1 python=3.8``` then activate it `conda activate exp1`
-4. cd to porject director and run `poetry install` if you having internal poetry problem due to the fact you are already using poetry and didn't install it run ```pip install poetry```
+4. cd to project directory and run `poetry install` if you having internal poetry problem due to the fact you are already using poetry and didn't install it run ```pip install poetry```
 5. find out cuda version, then `export CUDA=cu113` replace the `cu113` with your version
 6. run
 ```
