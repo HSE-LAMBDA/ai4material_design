@@ -1,8 +1,10 @@
+import datetime
 import torch
 from abc import ABC, abstractmethod
 from typing import Union, Optional
 from pathlib import Path
 import wandb
+
     
 
 class Trainer(ABC):
@@ -16,7 +18,8 @@ class Trainer(ABC):
         dataset,
         optimizers,
         # scheduler: Optional[Dict[scheduler, kwargs]] = None,
-        log_freq=100,
+        log_freq=10,
+        checkpointing_freq=10,
         logger='wandb',
         rng_seed: int =666,
         use_gpus: Union[bool, int]=False,
@@ -30,28 +33,34 @@ class Trainer(ABC):
         self.dataset = dataset
         self.optimizers = optimizers
         self.log_freq = log_freq
+        self.checkpointing_freq = checkpointing_freq
         self.logger = logger
         self.run_dir = run_dir
         self.rng_seed = rng_seed
         self.slurm = slurm
         self.device = 'cpu' 
-        self.step = 0
+        self._step = 0
+        self.epoch = 0
+        
+    
 
         if use_gpus:
             if isinstance(use_gpus, bool):
                 self.device = 'cuda'
 #           if isinstance(use_gpus, int):
 #               self.device = f'cuda:{use_gpus}'
-        
+
+        if self.run_dir and not Path(self.run_dir).exists:
+            self.run_dir = Path(self.run_dir).joinpath('checkpoints')
+            self.run_dir.mkdir(parents=True, exist_ok=True)
+        elif not self.run_dir:
+            self.run_dir = Path(str(datetime.datetime.now())).joinpath('checkpoints')
+            self.run_dir.mkdir(parents=True, exist_ok=True)
+
 
         self.move_to_device()
         self.logged_params = {} 
 
-    def log(self, item):
-        if self.step % self.log_freq == 0:
-            self.logged_params |= item
-            wandb.log(item)
-        
     def load_state_dict(self, file):
         state_dict = torch.load(Path(self.run_dir).joinpath('checkpoints', f'{self.run_id}_{self.name}.pth'))
         self.model.load_state_dict(state_dict['model'])
@@ -63,17 +72,33 @@ class Trainer(ABC):
             self.ema.load_state_dict(state_dict['ema'])
 
 
-    def save_state_dict(self):
+    def save_state_dict(self, step):
         state_dict = {
             'model' : self.model.state_dict(),
             'optimizers': self.optimizers.state_dict(),
             'logged_params': self.logged_params
         }
         if self.ema:
-            state_dict |= {'ema': self.ema.state_dict()}
+            state_dict['ema'] = self.ema.state_dict()
 
-        torch.save(state_dict, Path(self.run_dir).joinpath('checkpoints', f'{self.run_id}_{self.name}.pth'))
+        torch.save(state_dict, self.run_dir.joinpath(f'{self.run_id}_{self.name}_{step}.pth'))
     
+    def save(self):
+        if self.epoch % self.checkpointing_freq == 0:
+                self.save_state_dict(step=self.epoch)
+        else:
+            self.save_state_dict(step='latest')
+
+    def step(self):
+        self._step += 1
+        
+    def log(self, item, epoch):
+        self.epoch = epoch
+        self.step()
+        if self._step % self.log_freq == 0:
+            self.logged_params.update(item)
+            wandb.log(item)
+        
     @abstractmethod
     def train(self):
         pass
