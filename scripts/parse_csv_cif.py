@@ -92,7 +92,7 @@ def main():
         unit_cells[material] = CifParser(Path(
             "defects_generation",
             "molecules",
-            f"{material}.cif")).get_structures(primitive=True)[0]
+            f"{material}.cif")).get_structures(primitive=False)[0]
     data_path = Path(input_folder)
     initial_structure_properties = pd.read_csv(
         data_path.joinpath("initial_structures.csv"),
