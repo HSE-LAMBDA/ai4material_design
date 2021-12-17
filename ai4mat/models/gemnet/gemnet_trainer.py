@@ -1,5 +1,7 @@
+import os
 import numpy as np
 import torch
+
 torch.multiprocessing.set_start_method('forkserver', force=True)
 torch.multiprocessing.set_sharing_strategy('file_system')
 from tqdm import trange
@@ -20,6 +22,7 @@ class GemNetTrainer(Trainer):
         test_structures=None,
         test_targets=None,
         configs=None,
+        gpu_id=0,
         **kwargs
         ):
         if configs:
@@ -67,9 +70,11 @@ class GemNetTrainer(Trainer):
                 **self.config["optim"]["optimizer_params"],
             ),
             # TODO: this need to be managed by the configs
-            use_gpus=True,
+            use_gpus=gpu_id,
+            # run_dir=os.environ["WANDB_RUN_GROUP"]
         )
-
+        self.save_checkpoint = kwargs['save_checkpoint']
+        
         if self.config["optim"]["scheduler"].lower() == "ReduceLROnPlateau".lower():
             self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
                 self.optimizers,
@@ -85,10 +90,11 @@ class GemNetTrainer(Trainer):
     def train(self):
         for epoch in trange(self.config["optim"]["max_epochs"]):
             print(f'=========== {epoch} ==============')
-            print(self.trainloader.__len__())
-            _loss = []
-            _grad_norm = []
-            for item in self.trainloader:
+            print(self.trainloader.__len__(), self.device)
+            batch_loss = []
+            for i, item in enumerate(self.trainloader):
+                _loss = []
+                _grad_norm = []
                 item = item.to(self.device)
                 out = self.model(item)
                 loss = torch.nn.functional.l1_loss(out.view(-1), getattr(item, 'metadata'))
@@ -110,9 +116,11 @@ class GemNetTrainer(Trainer):
                 self.ema.update()
                 self.optimizers.zero_grad()
 
-                self.log({"loss": np.mean(_loss), "grad_norm": np.mean(_grad_norm)}, epoch)
-            # TODO: save if set in configs
-            # self.save()
+                self.log({"loss": np.mean(_loss), "grad_norm": np.mean(_grad_norm), 'dataloader step': i}, epoch)
+                batch_loss.append(np.mean(_loss))
+            wandb.log({'per_epoch_loss': np.mean(batch_loss), 'epoch': epoch})
+            if self.save_checkpoint:
+                self.save()
             self.scheduler.step(loss)
             torch.cuda.empty_cache()
             print(
