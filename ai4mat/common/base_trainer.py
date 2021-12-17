@@ -22,7 +22,7 @@ class Trainer(ABC):
         checkpointing_freq=10,
         logger='wandb',
         rng_seed: int =666,
-        use_gpus: int = 0,
+        use_gpus: Union[int, None] = None,
         run_dir: Optional[Path]=None,
         slurm: dict={},
         **kwargs
@@ -42,7 +42,7 @@ class Trainer(ABC):
         self.epoch = 0
         
     
-        if use_gpus:
+        if use_gpus is not None:
             self.device = f'cuda:{use_gpus}'
         else:
             self.device = 'cpu'
