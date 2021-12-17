@@ -22,7 +22,7 @@ class Trainer(ABC):
         checkpointing_freq=10,
         logger='wandb',
         rng_seed: int =666,
-        use_gpus: Union[bool, int]=False,
+        use_gpus: int = 0,
         run_dir: Optional[Path]=None,
         slurm: dict={},
         **kwargs
@@ -38,17 +38,16 @@ class Trainer(ABC):
         self.run_dir = run_dir
         self.rng_seed = rng_seed
         self.slurm = slurm
-        self.device = 'cpu' 
         self._step = 0
         self.epoch = 0
         
     
-
         if use_gpus:
-            if isinstance(use_gpus, bool):
-                self.device = 'cuda'
-#           if isinstance(use_gpus, int):
-#               self.device = f'cuda:{use_gpus}'
+            self.device = f'cuda:{use_gpus}'
+        else:
+            self.device = 'cpu'
+
+  
 
         if self.run_dir and not Path(self.run_dir).exists:
             self.run_dir = Path(self.run_dir).joinpath('checkpoints')
