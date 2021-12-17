@@ -74,7 +74,7 @@ def copy_indexed_structures(structures, input_folder, output_folder):
 
 IS_INTENSIVE = {
     "homo": True,
-    "LUMO": True,
+    "lumo": True,
     "formation_energy": False,
     "band_gap": True,
     "formation_energy_per_site": True
