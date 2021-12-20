@@ -30,7 +30,7 @@ class GemNetTrainer(Trainer):
         else:
             self.config = Config("gemnet").config
 
-        self.model = GemNetT(**self.config["model"])
+        self.model = GemNetT(**self.config["model"], otf_graph=True)
         if train_structures is not None and train_targets is not None:
             self.structures = GemNetFullStructFolds(
                 train_structures,
@@ -87,7 +87,17 @@ class GemNetTrainer(Trainer):
             self.model.parameters(), self.config["optim"]["ema_decay"]
         )
 
+
     def train(self):
+
+        # Define the custom x axis metric
+        wandb.define_metric("epoch")
+        wandb.define_metric("dataloader_step")
+        # Define which metrics to plot against that x-axis
+        wandb.define_metric("loss_per_epoch", step_metric='epoch')
+        wandb.define_metric("loss", step_metric='dataloader_step')
+        wandb.define_metric("grad_norm", step_metric='dataloader_step')
+        
         for epoch in trange(self.config["optim"]["max_epochs"]):
             print(f'=========== {epoch} ==============')
             print(self.trainloader.__len__(), self.device)
@@ -116,9 +126,9 @@ class GemNetTrainer(Trainer):
                 self.ema.update()
                 self.optimizers.zero_grad()
 
-                self.log({"loss": np.mean(_loss), "grad_norm": np.mean(_grad_norm), 'dataloader step': i}, epoch)
+                self.log({"loss": np.mean(_loss), "grad_norm": np.mean(_grad_norm), 'dataloader_step': i}, epoch)
                 batch_loss.append(np.mean(_loss))
-            wandb.log({'per_epoch_loss': np.mean(batch_loss), 'epoch': epoch})
+            wandb.log({'loss_per_epoch': np.mean(batch_loss), 'epoch': epoch})
             if self.save_checkpoint:
                 self.save()
             self.scheduler.step(loss)
@@ -128,7 +138,8 @@ class GemNetTrainer(Trainer):
             )
 
     def predict_structures(self, structures):
-        data_list = self.structures.prepare(self.structures.get_ase_atoms(structures), targets=None)
+        # data_list = self.structures.prepare(self.structures.get_ase_atoms(structures), targets=None)
+        data_list = self.structures.construct_dataset(structures, targets=None)
         results = []
         for item in self.structures.testloader(data_list):
             with torch.no_grad(): 
