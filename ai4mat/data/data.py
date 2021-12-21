@@ -51,6 +51,8 @@ def get_column_from_data_type(data_type):
         return "defect_representation"
     elif data_type == 'full':
         return "initial_structure"
+    elif data_type == 'matminer':
+        return "matminer"
     else:
         raise ValueError("Unknown data_type")
 

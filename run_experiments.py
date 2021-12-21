@@ -46,22 +46,44 @@ class DataLoader:
     def __init__(self, dataset_paths, folds_index):
         self.dataset_paths = dataset_paths
         self.datasets = dict()
+        self.targets = None
         self.folds_index = folds_index
 
-    def __load_data(self, representation):
+    def _load_data(self, filename):
+        # TODO: rewrite it with Pathlib
+        if filename.endswith(".pickle.gz"):
+            read_func = pd.read_pickle
+        elif filename.endswith(".csv.gz") or filename.endswith(".csv"):
+            read_func = pd.read_csv
+        else:
+            raise ValueError("Unknown file type")
+
         storage_resolver = StorageResolver()
         data = pd.concat(
             [
-                pd.read_pickle(
+                read_func(
                     storage_resolver["processed"].joinpath(
-                        get_experiment_name(path), "data.pickle.gz"
+                        get_experiment_name(path), filename
                     )
                 )
                 for path in self.dataset_paths
             ],
             axis=0,
-        ).reindex(index=self.folds_index)
+        )
         return data
+    
+    def _load_matminer(self,):
+        return self._load_data("matminer.csv.gz").set_index("_id").reindex(self.folds_index)
+    
+    def _load_sparse(self,):
+        return self._load_data("data.pickle.gz")[get_column_from_data_type("sparse")].reindex(self.folds_index)
+        
+    def _load_full(self,):
+        return self._load_data("data.pickle.gz")[get_column_from_data_type("full")].reindex(self.folds_index)
+
+    def _load_targets(self,):
+        return self._load_data("targets.csv.gz").set_index("_id").reindex(self.folds_index)
+        # return self._load_data("data.pickle.gz")
 
     def get_structures(self, representation):
         """
@@ -69,18 +91,21 @@ class DataLoader:
         """
         if representation == "full":
             if "full" not in self.datasets:
-                self.datasets["full"] = self.__load_data("full")
+                self.datasets["full"] = self._load_full()
         elif representation == "sparse":
             if "sparse" not in self.datasets:
-                self.datasets["sparse"] = self.__load_data("sparse")
+                self.datasets["sparse"] = self._load_sparse()
         elif representation == "matminer":
-            pass
+            if "matminer" not in self.datasets:
+                self.datasets["matminer"] = self._load_matminer()
         else:
             raise ValueError("Unknown data representation requested")
-        return self.datasets[representation][get_column_from_data_type(representation)]
+        return self.datasets[representation]
 
     def get_targets(self, target_name):
-        return next(iter(self.datasets.values()))[target_name]
+        if self.targets is None:
+            self.targets = self._load_targets()
+        return self.targets[target_name]
 
 
 def main():
@@ -118,6 +143,10 @@ def run_experiment(experiment_name, trials_names, gpus, processes_per_gpu):
             storage_resolver["trials"].joinpath(f"{this_trial_name}.yaml")
         ) as this_trial_file:
             this_trial = yaml.safe_load(this_trial_file)
+
+        # loader.get_structures can return both sparse and full features
+        # or matminer features (which are not really structures) depending on
+        # inquired representation
         structures = loader.get_structures(this_trial["representation"])
         targets = loader.get_targets(target_name)
         # State stores the material composition and is semi-supported by pymatgen
@@ -169,6 +198,7 @@ def cross_val_predict(
     n_folds = folds.max() + 1
     assert set(folds.unique()) == set(range(n_folds))
 
+    # TODO(maxim): set number of workers back to "len(gpus) * processes_per_gpu"
     with NestablePool(len(gpus) * processes_per_gpu) as pool:
 
         predictions = pool.starmap(
