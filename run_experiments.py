@@ -124,6 +124,7 @@ def main():
     for experiment_name in args.experiments:
         run_experiment(experiment_name, args.trials, args.gpus, args.processes_per_gpu)
 
+
 def run_experiment(experiment_name, trials_names, gpus, processes_per_gpu):
     # used variables:
     # experiment - config file, path to the dataset, cv strategy, n folds and targets
@@ -153,6 +154,8 @@ def run_experiment(experiment_name, trials_names, gpus, processes_per_gpu):
         # so we ensure it's present
         if this_trial["representation"] == "sparse":
             assert getattr(structures.iloc[0], "state", None) is not None
+        if this_trial["representation"] == "matminer":
+            assert this_trial["model"] == "catboost", "Expected model 'catboost' for representation 'matminer'"
         wandb_config = {
             "trial": this_trial,
             "experiment": experiment,
