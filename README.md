@@ -59,7 +59,7 @@ Make sure you are logged in to WanDB and use WanDB entity you have access to. Ad
 ```
 python run_experiments.py --experiments pilot-plain-cv --trials megnet-sparse-pilot --gpus 0 1 2 3 --wandb-entity hse_lambda
 ```
-Or if you want to submit it as slurm job then modify `slurm-job.sh` with the desired argument and export the required enviroment variables
+OR if you want to submit it as slurm job then modify `slurm-job.sh` with the desired argument and export the required enviroment variables
 then run
 ```
 ./slurm-job.sh
@@ -72,6 +72,34 @@ This creates predictions in `datasets/predictions/pilot-plain-cv` and run inform
 python scripts/plot.py --experiments pilot-plain-cv --trials megnet-sparse-pilot
 ```
 This produces plots in `datasets/plots/pilot-plain-cv`
+
+### Running catboost
+
+0. Pull the inputs from DVC
+```
+dvc pull datasets/csv_cif/pilot.dvc datasets/experiments/matminer-test.dvc
+```
+
+1. Prepare the targets and matminer features
+Can be done with one of the two following commands:
+Compute features on the machine
+```
+not implemented
+```
+or load existing features
+```
+dvc pull datasets/processed/matminer-test.dvc
+```
+
+2. Run the experiments
+```
+python run_experiments.py --experiments matminer-test --trials catboost-test --gpus 0 1 2 3 --wandb-entity hse_lambda   
+```
+
+3. Plot the plots
+```
+python scripts/plot.py --experiments matminer-test --trials catboost-test
+```
 
 # Obsolete sections to be updated
 ## Predicting energy with CatBoost and matminer experiment
