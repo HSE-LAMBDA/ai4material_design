@@ -2,6 +2,7 @@ __pycache__
 .ipynb_checkpoints
 callback
 wandb
+catboost_info
 .vscode/settings.json
 **/*.tar.gz
 **/*.pickle

@@ -1,0 +1,5 @@
+outs:
+- md5: d5d43a1591c445bc5db12236f39432f1.dir
+  size: 93864712
+  nfiles: 2
+  path: matminer-test
