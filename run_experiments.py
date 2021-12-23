@@ -69,7 +69,7 @@ def run_experiment(experiment_name, trials_names, gpus, processes_per_gpu):
     folds = pd.read_csv(
         Path(experiment_path, "folds.csv"), index_col="_id", squeeze=True
     )
-    
+
     loader = DataLoader(experiment["datasets"], folds.index)
 
     for target_name, this_trial_name in product(experiment["targets"], trials_names):
@@ -87,8 +87,15 @@ def run_experiment(experiment_name, trials_names, gpus, processes_per_gpu):
         # so we ensure it's present
         if this_trial["representation"] == "sparse":
             assert getattr(structures.iloc[0], "state", None) is not None
+
         if this_trial["representation"] == "matminer":
-            assert this_trial["model"] == "catboost", "Expected model 'catboost' for representation 'matminer'"
+            assert (
+                this_trial["model"] == "catboost"
+            ), "Expected model 'catboost' for representation 'matminer'"
+        if this_trial["model"] == "catboost":
+            assert (
+                this_trial["representation"] == "matminer"
+            ), "Expected representation 'matminer' for model 'catboost'"
         wandb_config = {
             "trial": this_trial,
             "experiment": experiment,
