@@ -20,7 +20,8 @@ def get_gemnet_predictions(
         test_structures,
         test_targets,
         configs=model_params,
-        save_checkpoint=False,
+        save_checkpoint=True,
+        gpu_id=gpu,
         verbose=1,
         )
    
