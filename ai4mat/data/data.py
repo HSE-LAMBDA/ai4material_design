@@ -46,6 +46,9 @@ def get_prediction_path(experiment_name,
 def get_targets_path(csv_cif_path):
     return Path(csv_cif_path.replace("csv_cif", "processed"), "targets.csv.gz")
 
+def get_matminer_path(csv_cif_path):
+    return Path(csv_cif_path.replace("csv_cif", "processed"), "matminer.csv.gz")
+
 def get_column_from_data_type(data_type):
     if data_type == 'sparse':
         return "defect_representation"
