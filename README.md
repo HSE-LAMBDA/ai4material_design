@@ -88,8 +88,9 @@ python scripts/compute_matminer_features.py --input-name=pilob --n-proc 8
 ```
 OR load existing features
 ```
-dvc pull datasets/processed/matminer-test.dvc
+dvc pull datasets/processed/pilot.dvc
 ```
+Both scenarios produce `datasets/processed/pilot/{matminer.csv.gz,targets.csv.gz}`
 
 2. Run the experiments
 ```
