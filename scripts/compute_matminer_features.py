@@ -41,8 +41,6 @@ def main():
                 total=len(structures),
             )
         )
-    print(type(features))
-    print(type(features[0]))
     features_df = pd.DataFrame(features, index=structures.index)
 
     save_dir = storage_resolver["processed"].joinpath(dataset_name)
