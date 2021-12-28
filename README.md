@@ -80,8 +80,8 @@ This produces plots in `datasets/plots/pilot-plain-cv`
 dvc pull datasets/csv_cif/pilot.dvc datasets/experiments/matminer-test.dvc
 ```
 
-1. Prepare the targets and matminer features
-Can be done with one of the two following commands:
+1. Prepare the targets and matminer features  
+Can be done with one of the two following commands:  
 Compute features on the machine (up to several minutes per structure on single core)
 ```
 python scripts/compute_matminer_features.py --input-name=pilot --n-proc 8
@@ -90,7 +90,7 @@ OR load existing features
 ```
 dvc pull datasets/processed/pilot.dvc
 ```
-Both scenarios produce `datasets/processed/pilot/{matminer.csv.gz,targets.csv.gz}`
+Both scenarios produce `datasets/processed/pilot/matminer.csv.gz`
 
 2. Run the experiments
 ```
