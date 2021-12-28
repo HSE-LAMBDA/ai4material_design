@@ -23,6 +23,7 @@ tensorflow-gpu = "^2.7"
 httplib2 = "^0.20.2"
 torch = "^1.10.0"
 catboost = "^1.0.3"
+matminer = "0.7.3"
 
 
 [tool.poetry.dev-dependencies]
