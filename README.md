@@ -84,7 +84,7 @@ dvc pull datasets/csv_cif/pilot.dvc datasets/experiments/matminer-test.dvc
 Can be done with one of the two following commands:
 Compute features on the machine (up to several minutes per structure on single core)
 ```
-python scripts/compute_matminer_features.py --input-name=pilob --n-proc 8
+python scripts/compute_matminer_features.py --input-name=pilot --n-proc 8
 ```
 OR load existing features
 ```
