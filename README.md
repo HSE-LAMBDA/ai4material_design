@@ -59,7 +59,7 @@ Make sure you are logged in to WanDB and use WanDB entity you have access to. Ad
 ```
 python run_experiments.py --experiments pilot-plain-cv --trials megnet-sparse-pilot --gpus 0 1 2 3 --wandb-entity hse_lambda
 ```
-OR if you want to submit it as slurm job then modify `slurm-job.sh` with the desired argument and export the required enviroment variables
+or if you want to submit it as slurm job then modify `slurm-job.sh` with the desired argument and export the required enviroment variables
 then run
 ```
 ./slurm-job.sh
@@ -82,11 +82,11 @@ dvc pull datasets/csv_cif/pilot.dvc datasets/experiments/matminer-test.dvc
 
 1. Prepare the targets and matminer features
 Can be done with one of the two following commands:
-Compute features on the machine
+Compute features on the machine (up to several minutes per structure on single core)
 ```
-not implemented
+python scripts/compute_matminer_features.py --input-name=pilob --n-proc 8
 ```
-or load existing features
+OR load existing features
 ```
 dvc pull datasets/processed/matminer-test.dvc
 ```
