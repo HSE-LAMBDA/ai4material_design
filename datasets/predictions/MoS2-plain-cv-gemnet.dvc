@@ -1,0 +1,5 @@
+outs:
+- md5: ecb75407333a0784436a107c71277923.dir
+  size: 357674
+  nfiles: 4
+  path: MoS2-plain-cv-gemnet

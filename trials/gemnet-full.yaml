@@ -8,7 +8,6 @@ name: gemnet
 model: gemnet
 
 model_params:
-  # target: band_gap # delete
   model:
     num_targets: 1
     num_spherical: 7
@@ -24,7 +23,7 @@ model_params:
     num_after_skip: 2
     num_concat: 1
     num_atom: 3
-    cutoff: 10.0
+    cutoff: 6.0
     max_neighbors: 50
     rbf:
       name: gaussian
@@ -33,8 +32,6 @@ model_params:
       exponent: 5
     cbf:
       name: spherical_harmonics
-    # extensive: False # delete
-    otf_graph: True
     output_init: HeOrthogonal
     activation: silu
     scale_file: configs/gemnet/scaling_factors/gemnet.json
@@ -43,8 +40,8 @@ model_params:
     direct_forces: False
 
   optim:
-    max_epochs: 15
-    batch_size: 6
+    max_epochs: 50
+    batch_size: 32
     eval_batch_size: 32
     eval_every: 5000
     num_workers: 2

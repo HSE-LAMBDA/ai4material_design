@@ -1,0 +1,5 @@
+outs:
+- md5: 7fc89e2e7a515fd9cba033c9a40c2015.dir
+  size: 13733674
+  nfiles: 1
+  path: data_for_symbolic_regression_pengru_nus_202112
