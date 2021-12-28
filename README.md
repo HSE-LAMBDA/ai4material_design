@@ -96,11 +96,13 @@ Both scenarios produce `datasets/processed/pilot/{matminer.csv.gz,targets.csv.gz
 ```
 python run_experiments.py --experiments matminer-test --trials catboost-test --gpus 0 1 2 3 --wandb-entity hse_lambda   
 ```
+This creates predictions in `datasets/predcitions/matminer-test`
 
 3. Plot the plots
 ```
 python scripts/plot.py --experiments matminer-test --trials catboost-test
 ```
+This produces plots in `datasets/plots/matminer-test`
 
 # Obsolete sections to be updated
 ## Predicting energy with CatBoost and matminer experiment
