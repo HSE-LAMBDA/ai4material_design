@@ -103,16 +103,3 @@ This creates predictions in `datasets/predcitions/matminer-test`
 python scripts/plot.py --experiments matminer-test --trials catboost-test
 ```
 This produces plots in `datasets/plots/matminer-test`
-
-# Obsolete sections to be updated
-## Predicting energy with CatBoost and matminer experiment
-`catboost_experiment_reproduction/` contains scripts for the experiment reproduction.
-`datasets/paper_experiments_catboost/` contains the data, generated during the experiment.   
-I isolated them to simplify the structure of experiment, we can change it later.
-* Prepare the matminer features for each defect. There are two ways for that:
-  * Copy generated features from `datasets/dichalcogenides_innopolis_features/` to `datasets/paper_experiments_catboost/features/`
-  * Run `python catboost_experiment_reproduction/make_features.py` (switch parameter `compute_all` to `True` before, otherwise you will run the default version that computes just 5 defects). 
-* Copy the folds definitions from `datasets/paper_experiments/inputs/` to `datasets/paper_experiments_catboost/folds/`.
-* Run the training with `python catboost_experiment_reproduction/train_model.py`. This should produce models in `datasets/paper_experiments_catboost/models/`.
-* Get the predictions and the plot from `catboost_experiment_reproduction/catboost_predictions.ipynb`
-* You now have `datasets/paper_experiments_catboost/results/full.csv.gz`
