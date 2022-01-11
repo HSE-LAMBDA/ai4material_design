@@ -1,0 +1,5 @@
+outs:
+- md5: 47b778c847d3a74602af2956040f1f88.dir
+  size: 22440
+  nfiles: 1
+  path: MoS2-bandgap-debug-cv
