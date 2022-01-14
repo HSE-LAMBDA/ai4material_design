@@ -1,0 +1,19 @@
+model: 'schnet'
+representation: 'full'
+model_params:
+  model:
+    hidden_channels: 128
+    num_filters: 128
+    num_interactions: 10
+    num_gaussians: 50
+    cutoff: 10.0
+    max_num_neighbors: 32
+    readout: 'mean'
+  optim: 
+    max_epochs: 2 
+    batch_size: 32
+    eval_batch_size: 32
+    num_workers: 2
+    lr_initial: 5.e-4
+    optimizer: AdamW
+    optimizer_params: {"amsgrad": True}
