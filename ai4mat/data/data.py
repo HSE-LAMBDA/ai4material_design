@@ -19,6 +19,70 @@ class StorageResolver:
         return Path(self.root_folder, self.config[key])
 
 
+class DataLoader:
+    def __init__(self, dataset_paths, folds_index):
+        self.dataset_paths = dataset_paths
+        self.datasets = dict()
+        self.targets = None
+        self.folds_index = folds_index
+
+    def _load_data(self, filename):
+        if filename.endswith(".pickle.gz"):
+            read_func = pd.read_pickle
+        elif filename.endswith(".csv.gz") or filename.endswith(".csv"):
+            read_func = pd.read_csv
+        else:
+            raise ValueError("Unknown file type")
+
+        storage_resolver = StorageResolver()
+        data = pd.concat(
+            [
+                read_func(
+                    storage_resolver["processed"].joinpath(
+                        get_experiment_name(path), filename
+                    )
+                )
+                for path in self.dataset_paths
+            ],
+            axis=0,
+        )
+        return data
+    
+    def _load_matminer(self,):
+        return self._load_data("matminer.csv.gz").set_index("_id").reindex(self.folds_index)
+    
+    def _load_sparse(self,):
+        return self._load_data("data.pickle.gz")[get_column_from_data_type("sparse")].reindex(self.folds_index)
+        
+    def _load_full(self,):
+        return self._load_data("data.pickle.gz")[get_column_from_data_type("full")].reindex(self.folds_index)
+
+    def _load_targets(self,):
+        return self._load_data("targets.csv.gz").set_index("_id").reindex(self.folds_index)
+
+    def get_structures(self, representation):
+        """
+        Lazyly loads corresponding representation and returns it as a pandas Series or DataFrame
+        """
+        if representation == "full":
+            if "full" not in self.datasets:
+                self.datasets["full"] = self._load_full()
+        elif representation == "sparse":
+            if "sparse" not in self.datasets:
+                self.datasets["sparse"] = self._load_sparse()
+        elif representation == "matminer":
+            if "matminer" not in self.datasets:
+                self.datasets["matminer"] = self._load_matminer()
+        else:
+            raise ValueError("Unknown data representation requested")
+        return self.datasets[representation]
+
+    def get_targets(self, target_name):
+        if self.targets is None:
+            self.targets = self._load_targets()
+        return self.targets[target_name]
+
+
 NICE_TARGET_NAMES = {
     "homo": "HOMO, eV",
     "lumo": "LUMO, eV",
@@ -46,11 +110,16 @@ def get_prediction_path(experiment_name,
 def get_targets_path(csv_cif_path):
     return Path(csv_cif_path.replace("csv_cif", "processed"), "targets.csv.gz")
 
+def get_matminer_path(csv_cif_path):
+    return Path(csv_cif_path.replace("csv_cif", "processed"), "matminer.csv.gz")
+
 def get_column_from_data_type(data_type):
     if data_type == 'sparse':
         return "defect_representation"
     elif data_type == 'full':
         return "initial_structure"
+    elif data_type == 'matminer':
+        return "matminer"
     else:
         raise ValueError("Unknown data_type")
 
