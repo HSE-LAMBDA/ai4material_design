@@ -59,7 +59,6 @@ class DataLoader:
 
     def _load_targets(self,):
         return self._load_data("targets.csv.gz").set_index("_id").reindex(self.folds_index)
-        # return self._load_data("data.pickle.gz")
 
     def get_structures(self, representation):
         """
