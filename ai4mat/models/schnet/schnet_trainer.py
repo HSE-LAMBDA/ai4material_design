@@ -59,7 +59,7 @@ class SchNetTrainer(Trainer):
             self.optimizers,
             epochs=self.config["optim"]["max_epochs"],
             steps_per_epoch=len(self.train_loader),
-            max_lr=3e-4,
+            max_lr=self.config["optim"]["max_lr"],
         )
 
     def train(self):
