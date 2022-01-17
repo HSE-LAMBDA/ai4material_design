@@ -53,7 +53,7 @@ class SchNetTrainer(Trainer):
                 lr=self.config["optim"]["lr_initial"],
                 **self.config["optim"]["optimizer_params"],
             ),
-            use_gpuds=gpu_id,
+            use_gpus=gpu_id,
         )
         self.scheduler = torch.optim.lr_scheduler.OneCycleLR(
             self.optimizers,
