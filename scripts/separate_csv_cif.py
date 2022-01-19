@@ -1,9 +1,12 @@
 import argparse
 import numpy as np
 import pandas as pd
-from data import (read_structures_descriptions,
-                  read_defects_descriptions,
-                  copy_indexed_structures)
+import sys
+sys.path.append('.')
+from ai4mat.data.data import (
+    read_structures_descriptions,
+    read_defects_descriptions,
+    copy_indexed_structures)
 
 
 def main():
@@ -19,6 +22,7 @@ def main():
                         help="Base material, e. g. MoS2")
     parser.add_argument("--supercell-size", type=int,
                         help="Component 0 of the supercell shape.")
+    parser.add_argument("--double-S-vacancy", action="store_true")
 
     args = parser.parse_args()
     
@@ -34,6 +38,8 @@ def main():
         selection = selection & (defects.base == args.base_material)
     if args.supercell_size:
         selection = selection & (defects.cell.apply(lambda l: l[0]) == args.supercell_size)
+    if args.double_S_vacancy:
+        selection = selection & (defects.defects.apply(lambda defect: defect == [{'type': 'vacancy', 'element': 'S'}]*2))
     selected_defects = defects[selection]
     structures = structures.loc[structures.descriptor_id.isin(selected_defects.index)]
     copy_indexed_structures(structures, args.input_folder, args.output_folder)
