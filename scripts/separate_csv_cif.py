@@ -22,7 +22,7 @@ def main():
                         help="Base material, e. g. MoS2")
     parser.add_argument("--supercell-size", type=int,
                         help="Component 0 of the supercell shape.")
-    parser.add_argument("--double-S-vacancy", action="store_true")
+    parser.add_argument("--vacancy-only", action="store_true")
 
     args = parser.parse_args()
     
@@ -38,8 +38,8 @@ def main():
         selection = selection & (defects.base == args.base_material)
     if args.supercell_size:
         selection = selection & (defects.cell.apply(lambda l: l[0]) == args.supercell_size)
-    if args.double_S_vacancy:
-        selection = selection & (defects.defects.apply(lambda defect: defect == [{'type': 'vacancy', 'element': 'S'}]*2))
+    if args.vacancy_only:
+        selection = selection & (defects.defects.apply(lambda defect: all((this_defect['type'] == 'vacancy' for this_defect in defect))))
     selected_defects = defects[selection]
     structures = structures.loc[structures.descriptor_id.isin(selected_defects.index)]
     copy_indexed_structures(structures, args.input_folder, args.output_folder)
