@@ -112,9 +112,8 @@ class SchNet(torch.nn.Module):
         if self.atomref is not None:
             self.atomref.weight.data.copy_(self.initial_atomref)
 
-
     def forward(self, data):
-        z = data.z.long()
+        z = data.atomic_numbers.long()
         pos = data.pos
         batch = data.batch
 
