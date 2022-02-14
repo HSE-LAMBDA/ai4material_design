@@ -1,5 +1,10 @@
 [core]
-    remote = ai4materialdesign
+    remote = yandex
 ['remote "ai4materialdesign"']
     url = azure://ai4materialdesign
     connection_string = DefaultEndpointsProtocol=https;AccountName=ai4materialdesign;AccountKey=iYaRVvFsEEhR0PmmHK/c8aEfPniX021wiJltl3W6q2C1+ntm9SCrUgaAqMhZpQ12I1piIDPhtb/XJrzqPewIuQ==;EndpointSuffix=core.windows.net
+['remote "yandex"']
+    url = s3://ai4materialdesign/dvc
+    endpointurl = https://storage.yandexcloud.net
+    access_key_id = 9sZsZ6w7dJ5-7kMA2v07
+    secret_access_key = uSaC0oqrUjNlZMJ10sN0t5god1g2nd7PFRKcn0TQ
