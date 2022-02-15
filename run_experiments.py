@@ -112,6 +112,7 @@ def run_experiment(experiment_name, trials_names, gpus, processes_per_gpu):
             gpus,
             processes_per_gpu,
             wandb_config,
+            checkpoint_path=storage_resolver["checkpoints"].joinpath(experiment_name, target_name, this_trial_name)
         )
         predictions.rename(f"predicted_{target_name}_test", inplace=True)
         save_path = storage_resolver["predictions"].joinpath(
@@ -119,6 +120,7 @@ def run_experiment(experiment_name, trials_names, gpus, processes_per_gpu):
         )
         save_path.parents[0].mkdir(exist_ok=True, parents=True)
         predictions.to_csv(save_path, index_label="_id")
+        print("Predictions has been saved!", save_path)
 
 
 def cross_val_predict(
@@ -134,15 +136,26 @@ def cross_val_predict(
     gpus: List[int],
     processes_per_gpu: int,
     wandb_config,
+    checkpoint_path,
 ):
     assert data.index.equals(targets.index)
     assert data.index.equals(folds.index)
 
     n_folds = folds.max() + 1
     assert set(folds.unique()) == set(range(n_folds))
-
+    # predict_on_fold(
+    #             1,
+    #             0,
+    #             n_folds=n_folds,
+    #             folds=folds,
+    #             data=data,
+    #             targets=targets,
+    #             predict_func=predict_func,
+    #             target_is_intensive=target_is_intensive,
+    #             model_params=model_params,
+    #             wandb_config=wandb_config,
+    #         )
     with NestablePool(len(gpus) * processes_per_gpu) as pool:
-
         predictions = pool.starmap(
             partial(
                 predict_on_fold,
@@ -154,6 +167,7 @@ def cross_val_predict(
                 target_is_intensive=target_is_intensive,
                 model_params=model_params,
                 wandb_config=wandb_config,
+                checkpoint_path=checkpoint_path,
             ),
             zip(range(n_folds), cycle(gpus)),
         )
@@ -179,6 +193,7 @@ def predict_on_fold(
     target_is_intensive,
     model_params,
     wandb_config,
+    checkpoint_path,
 ):
     train_folds = set(range(n_folds)) - set((test_fold,))
     train_ids = folds[folds.isin(train_folds)]
@@ -201,6 +216,7 @@ def predict_on_fold(
             target_is_intensive,
             model_params,
             gpu,
+            checkpoint_path=checkpoint_path,
         )
 
 
