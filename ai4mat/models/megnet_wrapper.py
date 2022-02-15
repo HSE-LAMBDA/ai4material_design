@@ -15,12 +15,14 @@ def get_megnet_predictions(
         test_targets, # series of scalars
         target_is_intensive: bool,
         model_params: Dict,
-        gpu: int):
+        gpu: int,
+        checkpoint_path,
+        ):
     # TODO(kazeevn) elegant device configration
     os.environ['CUDA_DEVICE_ORDER']='PCI_BUS_ID'
     os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = "true"
     os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu)
-    if model_params["add_bond_z_coord"]:
+    if model_params["add_bond_z_coord"] or model_params["add_eos_indices"]:
         bond_converter = FlattenGaussianDistance(
             np.linspace(0, model_params["cutoff"],
                         model_params["nfeat_edge_per_dim"]), 0.5)
@@ -32,6 +34,7 @@ def get_megnet_predictions(
         bond_converter=bond_converter,
         atom_features=model_params["atom_features"],
         add_bond_z_coord=model_params["add_bond_z_coord"],
+        add_eos_indices=model_params["add_eos_indices"],
         cutoff=model_params["cutoff"])
     # TODO(kazeevn) do we need to have a separate scaler for each
     # supercell replication?
@@ -55,8 +58,11 @@ def get_megnet_predictions(
             test_structures,
             test_targets,
             is_intensive=target_is_intensive,
-            callbacks=[wandb.keras.WandbCallback(save_model=False)],
-            **model_params["supercell_replication"])
+            # callbacks=[wandb.keras.WandbCallback(save_model=True)],
+            **model_params["supercell_replication"],
+            dirname=checkpoint_path,
+            save_checkpoint=True,
+            )
     else:
         # We use the same test for monitoring, but do no early stopping
         model.train(train_structures,
@@ -64,8 +70,9 @@ def get_megnet_predictions(
                     test_structures,
                     test_targets,
                     epochs=model_params["epochs"],
-                    callbacks=[wandb.keras.WandbCallback(save_model=False)],
-                    save_checkpoint=False,
+                    # callbacks=[wandb.keras.WandbCallback(save_model=True)],
+                    save_checkpoint=True,
+                    dirname=checkpoint_path,
                     verbose=1)
     predictions = model.predict_structures(test_structures)
     return predictions.ravel()
@@ -105,8 +112,9 @@ def train_with_supercell_replication(
             test_structures,
             test_target,
             epochs=epochs_per_replication_variant,
-            callbacks=callbacks,
-            save_checkpoint=False,
+            # callbacks=callbacks,
+            dirname=checkpoint_path,
+            save_checkpoint=True,
             verbose=True
         )
     return model
