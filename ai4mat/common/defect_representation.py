@@ -40,8 +40,8 @@ class VacancyAwareStructureGraph(CrystalGraph):
         cutoff: float = 5.0,
         atom_features: str = "embed",
         add_bond_z_coord: bool = True,
-        add_eos_indices: bool = True,
-        add_eos_parity: bool = True,
+        add_eos_indices: bool = False,
+        add_eos_parity: bool = False,
     ):
         """ "
         Args:
@@ -79,10 +79,15 @@ class VacancyAwareStructureGraph(CrystalGraph):
         self.add_bond_z_coord = add_bond_z_coord
         self.add_eos_indices = add_eos_indices
         self.add_eos_parity = add_eos_parity
-        if add_bond_z_coord or add_eos_parity:
-            self.nfeat_edge = 4  # TODO: fix and handle this correctly
-        else:
+        if add_eos_indices:
+            if add_eos_parity:
+                self.nfeat_edge = 4
+            else:
+                self.nfeat_edge = 3
+        elif add_bond_z_coord:
             self.nfeat_edge = 2
+        else:
+            self.nfeat_edge = 1
 
         self.shell_r = {
             # Molybdenum
@@ -240,10 +245,10 @@ class VacancyAwareStructureGraph(CrystalGraph):
         Returns: graph dictionary
         """
         graph = super().convert(structure)
-        # if self.add_bond_z_coord:
-        #     return self._add_bond_z_coord(graph, structure.cart_coords[:, 2])
-        if self.add_eos_indices:
+        if self.add_eos_indices: # this add z coords by default
             return self.add_eos_idx(graph, structure)
+        elif self.add_bond_z_coord:
+            return self._add_bond_z_coord(graph, structure.cart_coords[:, 2])
         else:
             return graph
 
@@ -260,7 +265,7 @@ class VacancyAwareStructureGraph(CrystalGraph):
         for k, (i, j) in enumerate(zip(graph["index1"], graph["index2"])):
             new_graph["bond"][k, 1] = abs(z_coords[i] - z_coords[j])
         return new_graph
-
+    
     def add_eos_idx(self, graph, struct) -> Dict:
         # raise if z coords are not added or handle
         new_graph = deepcopy(graph)
@@ -290,18 +295,14 @@ class VacancyAwareStructureGraph(CrystalGraph):
                 # 0
                 # [1.1, 2.3, 3.1] 2.2100121312
                 # 1
-                new_graph["bond"][k, 2] = np.argwhere(
-                    self.shell_r[new_graph["atom"][i][1]] > new_graph["bond"][k, 0]
-                )[0]
+                new_graph["bond"][k, 2] = np.searchsorted(self.shell_r[new_graph["atom"][i][1]], new_graph["bond"][k, 0])
             else:
-                new_graph["bond"][k, 2] = np.argwhere(
-                    np.isclose(
+                new_graph["bond"][k, 2] = np.isclose(
                         self.shell_r[new_graph["atom"][i][1]],
                         new_graph["bond"][k, 0],
                         rtol=1,
                         atol=1e-01,
-                    )
-                )[0]
+                    ).argmax()
             if self.add_eos_parity:
                 new_graph["bond"][k, 3] = new_graph["bond"][k, 2] % 2
         return new_graph
