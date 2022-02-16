@@ -143,18 +143,6 @@ def cross_val_predict(
 
     n_folds = folds.max() + 1
     assert set(folds.unique()) == set(range(n_folds))
-    # predict_on_fold(
-    #             1,
-    #             0,
-    #             n_folds=n_folds,
-    #             folds=folds,
-    #             data=data,
-    #             targets=targets,
-    #             predict_func=predict_func,
-    #             target_is_intensive=target_is_intensive,
-    #             model_params=model_params,
-    #             wandb_config=wandb_config,
-    #         )
     with NestablePool(len(gpus) * processes_per_gpu) as pool:
         predictions = pool.starmap(
             partial(
@@ -202,11 +190,12 @@ def predict_on_fold(
     test = data.reindex(index=test_ids.index)
     this_wandb_config = wandb_config.copy()
     this_wandb_config["test_fold"] = test_fold
+
     with wandb.init(
         project="ai4material_design",
         entity=os.environ["WANDB_ENTITY"],
         config=this_wandb_config,
-        # mode="disabled",
+        mode='disabled',
     ) as run:
         return predict_func(
             train,
@@ -216,7 +205,7 @@ def predict_on_fold(
             target_is_intensive,
             model_params,
             gpu,
-            checkpoint_path=checkpoint_path,
+            checkpoint_path=checkpoint_path.joinpath('_'.join(folds.unique().astype(str))),
         )
 
 
