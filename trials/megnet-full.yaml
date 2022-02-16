@@ -2,6 +2,8 @@ model: 'megnet'
 representation: 'full'
 model_params:
   add_bond_z_coord: true
+  add_eos_indices: false
+  add_eos_parity: false
   atom_features: 'Z'
   learning_rate: 2.e-4
   epochs: 800
