@@ -192,10 +192,10 @@ def predict_on_fold(
     this_wandb_config["test_fold"] = test_fold
 
     with wandb.init(
-        project="ai4material_design",
+        project="ai4material_design_final_run",
         entity=os.environ["WANDB_ENTITY"],
         config=this_wandb_config,
-        mode='disabled',
+        # mode='disabled',
     ) as run:
         return predict_func(
             train,
@@ -205,7 +205,7 @@ def predict_on_fold(
             target_is_intensive,
             model_params,
             gpu,
-            checkpoint_path=checkpoint_path.joinpath('_'.join(folds.unique().astype(str))),
+            checkpoint_path=checkpoint_path.joinpath('_'.join(map(str, train_folds))),
         )
 
 
