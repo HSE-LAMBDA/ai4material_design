@@ -59,6 +59,7 @@ def get_megnet_predictions(
             test_targets,
             is_intensive=target_is_intensive,
             **model_params["supercell_replication"],
+            callbacks=[wandb.keras.WandbCallback(save_model=False)],
             dirname=checkpoint_path,
             save_checkpoint=True,
             )
@@ -69,6 +70,7 @@ def get_megnet_predictions(
                     test_structures,
                     test_targets,
                     epochs=model_params["epochs"],
+                    callbacks=[wandb.keras.WandbCallback(save_model=False)],
                     save_checkpoint=True,
                     dirname=checkpoint_path,
                     verbose=1)
@@ -111,6 +113,7 @@ def train_with_supercell_replication(
             test_structures,
             test_target,
             epochs=epochs_per_replication_variant,
+            callbacks=[wandb.keras.WandbCallback(save_model=False)],
             dirname=checkpoint_path,
             save_checkpoint=True,
             verbose=True
