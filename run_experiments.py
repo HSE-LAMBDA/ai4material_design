@@ -143,7 +143,7 @@ def cross_val_predict(
 
     n_folds = folds.max() + 1
     assert set(folds.unique()) == set(range(n_folds))
-    with NestablePool(len(gpus) * processes_per_gpu) as pool:
+    with NestablePool(len(gpus) * processes_per_gpu, maxtasksperchild=1) as pool:
         predictions = pool.starmap(
             partial(
                 predict_on_fold,
