@@ -1,5 +1,5 @@
 outs:
-- md5: b341f74146f5cafbc6c9210483570e02.dir
-  size: 290754
-  nfiles: 3
+- md5: 1c0abdfc66375caf00e7d3b7db248a68.dir
+  size: 390259
+  nfiles: 4
   path: MoS2-plain-cv-schnet
