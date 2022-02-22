@@ -9,6 +9,7 @@ from functools import partial
 import pandas as pd
 from typing import Callable, List, Dict
 import multiprocessing.pool
+import multiprocessing
 
 from ai4mat.data.data import (
     StorageResolver,
@@ -19,7 +20,8 @@ from ai4mat.data.data import (
 
 from ai4mat.models import get_predictor_by_name
 
-
+# This might have unexpected effects, haven't been tested on pytorch yet!
+multiprocessing.set_start_method('spawn', force=True)
 # This should be moved to somewhere else probaby utils
 class NoDaemonProcess(multiprocessing.Process):
     @property
@@ -195,7 +197,8 @@ def predict_on_fold(
         project="ai4material_design_final_run",
         entity=os.environ["WANDB_ENTITY"],
         config=this_wandb_config,
-        # mode='disabled',
+        # name="full-eos",
+        # tags=['full', 'eos']
     ) as run:
         return predict_func(
             train,
@@ -206,6 +209,7 @@ def predict_on_fold(
             model_params,
             gpu,
             checkpoint_path=checkpoint_path.joinpath('_'.join(map(str, train_folds))),
+            use_last_checkpoint=True,
         )
 
 
