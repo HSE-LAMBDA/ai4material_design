@@ -5,8 +5,8 @@ from megnet.utils.preprocessing import StandardScaler
 from megnet.models import MEGNetModel
 from megnet.data.graph import GaussianDistance
 from typing import Dict
+from pathlib import Path
 from ai4mat.common.defect_representation import VacancyAwareStructureGraph, FlattenGaussianDistance
-
 
 def get_megnet_predictions(
         train_structures, # series of pymatgen object
@@ -17,6 +17,7 @@ def get_megnet_predictions(
         model_params: Dict,
         gpu: int,
         checkpoint_path,
+        use_last_checkpoint=True
         ):
     # TODO(kazeevn) elegant device configration
     os.environ['CUDA_DEVICE_ORDER']='PCI_BUS_ID'
@@ -42,6 +43,19 @@ def get_megnet_predictions(
     scaler = StandardScaler.from_training_data(train_structures,
                                                train_targets,
                                                is_intensive=target_is_intensive)
+
+
+    if use_last_checkpoint:
+        checkpoints = sorted(Path(checkpoint_path).glob('*.hdf5'), key=lambda f: str(f.name).split('_')[2])
+        if checkpoints:
+            prev_model = checkpoints[-1]
+            checkpoint_epoch = int(str(prev_model.name).split('_')[2])
+            initial_epoch = checkpoint_epoch
+            print(f"Loading checkpoint: {prev_model}")
+        else:
+            prev_model = None
+
+
     model = MEGNetModel(nfeat_edge=graph_converter.nfeat_edge*model_params["nfeat_edge_per_dim"],
                         nfeat_node=graph_converter.nfeat_node,
                         nfeat_global=2,
@@ -62,6 +76,8 @@ def get_megnet_predictions(
             callbacks=[wandb.keras.WandbCallback(save_model=False)],
             dirname=checkpoint_path,
             save_checkpoint=True,
+            prev_model=prev_model,
+            initial_epoch=initial_epoch,
             )
     else:
         # We use the same test for monitoring, but do no early stopping
@@ -70,10 +86,13 @@ def get_megnet_predictions(
                     test_structures,
                     test_targets,
                     epochs=model_params["epochs"],
+                    initial_epoch=initial_epoch,
                     callbacks=[wandb.keras.WandbCallback(save_model=False)],
                     save_checkpoint=True,
                     dirname=checkpoint_path,
-                    verbose=1)
+                    prev_model=prev_model,
+                    verbose=1
+                    )
     predictions = model.predict_structures(test_structures)
     return predictions.ravel()
 
@@ -86,7 +105,10 @@ def train_with_supercell_replication(
         replication_iterations,
         max_replications,
         checkpoint_path,
-        random_seed):
+        prev_model,
+        initial_epoch,
+        random_seed,
+        ):
 
     assert max_replications >= 1
     rng = np.random.RandomState(random_seed)
@@ -116,6 +138,8 @@ def train_with_supercell_replication(
             callbacks=[wandb.keras.WandbCallback(save_model=False)],
             dirname=checkpoint_path,
             save_checkpoint=True,
+            prev_model=prev_model,
+            initial_epoch=initial_epoch,
             verbose=True
         )
     return model
