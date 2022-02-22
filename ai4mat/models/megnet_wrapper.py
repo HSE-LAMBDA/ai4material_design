@@ -1,12 +1,24 @@
 import os
 import numpy as np
 import wandb.keras
+import keras
+
 from megnet.utils.preprocessing import StandardScaler
 from megnet.models import MEGNetModel
 from megnet.data.graph import GaussianDistance
 from typing import Dict
 from pathlib import Path
 from ai4mat.common.defect_representation import VacancyAwareStructureGraph, FlattenGaussianDistance
+
+
+
+class CheckpointLastEpoch(keras.callbacks.Callback):
+    def __init__(self, filepath, last_epoch):
+        self.last_epoch = last_epoch
+        self.filepath = Path(filepath)
+    def on_epoch_end(self, epoch, logs={}):
+        if epoch == self.last_epoch:
+            self.model.save(self.filepath.joinpath(f"val_mae_{epoch:05d}_last.hdf5"), overwrite=True)
 
 def get_megnet_predictions(
         train_structures, # series of pymatgen object
@@ -23,6 +35,7 @@ def get_megnet_predictions(
     os.environ['CUDA_DEVICE_ORDER']='PCI_BUS_ID'
     os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = "true"
     os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu)
+    print(os.environ['CUDA_VISIBLE_DEVICES'])
     if model_params["add_bond_z_coord"] or model_params["add_eos_indices"]:
         bond_converter = FlattenGaussianDistance(
             np.linspace(0, model_params["cutoff"],
@@ -44,7 +57,7 @@ def get_megnet_predictions(
                                                train_targets,
                                                is_intensive=target_is_intensive)
 
-
+    initial_epoch = 0
     if use_last_checkpoint:
         checkpoints = sorted(Path(checkpoint_path).glob('*.hdf5'), key=lambda f: str(f.name).split('_')[2])
         if checkpoints:
@@ -54,6 +67,7 @@ def get_megnet_predictions(
             print(f"Loading checkpoint: {prev_model}")
         else:
             prev_model = None
+
 
 
     model = MEGNetModel(nfeat_edge=graph_converter.nfeat_edge*model_params["nfeat_edge_per_dim"],
@@ -73,7 +87,7 @@ def get_megnet_predictions(
             test_targets,
             is_intensive=target_is_intensive,
             **model_params["supercell_replication"],
-            callbacks=[wandb.keras.WandbCallback(save_model=False)],
+            callbacks=[wandb.keras.WandbCallback(save_model=False), CheckpointLastEpoch(checkpoint_path, model_params["epochs"])],
             dirname=checkpoint_path,
             save_checkpoint=True,
             prev_model=prev_model,
@@ -87,7 +101,7 @@ def get_megnet_predictions(
                     test_targets,
                     epochs=model_params["epochs"],
                     initial_epoch=initial_epoch,
-                    callbacks=[wandb.keras.WandbCallback(save_model=False)],
+                    callbacks=[wandb.keras.WandbCallback(save_model=False), CheckpointLastEpoch(checkpoint_path, model_params["epochs"])],
                     save_checkpoint=True,
                     dirname=checkpoint_path,
                     prev_model=prev_model,
