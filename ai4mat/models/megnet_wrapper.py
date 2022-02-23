@@ -9,7 +9,7 @@ from megnet.data.graph import GaussianDistance
 from typing import Dict
 from pathlib import Path
 from ai4mat.common.defect_representation import VacancyAwareStructureGraph, FlattenGaussianDistance
-
+import pickle
 
 
 class CheckpointLastEpoch(keras.callbacks.Callback):
@@ -17,7 +17,7 @@ class CheckpointLastEpoch(keras.callbacks.Callback):
         self.last_epoch = last_epoch
         self.filepath = Path(filepath)
     def on_epoch_end(self, epoch, logs={}):
-        if epoch == self.last_epoch:
+        if epoch == self.last_epoch-1:
             self.model.save(self.filepath.joinpath(f"val_mae_{epoch:05d}_last.hdf5"), overwrite=True)
 
 def get_megnet_predictions(
@@ -35,7 +35,6 @@ def get_megnet_predictions(
     os.environ['CUDA_DEVICE_ORDER']='PCI_BUS_ID'
     os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = "true"
     os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu)
-    print(os.environ['CUDA_VISIBLE_DEVICES'])
     if model_params["add_bond_z_coord"] or model_params["add_eos_indices"]:
         bond_converter = FlattenGaussianDistance(
             np.linspace(0, model_params["cutoff"],
@@ -67,8 +66,7 @@ def get_megnet_predictions(
             print(f"Loading checkpoint: {prev_model}")
         else:
             prev_model = None
-
-
+ 
 
     model = MEGNetModel(nfeat_edge=graph_converter.nfeat_edge*model_params["nfeat_edge_per_dim"],
                         nfeat_node=graph_converter.nfeat_node,
