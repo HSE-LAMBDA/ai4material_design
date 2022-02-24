@@ -1,0 +1,5 @@
+outs:
+- md5: dcc391513e1fd6183c39d104f15ff052.dir
+  size: 396173
+  nfiles: 4
+  path: MoS2-plain-cv-catboost
