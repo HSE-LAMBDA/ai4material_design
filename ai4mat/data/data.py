@@ -7,7 +7,7 @@ import ase.io
 import pymatgen.io.cif
 from tqdm.auto import tqdm
 from collections import defaultdict
-
+import gzip
 class StorageResolver:
     def __init__(self,
                  config_name=Path(__file__).parent.parent.parent.joinpath("storage.yaml")):
@@ -18,7 +18,19 @@ class StorageResolver:
     def __getitem__(self, key):
         return Path(self.root_folder, self.config[key])
 
-
+class Is_Intensive:
+    def __init__(self):
+        self.attr = {
+            "homo": True,
+            "lumo": True,
+            "formation_energy": False,
+            "band_gap": True,
+            "formation_energy_per_site": True
+        }
+    def __getitem__(self, item):
+        if isinstance(item, list):
+            return True
+        return self.attr[item]
 class DataLoader:
     def __init__(self, dataset_paths, folds_index):
         self.dataset_paths = dataset_paths
@@ -141,13 +153,8 @@ def copy_indexed_structures(structures, input_folder, output_folder):
     structures.to_csv(save_path.joinpath("defects.csv"),
                       index_label="_id")
 
-IS_INTENSIVE = {
-    "homo": True,
-    "lumo": True,
-    "formation_energy": False,
-    "band_gap": True,
-    "formation_energy_per_site": True
-}
+
+
 
 
 def get_gpaw_trajectories(defect_db_path:str):
