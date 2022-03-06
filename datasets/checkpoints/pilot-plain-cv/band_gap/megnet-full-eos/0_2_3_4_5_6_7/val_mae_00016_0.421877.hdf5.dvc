@@ -1,0 +1,4 @@
+outs:
+- md5: de5b5c8e376c77aadec6292bc7b5881e
+  size: 2310544
+  path: val_mae_00016_0.421877.hdf5
