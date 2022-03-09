@@ -21,7 +21,7 @@ from ai4mat.data.data import (
 from ai4mat.models import get_predictor_by_name
 
 # This might have unexpected effects, haven't been tested on pytorch yet!
-multiprocessing.set_start_method('spawn', force=True)
+multiprocessing.set_start_method('fork', force=True)
 # This should be moved to somewhere else probaby utils
 class NoDaemonProcess(multiprocessing.Process):
     @property
