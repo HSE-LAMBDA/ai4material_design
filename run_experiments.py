@@ -7,7 +7,7 @@ import yaml
 from itertools import cycle, product
 from functools import partial
 import pandas as pd
-from typing import Callable, List, Dict
+from typing import Callable, List, Dict, Union
 import multiprocessing.pool
 import multiprocessing
 
@@ -15,10 +15,12 @@ from ai4mat.data.data import (
     StorageResolver,
     DataLoader,
     get_prediction_path,
-    IS_INTENSIVE,
+    Is_Intensive,
 )
 
 from ai4mat.models import get_predictor_by_name
+
+IS_INTENSIVE = Is_Intensive()
 
 # This might have unexpected effects, haven't been tested on pytorch yet!
 multiprocessing.set_start_method('fork', force=True)
@@ -114,11 +116,11 @@ def run_experiment(experiment_name, trials_names, gpus, processes_per_gpu):
             gpus,
             processes_per_gpu,
             wandb_config,
-            checkpoint_path=storage_resolver["checkpoints"].joinpath(experiment_name, target_name, this_trial_name)
+            checkpoint_path=storage_resolver["checkpoints"].joinpath(experiment_name, str(target_name), this_trial_name)
         )
-        predictions.rename(f"predicted_{target_name}_test", inplace=True)
+        predictions.rename(lambda target_name: f"predicted_{target_name}_test", axis=1, inplace=True)
         save_path = storage_resolver["predictions"].joinpath(
-            get_prediction_path(experiment_name, target_name, this_trial_name)
+            get_prediction_path(experiment_name, str(target_name), this_trial_name)
         )
         save_path.parents[0].mkdir(exist_ok=True, parents=True)
         predictions.to_csv(save_path, index_label="_id")
@@ -127,7 +129,7 @@ def run_experiment(experiment_name, trials_names, gpus, processes_per_gpu):
 
 def cross_val_predict(
     data: pd.Series,
-    targets: pd.Series,
+    targets: Union[pd.Series, List[pd.Series]],
     folds: pd.Series,
     predict_func: Callable,
     # predict_func(train, train_targets, test, test_targets, model_params, gpu)
@@ -145,7 +147,7 @@ def cross_val_predict(
 
     n_folds = folds.max() + 1
     assert set(folds.unique()) == set(range(n_folds))
-    with NestablePool(len(gpus) * processes_per_gpu, maxtasksperchild=1) as pool:
+    with NestablePool(len(gpus) * processes_per_gpu) as pool:
         predictions = pool.starmap(
             partial(
                 predict_on_fold,
@@ -163,7 +165,13 @@ def cross_val_predict(
         )
     # TODO(kazeevn)
     # Should we add explicit Structure -> graph preprocessing with results shared?
-    predictions_pd = pd.Series(index=targets.index, data=np.empty_like(targets.array))
+
+    if isinstance(targets, pd.DataFrame):
+        predictions_pd = pd.DataFrame(index=targets.index, columns=targets.columns, data=np.zeros_like(targets.to_numpy()))
+    elif isinstance(targets, pd.Series):
+        predictions_pd = pd.DataFrame(index=targets.index, columns=[targets.name], data=np.zeros_like(targets.to_numpy()))
+
+
 
     for this_predictions, test_fold in zip(predictions, range(n_folds)):
         test_mask = folds == test_fold
