@@ -201,24 +201,24 @@ def predict_on_fold(
     this_wandb_config = wandb_config.copy()
     this_wandb_config["test_fold"] = test_fold
 
-    with wandb.init(
-        project="ai4material_design_final_run",
-        entity=os.environ["WANDB_ENTITY"],
-        config=this_wandb_config,
-        # name="full-eos",
-        # tags=['full', 'eos']
-    ) as run:
-        return predict_func(
-            train,
-            targets.reindex(index=train_ids.index),
-            test,
-            targets.reindex(index=test_ids.index),
-            target_is_intensive,
-            model_params,
-            gpu,
-            checkpoint_path=checkpoint_path.joinpath('_'.join(map(str, train_folds))),
-            use_last_checkpoint=True,
-        )
+    # with wandb.init(
+    #    project="ai4material_design_final_run",
+    #    entity=os.environ["WANDB_ENTITY"],
+    #    config=this_wandb_config,
+    #    # name="full-eos",
+    #    # tags=['full', 'eos']
+    # ) as run:
+    return predict_func(
+        train,
+        targets.reindex(index=train_ids.index),
+        test,
+        targets.reindex(index=test_ids.index),
+        target_is_intensive,
+        model_params,
+        gpu,
+        checkpoint_path=checkpoint_path.joinpath('_'.join(map(str, train_folds))),
+        use_last_checkpoint=True,
+    )
 
 
 if __name__ == "__main__":
