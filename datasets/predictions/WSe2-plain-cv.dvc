@@ -1,0 +1,5 @@
+outs:
+- md5: 7f4b054eca3587c4a8bbe27479624596.dir
+  size: 288676
+  nfiles: 4
+  path: WSe2-plain-cv
