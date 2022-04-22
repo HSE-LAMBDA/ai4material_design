@@ -17,6 +17,19 @@ def main():
     parser.add_argument("--trials", type=str, nargs="+")
     args = parser.parse_args()
     
+    font = {
+        'family': 'sans-serif',
+        'weight': 'normal',
+        'size'  : 12}
+
+    plt.rc('font', **font)
+    plot_kwargs = dict(
+        s=40,
+        facecolors='none',
+        edgecolors='navy',
+        alpha=0.3,
+    )
+
     storage_resolver = StorageResolver()
     for experiment_name in args.experiments:
         experiment_path = storage_resolver["experiments"].joinpath(experiment_name)
@@ -42,7 +55,7 @@ def main():
             ax.scatter(true_targets.loc[:, target_name],
                        predictions,
                        label=f"$\mathrm{{MAE}}={mae:.4f}$",
-                       alpha=0.5)
+                       **plot_kwargs)
             ax.set_xlabel(f"DFT {target_name}, eV")
             ax.set_ylabel(f"Predicted {target_name}, eV")
             ax.legend()
