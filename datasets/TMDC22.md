@@ -1,7 +1,26 @@
 The data contains MoS2 structures simulated with VASP. Each strucure is relaxed, and then the relevant properties are computed.
 
+Our calculations are based on density functional theory (DFT) using the PBE functional as implemented in the Vienna Ab Initio Simulation Package (VASP). The interaction between the valence electrons and ionic cores is described within the projector augmented (PAW) approach with a plane‐wave energy cutoff of 500 eV. Spin polarization was included for all the calculations. The monolayer of MoS2 and defects calculations were performed using an 8x8
+supercell, and the Brillouin zone was sampled using a (3x3x1) Monkhorst‐Pack grid. We use periodic boundary conditions, and add a 15Å vacuum space above the material surface to avoid interaction between neighboring layers. In the structural energy minimization, the atomic coordinates are allowed to relax until the forces on all the atoms are less than 0.01 eV/Å. The energy tolerance is 10^(-6) eV. 
 
-## Format
+We compute the formation energy, i.e., the energy required to create a defect as
+
+<img src="https://render.githubusercontent.com/render/math?math=E_{f} = E_{D}-E_{\text{MoS}_2}+\sum_{i\in\{\text{Mo}, \text{S}\}}{n_i \mu_i}-\sum_{i\in\{\text{W}, \text{Se}\}}{m_i \mu_i}">
+          
+where $E_{D}$ is the total energy of the structure with defects, $E_{\text{MoS}_2}$ is the total energy of the pristine \ce{MoS_2}, $n_i$ is the number of atoms transferred from the supercell to a chemical reservoir, $m_i$ is the number of atoms transferred from a chemical reservoir to the supercell to form the substitution-type defects, and $\mu_i$ is the chemical potential of $i$-th element. Finally, to make the results better comparable across examples with different numbers of defects, we normalize the formation energy by dividing it by the number of defect sites:
+
+<img src="https://render.githubusercontent.com/render/math?math=E'_{f} = E_f/N_d,">
+
+where $N_d$ is the number of defects in the structure.
+
+The highest occupied molecular orbital (HOMO) and lowest unoccupied molecular orbital (LUMO) energies are computed respective to the host valence band maximum (VBM) and are normalized according to 
+
+<img src="https://render.githubusercontent.com/render/math?math=E_\text{HOMO} = E_\text{HOMO}^D-E_1^D-(E_\text{VBM}^\text{pristine}-E_1^\text{pristine})">
+
+Where $E_\text{HOMO}^D$ is the eigenvalue of the highest occupied Kohn-Sham states of defects, $E_\text{VBM}^\text{pristine}$ is the eigenvalue of the valence band maximum of pristine \ce{MoS_2}, $E_1^D$ and $E_1^\text{pristine}$ are the energy of the lowest Kohn-Sham orbital of the calculated defect and pristine \ce{MoS_2} structures. Bangap is computed as the difference between LUMO and HOMO.
+
+
+## File format
 ### `defects.csv`
 1) (unnamed first column) structure number in the file
 2) `_id` unique structure identifier
