@@ -202,11 +202,11 @@ def predict_on_fold(
     this_wandb_config["test_fold"] = test_fold
 
     # with wandb.init(
-    #    project="ai4material_design_final_run",
-    #    entity=os.environ["WANDB_ENTITY"],
-    #    config=this_wandb_config,
-    #    # name="full-eos",
-    #    # tags=['full', 'eos']
+    #     project="ai4material_design_final_run",
+    #     entity=os.environ["WANDB_ENTITY"],
+    #     config=this_wandb_config,
+    #     name="full-eos",
+    #     tags=['full', 'eos']
     # ) as run:
     return predict_func(
         train,

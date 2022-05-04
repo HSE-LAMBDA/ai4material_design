@@ -8,7 +8,7 @@ class MEGNet(nn.Module):
     def __init__(self):
         super().__init__()
         self.emb = nn.Embedding(95, 16)
-        self.m1 = MegnetModule(100, 16, 2)
+        self.m1 = MegnetModule(200, 16, 2)
         self.m2 = MegnetModule(32, 32, 32)
         self.m3 = MegnetModule(32, 32, 32)
         self.se = Set2Set(32, 1)

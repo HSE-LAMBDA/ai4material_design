@@ -1,101 +1,127 @@
 import pandas as pd
 import torch
 import numpy as np
+import torch.nn.functional as F
+import pathlib
 
 from tqdm import trange
 from ai4mat.common.base_trainer import Trainer
 from ai4mat.models.megnet_pytorch.megnet_pytorch import MEGNet
-from ai4mat.data.gemnet_dataloader import GemNetFullStruct, GemNetFullStructFolds
-from ai4mat.models.megnet_pytorch.struct2graph import SimpleCrystalConverter, GaussianDistanceConverter
+from ai4mat.models.megnet_pytorch.struct2graph import SimpleCrystalConverter, GaussianDistanceConverter, FlattenGaussianDistanceConverter
 from torch_geometric.loader import DataLoader
+from ai4mat.models.megnet_pytorch.utils import Scaler
+
+torch.multiprocessing.set_start_method("forkserver", force=True)
+torch.multiprocessing.set_sharing_strategy("file_system")
 
 
 class MEGNetPyTorchTrainer(Trainer):
     def __init__(
             self,
-            train_structures: pd.Series,  # series of pymatgen object
-            train_targets: pd.Series,  # series of scalars
-            test_structures: pd.Series,  # series of pymatgen object
-            test_targets: pd.Series,  # series of scalars
+            train_data: list,
+            test_data: list,
             configs: dict,
             gpu_id: int,
-            **kwargs,
+            save_checkpoint: bool,
     ):
 
         self.model = MEGNet()
-
         self.config = configs
-        if train_structures is not None and train_targets is not None:
-            converter = SimpleCrystalConverter(bond_converter=GaussianDistanceConverter())
-            self.structures = [converter.convert(s) for s in train_structures]
-            print(self.structures)
-            self.target_name = train_targets.name
+        self.Scaler = Scaler()
 
-            self.trainloader = DataLoader(
-                self.structures,
-                batch_size=32,
-                shuffle=False,
-            )
-        else:
-            self.trainloader = GemNetFullStruct(self.config).trainloader
+        self.converter = SimpleCrystalConverter(bond_converter=FlattenGaussianDistanceConverter(), add_z_bond_coord=True)
+        self.train_structures = [self.converter.convert(s) for s in train_data]
+        self.test_structures = [self.converter.convert(s) for s in test_data]
+        self.Scaler.fit(self.train_structures)
+
+        self.trainloader = DataLoader(
+            self.train_structures,
+            batch_size=self.config["model"]["train_batch_size"],
+            shuffle=False,
+        )
+        self.testloader = DataLoader(
+            self.test_structures,
+            batch_size=self.config["model"]["test_batch_size"],
+            shuffle=False,
+        )
 
         super().__init__(
             run_id=1,
             name="test",
             model=self.model,
             dataset=self.trainloader,
-            optimizers=torch.optim.AdamW(
+            run_dir=pathlib.Path().resolve(),
+            optimizers=torch.optim.Adam(
                 self.model.parameters(),
                 lr=self.config["optim"]["lr_initial"],
-                **self.config["optim"]["optimizer_params"],
             ),
             use_gpus=None,
         )
-        self.save_checkpoint = kwargs['save_checkpoint']
+        self.save_checkpoint = save_checkpoint
 
         if self.config["optim"]["scheduler"].lower() == "ReduceLROnPlateau".lower():
             self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
                 self.optimizers,
-                # mode=self.config["optim"]["mode"],
-                # factor=self.config["optim"]["factor"],
-                # patience=self.config["optim"]["patience"],
-                # verbose=True,
+                factor=self.config["optim"]["factor"],
+                patience=self.config["optim"]["patience"],
+                threshold=self.config["optim"]["threshold"],
+                min_lr=self.config["optim"]["min_lr"],
+                verbose=True,
             )
 
     def train(self):
-        for epoch in trange(self.config["optim"]["max_epochs"]):
+        for epoch in trange(self.config["model"]["epochs"]):
             print(f'=========== {epoch} ==============')
-            print(self.trainloader.__len__(), self.device)
+            print(len(self.trainloader), self.device)
+
             batch_loss = []
-            for i, item in enumerate(self.trainloader):
-                print("item", item)
-                _loss = []
-                _grad_norm = []
-                item = item.to(self.device)
-                out = self.model(
-                    item.x, item.edge_index, item.edge_attr, item.state, item.batch, item.bond_batch
+            self.model.train(True)
+            for i, batch in enumerate(self.trainloader):
+                batch = batch.to(self.device)
+                preds = self.model(
+                    batch.x, batch.edge_index, batch.edge_attr, batch.state, batch.batch, batch.bond_batch
                 ).squeeze()
-                loss = torch.nn.functional.l1_loss(out.view(-1), getattr(item, 'y'))
+                loss = F.mse_loss(self.Scaler.transform(batch.y), preds)
                 loss.backward()
 
                 self.optimizers.step()
-                _loss.append(loss.detach().cpu().numpy())
                 self.optimizers.zero_grad()
 
-                batch_loss.append(np.mean(_loss))
+                batch_loss.append(loss.to("cpu").data.numpy())
 
-            if self.save_checkpoint:
-                self.save()
-            self.scheduler.step(loss)
+            total = []
+            self.model.train(False)
+            with torch.no_grad():
+                for batch in self.testloader:
+                    batch = batch.to(self.device)
+
+                    preds = self.model(
+                        batch.x, batch.edge_index, batch.edge_attr, batch.state, batch.batch, batch.bond_batch
+                    ).squeeze()
+
+                    total.append(
+                        F.l1_loss(self.Scaler.inverse_transform(preds), batch.y, reduction='sum') \
+                            .to('cpu').data.numpy()
+                    )
+
+            self.scheduler.step(sum(total) / len(self.test_structures))
+
+            # if self.save_checkpoint:
+            #     self.save()
+
             torch.cuda.empty_cache()
+
             print(
-                f"Epoch: {epoch},  Loss: {np.mean(_loss)}, Grad_norm: {np.mean(_grad_norm)}"
+                f"Epoch: {epoch}, train loss: {np.mean(batch_loss)}, test loss: {sum(total) / len(self.test_structures)}"
             )
 
-    def predict_structures(self, structures):
-        data_list = self.structures.construct_dataset(structures, targets=None)
+    def predict_test_structures(self):
         results = []
-        for item in self.structures.testloader(data_list):
-            with torch.no_grad():
-                results.append(self.model(item.to(self.device)))
-        return torch.concat(results).cpu().detach().numpy()
+        with torch.no_grad():
+            for batch in self.testloader:
+                batch = batch.to(self.device)
+                preds = self.model(
+                    batch.x, batch.edge_index, batch.edge_attr, batch.state, batch.batch, batch.bond_batch
+                )
+                results.append(self.Scaler.inverse_transform(preds))
+        return torch.concat(results).to('cpu').data.numpy().reshape(-1, 1)

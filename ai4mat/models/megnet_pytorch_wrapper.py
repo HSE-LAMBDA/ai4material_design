@@ -1,5 +1,11 @@
 import pandas as pd
 from ai4mat.models.megnet_pytorch.megnet_pytorch_trainer import MEGNetPyTorchTrainer
+from ai4mat.models.megnet_pytorch.struct2graph import SimpleCrystalConverter, FlattenGaussianDistanceConverter
+
+
+def set_y(structure, y):
+    setattr(structure, "y", y)
+    return structure
 
 
 def get_megnet_pytorch_predictions(
@@ -13,13 +19,20 @@ def get_megnet_pytorch_predictions(
         checkpoint_path,
         use_last_checkpoint=True
         ):
-    print(model_params)
+    train_targets = train_targets.tolist()
+    test_targets = test_targets.tolist()
+
+    train_data = [set_y(s, y) for s, y in zip(train_structures, train_targets)]
+    test_data = [set_y(s, y) for s, y in zip(test_structures, test_targets)]
+
+    c = SimpleCrystalConverter(bond_converter=FlattenGaussianDistanceConverter(), add_z_bond_coord=True, cutoff=0.5)
+    s = c.convert(train_data[0])
+    print(s)
+    return
 
     model = MEGNetPyTorchTrainer(
-        train_structures,
-        train_targets,
-        test_structures,
-        test_targets,
+        train_data,
+        test_data,
         configs=model_params,
         gpu_id=gpu,
         save_checkpoint=False,
@@ -27,4 +40,4 @@ def get_megnet_pytorch_predictions(
     model.train()
 
     print('========== predicting ==============')
-    return model.predict_structures()
+    return model.predict_test_structures()
