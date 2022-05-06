@@ -11,9 +11,8 @@ from ai4mat.data.data import StorageResolver
 
 def main():
     parser = argparse.ArgumentParser("Normalize HOMO and LUMO")
-    group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("--predictions-folder", type=str)
-    group.add_argument("--dataset-folder", type=str, default='dichalcogenides_x1s6_202109_MoS2')
+    parser.add_argument("--predictions-folder", type=str)
+    parser.add_argument("--dataset-folder", type=str, default='dichalcogenides_x1s6_202109_MoS2')
     args = parser.parse_args()
 
     storage_resolver = StorageResolver()
@@ -32,6 +31,7 @@ def main():
     for file in predictions:
         pred = pd.read_csv(file, index_col=0)
         if len(pred.columns) >= 2: continue
+        if 'normalized' in file.parents[0].name: continue
         pred = pred.iloc[:, 0] - structures['norm_const']
         save_dir = file.parents[1] / f'normalized_{file.parents[0].name}'
         if not save_dir.exists():
