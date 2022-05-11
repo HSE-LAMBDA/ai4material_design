@@ -57,18 +57,19 @@ class MegnetModule(MessagePassing):
         edge_attr_skip = edge_attr
         state_skip = state
 
-        edge_attr = self.edge_updater(
-            edge_index=edge_index, x=x, edge_attr=edge_attr, state=state, bond_batch=bond_batch
-        )
+        if torch.numel(bond_batch) > 0:
+            edge_attr = self.edge_updater(
+                edge_index=edge_index, x=x, edge_attr=edge_attr, state=state, bond_batch=bond_batch
+            )
         x = self.propagate(
             edge_index=edge_index, x=x, edge_attr=edge_attr, state=state, batch=batch
         )
         u_v = global_mean_pool(x, batch)
-        u_e = global_mean_pool(edge_attr, bond_batch)
+        u_e = global_mean_pool(edge_attr, bond_batch, batch.max().item() + 1)
         state = self.phi_u(torch.cat((u_e, u_v, state), 1))
         return x + x_skip, edge_attr + edge_attr_skip, state + state_skip
 
-    def message(self, edge_attr):
+    def message(self, x_i, x_j, edge_attr):
         return edge_attr
 
     def update(self, inputs, x, state, batch):

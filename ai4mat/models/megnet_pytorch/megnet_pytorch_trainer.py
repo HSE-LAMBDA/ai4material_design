@@ -29,8 +29,9 @@ class MEGNetPyTorchTrainer(Trainer):
         self.config = configs
         self.Scaler = Scaler()
 
-        self.converter = SimpleCrystalConverter(bond_converter=FlattenGaussianDistanceConverter(), add_z_bond_coord=True)
-        self.train_structures = [self.converter.convert(s) for s in train_data]
+        self.converter = SimpleCrystalConverter(bond_converter=GaussianDistanceConverter(), cutoff=0.5)
+        self.converter2 = SimpleCrystalConverter(bond_converter=GaussianDistanceConverter(), cutoff=5.0)
+        self.train_structures = [self.converter.convert(s) if i % 2 else self.converter2.convert(s) for i, s in enumerate(train_data)]
         self.test_structures = [self.converter.convert(s) for s in test_data]
         self.Scaler.fit(self.train_structures)
 
@@ -39,6 +40,12 @@ class MEGNetPyTorchTrainer(Trainer):
             batch_size=self.config["model"]["train_batch_size"],
             shuffle=False,
         )
+        # for batch in self.trainloader:
+        #     print(batch)
+        #     print(batch.bond_batch)
+        #     print(batch.bond_batch.shape)
+        #     print(batch.batch)
+        #     return
         self.testloader = DataLoader(
             self.test_structures,
             batch_size=self.config["model"]["test_batch_size"],

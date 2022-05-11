@@ -4,6 +4,14 @@ from torch_geometric.data import Data
 import torch
 
 
+class MyTensor(torch.Tensor):
+    def max(self, *args, **kwargs):
+        if torch.numel(self) == 0:
+            return 0
+        else:
+            return torch.max(self, *args, **kwargs)
+
+
 class SimpleCrystalConverter:
     def __init__(
             self,
@@ -26,15 +34,11 @@ class SimpleCrystalConverter:
             cart_coords, cart_coords, r=self.cutoff, pbc=pbc, lattice=lattice_matrix, tol=1e-8
         )
 
-        _, idxs, counts = np.unique(center_indices, return_index=True, return_counts=True)
-        idxs = idxs[counts == 1]
-        unique_mask = np.zeros_like(center_indices)
-        unique_mask[idxs] = True
-        exclude_self = (center_indices != neighbor_indices) | unique_mask
+        exclude_self = (center_indices != neighbor_indices)
 
         edge_index = torch.Tensor(np.stack((center_indices[exclude_self], neighbor_indices[exclude_self]))).long()
-        if torch.numel(edge_index) == 0:
-            raise "shit"
+        # if torch.numel(edge_index) == 0:
+        #     raise "shit"
 
         x = torch.Tensor(self.atom_converter.convert(np.array([i.specie.Z for i in d]))).long()
 
@@ -48,7 +52,7 @@ class SimpleCrystalConverter:
         edge_attr = torch.Tensor(self.bond_converter.convert(distances_preprocessed))
         state = getattr(d, "state", None) or [[0.0, 0.0]]
         y = d.y if hasattr(d, "y") else 0
-        bond_batch = torch.Tensor([0 for _ in range(edge_index.shape[1])]).long()
+        bond_batch = MyTensor([0 for _ in range(edge_index.shape[1])]).long()
 
         return Data(
             x=x, edge_index=edge_index, edge_attr=edge_attr, state=torch.Tensor(state), y=y, bond_batch=bond_batch
