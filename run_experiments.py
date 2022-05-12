@@ -205,8 +205,8 @@ def predict_on_fold(
         project="ai4material_design_final_run",
         entity=os.environ["WANDB_ENTITY"],
         config=this_wandb_config,
-        # name="full-eos",
-        # tags=['full', 'eos']
+        name="full-eos",
+        tags=['full', 'eos']
     ) as run:
         return predict_func(
             train,
