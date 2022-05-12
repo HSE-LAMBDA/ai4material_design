@@ -3,11 +3,13 @@ import torch
 import numpy as np
 import torch.nn.functional as F
 import pathlib
+import wandb
 
-from tqdm import trange
+from tqdm import trange, tqdm
 from ai4mat.common.base_trainer import Trainer
 from ai4mat.models.megnet_pytorch.megnet_pytorch import MEGNet
-from ai4mat.models.megnet_pytorch.struct2graph import SimpleCrystalConverter, GaussianDistanceConverter, FlattenGaussianDistanceConverter
+from ai4mat.models.megnet_pytorch.struct2graph import SimpleCrystalConverter, GaussianDistanceConverter
+from ai4mat.models.megnet_pytorch.struct2graph import FlattenGaussianDistanceConverter, AtomFeaturesExtractor
 from torch_geometric.loader import DataLoader
 from ai4mat.models.megnet_pytorch.utils import Scaler
 
@@ -24,28 +26,34 @@ class MEGNetPyTorchTrainer(Trainer):
             gpu_id: int,
             save_checkpoint: bool,
     ):
-
-        self.model = MEGNet()
         self.config = configs
+
+        bond_converter = FlattenGaussianDistanceConverter() if self.config["model"]["add_z_bond_coord"] else GaussianDistanceConverter()
+        atom_converter = AtomFeaturesExtractor(self.config["model"]["atom_features"])
+
+        self.model = MEGNet(
+            edge_input_shape=bond_converter.get_shape(),
+            node_input_shape=atom_converter.get_shape(),
+            state_input_shape=self.config["model"]["state_input_shape"]
+        )
         self.Scaler = Scaler()
 
-        self.converter = SimpleCrystalConverter(bond_converter=GaussianDistanceConverter(), cutoff=0.5)
-        self.converter2 = SimpleCrystalConverter(bond_converter=GaussianDistanceConverter(), cutoff=5.0)
-        self.train_structures = [self.converter.convert(s) if i % 2 else self.converter2.convert(s) for i, s in enumerate(train_data)]
-        self.test_structures = [self.converter.convert(s) for s in test_data]
+        self.converter = SimpleCrystalConverter(
+            bond_converter=bond_converter,
+            atom_converter=atom_converter,
+            cutoff=self.config["model"]["cutoff"],
+            add_z_bond_coord=self.config["model"]["add_z_bond_coord"]
+        )
+        print("converting data")
+        self.train_structures = [self.converter.convert(s) for s in tqdm(train_data)]
+        self.test_structures = [self.converter.convert(s) for s in tqdm(test_data)]
         self.Scaler.fit(self.train_structures)
 
         self.trainloader = DataLoader(
             self.train_structures,
             batch_size=self.config["model"]["train_batch_size"],
-            shuffle=False,
+            shuffle=True,
         )
-        # for batch in self.trainloader:
-        #     print(batch)
-        #     print(batch.bond_batch)
-        #     print(batch.bond_batch.shape)
-        #     print(batch.batch)
-        #     return
         self.testloader = DataLoader(
             self.test_structures,
             batch_size=self.config["model"]["test_batch_size"],
@@ -62,7 +70,7 @@ class MEGNetPyTorchTrainer(Trainer):
                 self.model.parameters(),
                 lr=self.config["optim"]["lr_initial"],
             ),
-            use_gpus=None,
+            use_gpus=gpu_id,  # must be changed ol local notebook !!!
         )
         self.save_checkpoint = save_checkpoint
 
@@ -77,6 +85,10 @@ class MEGNetPyTorchTrainer(Trainer):
             )
 
     def train(self):
+
+        wandb.define_metric("epoch")
+        wandb.define_metric("loss_per_epoch", step_metric='epoch')
+
         for epoch in trange(self.config["model"]["epochs"]):
             print(f'=========== {epoch} ==============')
             print(len(self.trainloader), self.device)
@@ -117,6 +129,8 @@ class MEGNetPyTorchTrainer(Trainer):
             #     self.save()
 
             torch.cuda.empty_cache()
+
+            wandb.log({'loss_per_epoch': sum(total) / len(self.test_structures), 'epoch': epoch})
 
             print(
                 f"Epoch: {epoch}, train loss: {np.mean(batch_loss)}, test loss: {sum(total) / len(self.test_structures)}"

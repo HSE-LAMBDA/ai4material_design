@@ -25,11 +25,6 @@ def get_megnet_pytorch_predictions(
     train_data = [set_y(s, y) for s, y in zip(train_structures, train_targets)]
     test_data = [set_y(s, y) for s, y in zip(test_structures, test_targets)]
 
-    # c = SimpleCrystalConverter(bond_converter=FlattenGaussianDistanceConverter(), add_z_bond_coord=True, cutoff=0.5)
-    # s = c.convert(train_data[0])
-    # print(s)
-    # return
-
     model = MEGNetPyTorchTrainer(
         train_data,
         test_data,

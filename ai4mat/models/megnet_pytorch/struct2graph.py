@@ -1,7 +1,10 @@
+import IPython.core.debugger
 from pymatgen.optimization.neighbors import find_points_in_spheres
 import numpy as np
 from torch_geometric.data import Data
 import torch
+from pymatgen.core import Structure
+from pymatgen.core.periodic_table import DummySpecies
 
 
 class MyTensor(torch.Tensor):
@@ -37,10 +40,8 @@ class SimpleCrystalConverter:
         exclude_self = (center_indices != neighbor_indices)
 
         edge_index = torch.Tensor(np.stack((center_indices[exclude_self], neighbor_indices[exclude_self]))).long()
-        # if torch.numel(edge_index) == 0:
-        #     raise "shit"
 
-        x = torch.Tensor(self.atom_converter.convert(np.array([i.specie.Z for i in d]))).long()
+        x = torch.Tensor(self.atom_converter.convert(d)).long()
 
         distances_preprocessed = distances[exclude_self]
         if self.add_z_bond_coord:
@@ -77,6 +78,9 @@ class GaussianDistanceConverter:
             -((d.reshape((-1, 1)) - self.centers.reshape((1, -1))) / self.sigma) ** 2
         )
 
+    def get_shape(self):
+        return len(self.centers)
+
 
 class FlattenGaussianDistanceConverter(GaussianDistanceConverter):
     def __init__(self, centers=np.linspace(0, 5, 100), sigma=0.5):
@@ -87,3 +91,34 @@ class FlattenGaussianDistanceConverter(GaussianDistanceConverter):
         for arr in d:
             res.append(super().convert(arr))
         return np.hstack(res)
+
+    def get_shape(self):
+        return 2 * len(self.centers)
+
+
+class AtomFeaturesExtractor:
+    def __init__(self, atom_features="Z"):
+        self.atom_features = atom_features
+
+    def convert(self, structure: Structure):
+        if self.atom_features == "Z":
+            return np.array(
+                [0 if isinstance(i.specie, DummySpecies) else i.specie.Z for i in structure.species]
+            ).reshape(-1, 1)
+        elif self.atom_features == 'werespecies':
+            return np.array([
+                [
+                    0 if isinstance(i.specie, DummySpecies) else i.specie.Z,
+                    i.properties["was"],
+                ] for i in structure.sites
+            ])
+        else:
+            raise NotImplementedError
+
+    def get_shape(self):
+        if self.atom_features == "Z":
+            return 1
+        elif self.atom_features == 'werespecies':
+            return 2
+        else:
+            return None

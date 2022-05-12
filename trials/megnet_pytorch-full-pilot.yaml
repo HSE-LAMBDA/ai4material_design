@@ -1,10 +1,14 @@
 model: 'megnet_pytorch'
-representation: 'full'
+representation: 'sparse'
 model_params:
   model:
     epochs: 2
     train_batch_size: 10
     test_batch_size: 10
+    add_z_bond_coord: true
+    atom_features: 'werespecies'
+    state_input_shape: 2
+    cutoff: 15
   optim:
     factor: 0.5
     patience: 150
