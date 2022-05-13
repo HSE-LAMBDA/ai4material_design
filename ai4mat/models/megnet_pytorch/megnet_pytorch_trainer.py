@@ -55,11 +55,13 @@ class MEGNetPyTorchTrainer(Trainer):
             self.train_structures,
             batch_size=self.config["model"]["train_batch_size"],
             shuffle=True,
+            num_workers=0
         )
         self.testloader = DataLoader(
             self.test_structures,
             batch_size=self.config["model"]["test_batch_size"],
             shuffle=False,
+            num_workers=0
         )
 
         super().__init__(
