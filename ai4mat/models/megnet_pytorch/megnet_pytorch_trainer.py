@@ -1,12 +1,11 @@
 import pandas as pd
 import torch
+torch.multiprocessing.set_start_method("forkserver", force=True)
+torch.multiprocessing.set_sharing_strategy("file_system")
 import numpy as np
 import torch.nn.functional as F
 import pathlib
 import wandb
-
-torch.multiprocessing.set_start_method("forkserver", force=True)
-torch.multiprocessing.set_sharing_strategy("file_system")
 
 from tqdm import trange, tqdm
 from ai4mat.common.base_trainer import Trainer
