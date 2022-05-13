@@ -146,5 +146,8 @@ class MEGNetPyTorchTrainer(Trainer):
 
 
 if __name__ == '__main__':
-    torch.multiprocessing.set_start_method("spawn")
+    try:
+        torch.multiprocessing.set_start_method("spawn")
+    except Exception:
+        pass
     torch.multiprocessing.set_sharing_strategy("file_system")
