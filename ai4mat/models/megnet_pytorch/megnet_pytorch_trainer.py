@@ -1,5 +1,10 @@
 import pandas as pd
 import torch
+try:
+    torch.multiprocessing.set_start_method("spawn")
+    torch.multiprocessing.set_sharing_strategy("file_system")
+except Exception:
+    pass
 import numpy as np
 import torch.nn.functional as F
 import pathlib
@@ -143,11 +148,3 @@ class MEGNetPyTorchTrainer(Trainer):
                 )
                 results.append(self.Scaler.inverse_transform(preds))
         return torch.concat(results).to('cpu').data.numpy().reshape(-1, 1)
-
-
-if __name__ == '__main__':
-    try:
-        torch.multiprocessing.set_start_method("spawn")
-    except Exception:
-        pass
-    torch.multiprocessing.set_sharing_strategy("file_system")
