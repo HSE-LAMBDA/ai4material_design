@@ -5,6 +5,9 @@ import torch.nn.functional as F
 import pathlib
 import wandb
 
+torch.multiprocessing.set_start_method("forkserver", force=True)
+torch.multiprocessing.set_sharing_strategy("file_system")
+
 from tqdm import trange, tqdm
 from ai4mat.common.base_trainer import Trainer
 from ai4mat.models.megnet_pytorch.megnet_pytorch import MEGNet
@@ -12,9 +15,6 @@ from ai4mat.models.megnet_pytorch.struct2graph import SimpleCrystalConverter, Ga
 from ai4mat.models.megnet_pytorch.struct2graph import FlattenGaussianDistanceConverter, AtomFeaturesExtractor
 from torch_geometric.loader import DataLoader
 from ai4mat.models.megnet_pytorch.utils import Scaler
-
-torch.multiprocessing.set_start_method("forkserver", force=True)
-torch.multiprocessing.set_sharing_strategy("file_system")
 
 
 class MEGNetPyTorchTrainer(Trainer):
