@@ -102,7 +102,6 @@ class Trainer(ABC):
     def train(self):
         pass
     
-    
     @torch.no_grad()
     def predict(self, *args, **kwargs):
         self.model.eval() 
@@ -110,7 +109,6 @@ class Trainer(ABC):
             self.ema.store()
             self.ema.copy_to()
         return self.model(*args, **kwargs)
-
     
     def move_to_device(self):
         self.model.to(self.device)
