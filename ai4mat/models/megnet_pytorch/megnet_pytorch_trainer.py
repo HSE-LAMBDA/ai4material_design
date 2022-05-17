@@ -1,10 +1,7 @@
 import pandas as pd
 import torch
-try:
-    torch.multiprocessing.set_start_method("spawn")
-    torch.multiprocessing.set_sharing_strategy("file_system")
-except Exception:
-    pass
+torch.multiprocessing.set_start_method('forkserver', force=True)
+torch.multiprocessing.set_sharing_strategy('file_system')
 import numpy as np
 import torch.nn.functional as F
 import pathlib
