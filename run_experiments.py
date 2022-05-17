@@ -24,7 +24,7 @@ from ai4mat.models import get_predictor_by_name
 IS_INTENSIVE = Is_Intensive()
 
 # This might have unexpected effects, haven't been tested on pytorch yet!
-multiprocessing.set_start_method('fork', force=True)
+# multiprocessing.set_start_method('fork', force=True)
 # This should be moved to somewhere else probaby utils
 class NoDaemonProcess(multiprocessing.Process):
     @property
