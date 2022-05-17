@@ -10,6 +10,7 @@ import pandas as pd
 from typing import Callable, List, Dict, Union
 import multiprocessing.pool
 import multiprocessing
+multiprocessing.set_start_method('spawn', force=True)
 
 from ai4mat.data.data import (
     StorageResolver,
