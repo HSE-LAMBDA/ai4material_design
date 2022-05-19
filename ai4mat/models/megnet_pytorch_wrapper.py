@@ -20,6 +20,7 @@ def get_megnet_pytorch_predictions(
         use_last_checkpoint=True
         ):
     os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu)
+    target_name = train_targets.name
     train_targets = train_targets.tolist()
     test_targets = test_targets.tolist()
 
@@ -29,6 +30,7 @@ def get_megnet_pytorch_predictions(
     model = MEGNetPyTorchTrainer(
         train_data,
         test_data,
+        target_name,
         configs=model_params,
         gpu_id=gpu,
         save_checkpoint=False,

@@ -21,6 +21,7 @@ class MEGNetPyTorchTrainer(Trainer):
             self,
             train_data: list,
             test_data: list,
+            target_name: str,
             configs: dict,
             gpu_id: int,
             save_checkpoint: bool,
@@ -47,6 +48,7 @@ class MEGNetPyTorchTrainer(Trainer):
         self.train_structures = [self.converter.convert(s) for s in tqdm(train_data)]
         self.test_structures = [self.converter.convert(s) for s in tqdm(test_data)]
         self.Scaler.fit(self.train_structures)
+        self.target_name = target_name
 
         self.trainloader = DataLoader(
             self.train_structures,
@@ -131,10 +133,10 @@ class MEGNetPyTorchTrainer(Trainer):
 
             torch.cuda.empty_cache()
 
-            wandb.log({'loss_per_epoch': sum(total) / len(self.test_structures), 'epoch': epoch})
+            wandb.log({f'{self.target_name} loss_per_epoch': sum(total) / len(self.test_structures), 'epoch': epoch})
 
             print(
-                f"Epoch: {epoch}, train loss: {np.mean(batch_loss)}, test loss: {sum(total) / len(self.test_structures)}"
+                f"{self.target_name} Epoch: {epoch}, train loss: {np.mean(batch_loss)}, test loss: {sum(total) / len(self.test_structures)}"
             )
 
     def predict_test_structures(self):

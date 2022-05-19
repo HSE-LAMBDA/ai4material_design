@@ -10,7 +10,7 @@ from torch_geometric.data import DataLoader
 from torch_geometric.data import Data
 from pymatgen.io.ase import AseAtomsAdaptor
 
-torch.multiprocessing.set_start_method("spawn", force=True)
+torch.multiprocessing.set_start_method("forkserver", force=True)
 torch.multiprocessing.set_sharing_strategy("file_system")
 from tqdm import trange
 
