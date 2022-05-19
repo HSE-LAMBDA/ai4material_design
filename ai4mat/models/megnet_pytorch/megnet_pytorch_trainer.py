@@ -90,7 +90,7 @@ class MEGNetPyTorchTrainer(Trainer):
     def train(self):
 
         wandb.define_metric("epoch")
-        wandb.define_metric("loss_per_epoch", step_metric='epoch')
+        wandb.define_metric(f"{self.target_name} loss_per_epoch", step_metric='epoch')
 
         for epoch in trange(self.config["model"]["epochs"]):
             print(f'=========== {epoch} ==============')
