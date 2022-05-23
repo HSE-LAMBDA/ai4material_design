@@ -185,7 +185,9 @@ def read_structures_descriptions(data_path:str):
                                 "energy_per_atom",
                                 "fermi_level",
                                 "homo",
-                                "lumo"])
+                                "lumo",
+                                "normalized_homo",
+                                "normalized_lumo"])
 
 
 def read_defects_descriptions(data_path:str):
