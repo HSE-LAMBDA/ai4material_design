@@ -4,8 +4,9 @@ from torch_geometric.nn import MessagePassing, global_mean_pool
 
 
 class MegnetModule(MessagePassing):
-    def __init__(self, edge_input_shape, node_input_shape, state_input_shape):
+    def __init__(self, edge_input_shape, node_input_shape, state_input_shape, inner_skip=False):
         super().__init__(aggr="mean")
+        self.inner_skip = inner_skip
         self.phi_e = nn.Sequential(
             nn.Linear(128, 64),
             nn.Softplus(),
@@ -49,13 +50,22 @@ class MegnetModule(MessagePassing):
         )
 
     def forward(self, x, edge_index, edge_attr, state, batch, bond_batch):
-        x = self.preprocess_v(x)
-        edge_attr = self.preprocess_e(edge_attr)
-        state = self.preprocess_u(state)
+        if not self.inner_skip:
+            x_skip = x
+            edge_attr_skip = edge_attr
+            state_skip = state
 
-        x_skip = x
-        edge_attr_skip = edge_attr
-        state_skip = state
+            x = self.preprocess_v(x)
+            edge_attr = self.preprocess_e(edge_attr)
+            state = self.preprocess_u(state)
+        else:
+            x = self.preprocess_v(x)
+            edge_attr = self.preprocess_e(edge_attr)
+            state = self.preprocess_u(state)
+
+            x_skip = x
+            edge_attr_skip = edge_attr
+            state_skip = state
 
         if torch.numel(bond_batch) > 0:
             edge_attr = self.edge_updater(

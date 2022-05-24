@@ -14,7 +14,7 @@ class MEGNet(nn.Module):
         if self.embedded:
             node_input_shape = 16
 
-        self.m1 = MegnetModule(edge_input_shape, node_input_shape, state_input_shape)
+        self.m1 = MegnetModule(edge_input_shape, node_input_shape, state_input_shape, inner_skip=True)
         self.m2 = MegnetModule(32, 32, 32)
         self.m3 = MegnetModule(32, 32, 32)
         self.se = Set2Set(32, 1)
