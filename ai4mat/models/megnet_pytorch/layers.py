@@ -7,9 +7,10 @@ class ShiftedSoftplus(nn.Module):
     def __init__(self):
         super().__init__()
         self.sp = nn.Softplus()
+        self.shift = nn.Parameter(torch.tensor([2.]), requires_grad=False)
 
     def forward(self, x):
-        return self.sp(x) - torch.log(torch.tensor([2.]))
+        return self.sp(x) - self.shift
 
 
 class MegnetModule(MessagePassing):
