@@ -28,7 +28,14 @@ class MEGNetPyTorchTrainer(Trainer):
     ):
         self.config = configs
 
-        bond_converter = FlattenGaussianDistanceConverter() if self.config["model"]["add_z_bond_coord"] else GaussianDistanceConverter()
+        if self.config["model"]["add_z_bond_coord"]:
+            bond_converter = FlattenGaussianDistanceConverter(
+                centers=np.linspace(0, self.config['model']['cutoff'], 10)
+            )
+        else:
+            bond_converter = GaussianDistanceConverter(
+                centers=np.linspace(0, self.config['model']['cutoff'], 10)
+            )
         atom_converter = AtomFeaturesExtractor(self.config["model"]["atom_features"])
 
         self.model = MEGNet(

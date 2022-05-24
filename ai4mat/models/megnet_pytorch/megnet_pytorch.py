@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from .layers import MegnetModule
+from .layers import MegnetModule, ShiftedSoftplus
 from torch_geometric.nn import Set2Set
 
 
@@ -21,9 +21,9 @@ class MEGNet(nn.Module):
         self.sv = Set2Set(32, 1)
         self.hiddens = nn.Sequential(
             nn.Linear(160, 32),
-            nn.Softplus(),
+            ShiftedSoftplus(),
             nn.Linear(32, 16),
-            nn.Softplus(),
+            ShiftedSoftplus(),
             nn.Linear(16, 1)
         )
 

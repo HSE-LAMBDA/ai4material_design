@@ -3,50 +3,65 @@ import torch.nn as nn
 from torch_geometric.nn import MessagePassing, global_mean_pool
 
 
+class ShiftedSoftplus(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.sp = nn.Softplus()
+
+    def forward(self, x):
+        return self.sp(x) - torch.log(torch.tensor([2.]))
+
+
 class MegnetModule(MessagePassing):
     def __init__(self, edge_input_shape, node_input_shape, state_input_shape, inner_skip=False):
         super().__init__(aggr="mean")
         self.inner_skip = inner_skip
         self.phi_e = nn.Sequential(
             nn.Linear(128, 64),
-            nn.Softplus(),
+            ShiftedSoftplus(),
             nn.Linear(64, 64),
-            nn.Softplus(),
-            nn.Linear(64, 32)
+            ShiftedSoftplus(),
+            nn.Linear(64, 32),
+            ShiftedSoftplus(),
         )
 
         self.phi_u = nn.Sequential(
             nn.Linear(96, 64),
-            nn.Softplus(),
+            ShiftedSoftplus(),
             nn.Linear(64, 64),
-            nn.Softplus(),
-            nn.Linear(64, 32)
+            ShiftedSoftplus(),
+            nn.Linear(64, 32),
+            ShiftedSoftplus(),
         )
 
         self.phi_v = nn.Sequential(
             nn.Linear(96, 64),
-            nn.Softplus(),
+            ShiftedSoftplus(),
             nn.Linear(64, 64),
-            nn.Softplus(),
-            nn.Linear(64, 32)
+            ShiftedSoftplus(),
+            nn.Linear(64, 32),
+            ShiftedSoftplus(),
         )
 
         self.preprocess_e = nn.Sequential(
             nn.Linear(edge_input_shape, 64),
-            nn.Softplus(),
-            nn.Linear(64, 32)
+            ShiftedSoftplus(),
+            nn.Linear(64, 32),
+            ShiftedSoftplus(),
         )
 
         self.preprocess_v = nn.Sequential(
             nn.Linear(node_input_shape, 64),
-            nn.Softplus(),
-            nn.Linear(64, 32)
+            ShiftedSoftplus(),
+            nn.Linear(64, 32),
+            ShiftedSoftplus(),
         )
 
         self.preprocess_u = nn.Sequential(
             nn.Linear(state_input_shape, 64),
-            nn.Softplus(),
-            nn.Linear(64, 32)
+            ShiftedSoftplus(),
+            nn.Linear(64, 32),
+            ShiftedSoftplus(),
         )
 
     def forward(self, x, edge_index, edge_attr, state, batch, bond_batch):
