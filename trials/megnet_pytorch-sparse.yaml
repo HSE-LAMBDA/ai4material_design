@@ -14,6 +14,6 @@ model_params:
     factor: 0.5
     patience: 40
     threshold: 5.e-2
-    min_lr: 1.e-4
+    min_lr: 1.e-5
     lr_initial: 1.e-3
     scheduler: ReduceLROnPlateau
