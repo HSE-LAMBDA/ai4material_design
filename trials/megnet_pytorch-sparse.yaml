@@ -9,9 +9,10 @@ model_params:
     atom_features: 'werespecies'
     state_input_shape: 2
     cutoff: 15
+    edge_embed_size: 10
   optim:
     factor: 0.5
-    patience: 150
+    patience: 40
     threshold: 5.e-2
     min_lr: 1.e-4
     lr_initial: 1.e-3

@@ -5,26 +5,49 @@ from .layers import MegnetModule, ShiftedSoftplus
 from torch_geometric.nn import Set2Set
 
 
+ATOMIC_NUMBERS = 95
+
+
 class MEGNet(nn.Module):
-    def __init__(self, edge_input_shape, node_input_shape, state_input_shape):
+    def __init__(self,
+                 edge_input_shape,
+                 node_input_shape,
+                 state_input_shape,
+                 node_embedding_size=16,
+                 embedding_size=32,
+                 n_blocks=3,
+                 ):
+        """
+        Parameters
+        ----------
+        edge_input_shape: size of edge features'
+        node_input_shape: size of node features'
+        state_input_shape: size of global state features'
+        node_embedding_size: if using embedding layer the size of result embeddings
+        embedding_size: size of inner embeddings
+        n_blocks: amount of MEGNet blocks
+        """
         super().__init__()
-        self.emb = nn.Embedding(95, 16)
-
-        self.embedded = True if node_input_shape is None else False
+        self.embedded = node_input_shape is None
         if self.embedded:
-            node_input_shape = 16
+            node_input_shape = node_embedding_size
+            self.emb = nn.Embedding(ATOMIC_NUMBERS, node_embedding_size)
 
-        self.m1 = MegnetModule(edge_input_shape, node_input_shape, state_input_shape, inner_skip=True)
-        self.m2 = MegnetModule(32, 32, 32)
-        self.m3 = MegnetModule(32, 32, 32)
-        self.se = Set2Set(32, 1)
-        self.sv = Set2Set(32, 1)
+        self.m1 = MegnetModule(
+            edge_input_shape, node_input_shape, state_input_shape, inner_skip=True, embed_size=embedding_size
+        )
+        self.blocks = nn.ModuleList()
+        for i in range(n_blocks - 1):
+            self.blocks.append(MegnetModule(embedding_size, embedding_size, embedding_size))
+
+        self.se = Set2Set(embedding_size, 1)
+        self.sv = Set2Set(embedding_size, 1)
         self.hiddens = nn.Sequential(
-            nn.Linear(160, 32),
+            nn.Linear(5 * embedding_size, embedding_size),
             ShiftedSoftplus(),
-            nn.Linear(32, 16),
+            nn.Linear(embedding_size, embedding_size // 2),
             ShiftedSoftplus(),
-            nn.Linear(16, 1)
+            nn.Linear(embedding_size // 2, 1)
         )
 
     def forward(self, x, edge_index, edge_attr, state, batch, bond_batch):
@@ -34,8 +57,8 @@ class MEGNet(nn.Module):
             x = x.float()
 
         x, edge_attr, state = self.m1(x, edge_index, edge_attr, state, batch, bond_batch)
-        x, edge_attr, state = self.m2(x, edge_index, edge_attr, state, batch, bond_batch)
-        x, edge_attr, state = self.m3(x, edge_index, edge_attr, state, batch, bond_batch)
+        for block in self.blocks:
+            x, edge_attr, state = block(x, edge_index, edge_attr, state, batch, bond_batch)
         x = self.sv(x, batch)
         edge_attr = self.se(edge_attr, bond_batch)
 

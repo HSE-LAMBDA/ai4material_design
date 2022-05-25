@@ -1,4 +1,3 @@
-import pandas as pd
 import torch
 torch.multiprocessing.set_start_method('spawn', force=True)
 torch.multiprocessing.set_sharing_strategy('file_system')
@@ -30,11 +29,11 @@ class MEGNetPyTorchTrainer(Trainer):
 
         if self.config["model"]["add_z_bond_coord"]:
             bond_converter = FlattenGaussianDistanceConverter(
-                centers=np.linspace(0, self.config['model']['cutoff'], 10)
+                centers=np.linspace(0, self.config['model']['cutoff'], self.config['model']['edge_embed_size'])
             )
         else:
             bond_converter = GaussianDistanceConverter(
-                centers=np.linspace(0, self.config['model']['cutoff'], 10)
+                centers=np.linspace(0, self.config['model']['cutoff'], self.config['model']['edge_embed_size'])
             )
         atom_converter = AtomFeaturesExtractor(self.config["model"]["atom_features"])
 
