@@ -11,6 +11,9 @@ from typing import Callable, List, Dict, Union
 import multiprocessing.pool
 import multiprocessing
 multiprocessing.set_start_method('spawn', force=True)
+import torch
+torch.multiprocessing.set_start_method('spawn', force=True)
+torch.multiprocessing.set_sharing_strategy('file_system')
 
 from ai4mat.data.data import (
     StorageResolver,

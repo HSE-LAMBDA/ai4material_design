@@ -1,6 +1,4 @@
 import torch
-torch.multiprocessing.set_start_method('spawn', force=True)
-torch.multiprocessing.set_sharing_strategy('file_system')
 import numpy as np
 import torch.nn.functional as F
 import pathlib
@@ -70,8 +68,8 @@ class MEGNetPyTorchTrainer(Trainer):
         )
 
         super().__init__(
-            run_id=1,
-            name="test",
+            run_id=None,
+            name="",
             model=self.model,
             dataset=self.trainloader,
             run_dir=pathlib.Path().resolve(),
@@ -134,8 +132,8 @@ class MEGNetPyTorchTrainer(Trainer):
 
             self.scheduler.step(sum(total) / len(self.test_structures))
 
-            # if self.save_checkpoint:
-            #     self.save()
+            if self.save_checkpoint:
+                self.save()
 
             torch.cuda.empty_cache()
 
