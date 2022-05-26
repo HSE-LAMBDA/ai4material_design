@@ -5,7 +5,7 @@ model_params:
     epochs: 400
     train_batch_size: 128
     test_batch_size: 128
-    add_z_bond_coord: false
+    add_z_bond_coord: true
     atom_features: 'z'
     state_input_shape: 2
     cutoff: 15
