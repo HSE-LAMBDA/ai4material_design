@@ -1,0 +1,19 @@
+model: 'megnet_pytorch'
+representation: 'sparse'
+model_params:
+  model:
+    epochs: 400
+    train_batch_size: 128
+    test_batch_size: 128
+    add_z_bond_coord: true
+    atom_features: 'werespecies'
+    state_input_shape: 2
+    cutoff: 15
+    edge_embed_size: 10
+  optim:
+    factor: 0.5
+    patience: 30
+    threshold: 5.e-2
+    min_lr: 1.e-5
+    lr_initial: 1.e-3
+    scheduler: ReduceLROnPlateau
