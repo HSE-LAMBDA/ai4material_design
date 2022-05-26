@@ -94,13 +94,15 @@ class MEGNetPyTorchTrainer(Trainer):
     def train(self):
 
         wandb.define_metric("epoch")
-        wandb.define_metric(f"{self.target_name} loss_per_epoch", step_metric='epoch')
+        wandb.define_metric(f"{self.target_name} test_loss_per_epoch", step_metric='epoch')
+        wandb.define_metric(f"{self.target_name} train_loss_per_epoch", step_metric='epoch')
 
         for epoch in trange(self.config["model"]["epochs"]):
             print(f'=========== {epoch} ==============')
             print(len(self.trainloader), self.device)
 
             batch_loss = []
+            total_train = []
             self.model.train(True)
             for i, batch in enumerate(self.trainloader):
                 batch = batch.to(self.device)
@@ -114,6 +116,9 @@ class MEGNetPyTorchTrainer(Trainer):
                 self.optimizers.zero_grad()
 
                 batch_loss.append(loss.to("cpu").data.numpy())
+                total_train.append(
+                    F.l1_loss(self.Scaler.inverse_transform(preds), batch.y, reduction='sum').to('cpu').data.numpy()
+                )
 
             total = []
             self.model.train(False)
@@ -126,21 +131,27 @@ class MEGNetPyTorchTrainer(Trainer):
                     ).squeeze()
 
                     total.append(
-                        F.l1_loss(self.Scaler.inverse_transform(preds), batch.y, reduction='sum') \
-                            .to('cpu').data.numpy()
+                        F.l1_loss(self.Scaler.inverse_transform(preds), batch.y, reduction='sum').to('cpu').data.numpy()
                     )
 
-            self.scheduler.step(sum(total) / len(self.test_structures))
+            cur_test_loss = sum(total) / len(self.test_structures)
+            cur_train_loss = sum(total_train) / len(self.train_structures)
+            self.scheduler.step(cur_train_loss)
 
             if self.save_checkpoint:
                 self.save()
 
             torch.cuda.empty_cache()
 
-            wandb.log({f'{self.target_name} loss_per_epoch': sum(total) / len(self.test_structures), 'epoch': epoch})
+            wandb.log(
+                {f'{self.target_name} test_loss_per_epoch': cur_test_loss, 'epoch': epoch}
+            )
+            wandb.log(
+                {f'{self.target_name} train_loss_per_epoch': cur_train_loss, 'epoch': epoch}
+            )
 
             print(
-                f"{self.target_name} Epoch: {epoch}, train loss: {np.mean(batch_loss)}, test loss: {sum(total) / len(self.test_structures)}"
+                f"{self.target_name} Epoch: {epoch}, train loss: {cur_train_loss}, test loss: {cur_test_loss}"
             )
 
     def predict_test_structures(self):
