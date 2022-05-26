@@ -221,7 +221,6 @@ def predict_on_fold(
             model_params,
             gpu,
             checkpoint_path=checkpoint_path.joinpath('_'.join(map(str, train_folds))),
-            use_last_checkpoint=True,
         )
 
 

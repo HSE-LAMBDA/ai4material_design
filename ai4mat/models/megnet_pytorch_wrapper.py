@@ -17,8 +17,9 @@ def get_megnet_pytorch_predictions(
         model_params: dict,
         gpu: int,
         checkpoint_path,
-        use_last_checkpoint=True
         ):
+    if target_is_intensive:
+        raise NotImplementedError
     os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu)
     target_name = train_targets.name
     train_targets = train_targets.tolist()
