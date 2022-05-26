@@ -6,7 +6,7 @@ model_params:
     train_batch_size: 128
     test_batch_size: 128
     add_z_bond_coord: false
-    atom_features: 'z'
+    atom_features: 'Z'
     state_input_shape: 2
     cutoff: 15
     edge_embed_size: 10
