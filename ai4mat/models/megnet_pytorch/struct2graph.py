@@ -113,14 +113,14 @@ class AtomFeaturesExtractor:
     def convert(self, structure: Structure):
         if self.atom_features == "Z":
             return np.array(
-                [0 if isinstance(i.specie, DummySpecies) else i.specie.Z for i in structure.species]
+                [0 if isinstance(i, DummySpecies) else i.Z for i in structure.species]
             ).reshape(-1, 1)
         elif self.atom_features == 'werespecies':
             return np.array([
                 [
-                    0 if isinstance(i.specie, DummySpecies) else i.specie.Z,
+                    0 if isinstance(i, DummySpecies) else i.Z,
                     i.properties["was"],
-                ] for i in structure.sites
+                ] for i in structure.species
             ])
         else:
             raise NotImplementedError
