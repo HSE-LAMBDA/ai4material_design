@@ -118,9 +118,9 @@ class AtomFeaturesExtractor:
         elif self.atom_features == 'werespecies':
             return np.array([
                 [
-                    0 if isinstance(i, DummySpecies) else i.Z,
+                    0 if isinstance(i.specie, DummySpecies) else i.specie.Z,
                     i.properties["was"],
-                ] for i in structure.species
+                ] for i in structure.sites
             ])
         else:
             raise NotImplementedError
