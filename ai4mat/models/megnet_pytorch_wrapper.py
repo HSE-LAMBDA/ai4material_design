@@ -1,6 +1,6 @@
 import pandas as pd
 from ai4mat.models.megnet_pytorch.megnet_pytorch_trainer import MEGNetPyTorchTrainer
-from ai4mat.models.megnet_pytorch.struct2graph import SimpleCrystalConverter, FlattenGaussianDistanceConverter
+import os
 
 
 def set_y(structure, y):
@@ -17,8 +17,11 @@ def get_megnet_pytorch_predictions(
         model_params: dict,
         gpu: int,
         checkpoint_path,
-        use_last_checkpoint=True
         ):
+    if not target_is_intensive:
+        raise NotImplementedError
+    os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu)
+    target_name = train_targets.name
     train_targets = train_targets.tolist()
     test_targets = test_targets.tolist()
 
@@ -28,6 +31,7 @@ def get_megnet_pytorch_predictions(
     model = MEGNetPyTorchTrainer(
         train_data,
         test_data,
+        target_name,
         configs=model_params,
         gpu_id=gpu,
         save_checkpoint=False,

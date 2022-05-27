@@ -3,59 +3,100 @@ import torch.nn as nn
 from torch_geometric.nn import MessagePassing, global_mean_pool
 
 
+class ShiftedSoftplus(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.sp = nn.Softplus()
+        self.shift = nn.Parameter(torch.log(torch.tensor([2.])), requires_grad=False)
+
+    def forward(self, x):
+        return self.sp(x) - self.shift
+
+
 class MegnetModule(MessagePassing):
-    def __init__(self, edge_input_shape, node_input_shape, state_input_shape):
+    def __init__(self,
+                 edge_input_shape,
+                 node_input_shape,
+                 state_input_shape,
+                 inner_skip=False,
+                 embed_size=32,
+                 ):
+        """
+        Parameters
+        ----------
+        edge_input_shape: size of edge features'
+        node_input_shape: size of node features'
+        state_input_shape: size of global state features'
+        inner_skip: use inner or outer skip connection
+        embed_size: embedding and output size
+        """
         super().__init__(aggr="mean")
+        self.inner_skip = inner_skip
         self.phi_e = nn.Sequential(
-            nn.Linear(128, 64),
-            nn.Softplus(),
-            nn.Linear(64, 64),
-            nn.Softplus(),
-            nn.Linear(64, 32)
+            nn.Linear(4 * embed_size, 2 * embed_size),
+            ShiftedSoftplus(),
+            nn.Linear(2 * embed_size, 2 * embed_size),
+            ShiftedSoftplus(),
+            nn.Linear(2 * embed_size, embed_size),
+            ShiftedSoftplus(),
         )
 
         self.phi_u = nn.Sequential(
-            nn.Linear(96, 64),
-            nn.Softplus(),
-            nn.Linear(64, 64),
-            nn.Softplus(),
-            nn.Linear(64, 32)
+            nn.Linear(3 * embed_size, 2 * embed_size),
+            ShiftedSoftplus(),
+            nn.Linear(2 * embed_size, 2 * embed_size),
+            ShiftedSoftplus(),
+            nn.Linear(2 * embed_size, embed_size),
+            ShiftedSoftplus(),
         )
 
         self.phi_v = nn.Sequential(
-            nn.Linear(96, 64),
-            nn.Softplus(),
-            nn.Linear(64, 64),
-            nn.Softplus(),
-            nn.Linear(64, 32)
+            nn.Linear(3 * embed_size, 2 * embed_size),
+            ShiftedSoftplus(),
+            nn.Linear(2 * embed_size, 2 * embed_size),
+            ShiftedSoftplus(),
+            nn.Linear(2 * embed_size, embed_size),
+            ShiftedSoftplus(),
         )
 
         self.preprocess_e = nn.Sequential(
-            nn.Linear(edge_input_shape, 64),
-            nn.Softplus(),
-            nn.Linear(64, 32)
+            nn.Linear(edge_input_shape, 2 * embed_size),
+            ShiftedSoftplus(),
+            nn.Linear(2 * embed_size, embed_size),
+            ShiftedSoftplus(),
         )
 
         self.preprocess_v = nn.Sequential(
-            nn.Linear(node_input_shape, 64),
-            nn.Softplus(),
-            nn.Linear(64, 32)
+            nn.Linear(node_input_shape, 2 * embed_size),
+            ShiftedSoftplus(),
+            nn.Linear(2 * embed_size, embed_size),
+            ShiftedSoftplus(),
         )
 
         self.preprocess_u = nn.Sequential(
-            nn.Linear(state_input_shape, 64),
-            nn.Softplus(),
-            nn.Linear(64, 32)
+            nn.Linear(state_input_shape, 2 * embed_size),
+            ShiftedSoftplus(),
+            nn.Linear(2 * embed_size, embed_size),
+            ShiftedSoftplus(),
         )
 
     def forward(self, x, edge_index, edge_attr, state, batch, bond_batch):
-        x = self.preprocess_v(x)
-        edge_attr = self.preprocess_e(edge_attr)
-        state = self.preprocess_u(state)
+        if not self.inner_skip:
+            x_skip = x
+            edge_attr_skip = edge_attr
+            state_skip = state
 
-        x_skip = x
-        edge_attr_skip = edge_attr
-        state_skip = state
+            x = self.preprocess_v(x)
+            edge_attr = self.preprocess_e(edge_attr)
+            state = self.preprocess_u(state)
+        else:
+            x = self.preprocess_v(x)
+            edge_attr = self.preprocess_e(edge_attr)
+            state = self.preprocess_u(state)
+
+            x_skip = x
+            edge_attr_skip = edge_attr
+            state_skip = state
 
         if torch.numel(bond_batch) > 0:
             edge_attr = self.edge_updater(

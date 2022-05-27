@@ -1,4 +1,3 @@
-import pandas as pd
 import torch
 import numpy as np
 import torch.nn.functional as F
@@ -13,22 +12,27 @@ from ai4mat.models.megnet_pytorch.struct2graph import FlattenGaussianDistanceCon
 from torch_geometric.loader import DataLoader
 from ai4mat.models.megnet_pytorch.utils import Scaler
 
-torch.multiprocessing.set_start_method("forkserver", force=True)
-torch.multiprocessing.set_sharing_strategy("file_system")
-
 
 class MEGNetPyTorchTrainer(Trainer):
     def __init__(
             self,
             train_data: list,
             test_data: list,
+            target_name: str,
             configs: dict,
             gpu_id: int,
             save_checkpoint: bool,
     ):
         self.config = configs
 
-        bond_converter = FlattenGaussianDistanceConverter() if self.config["model"]["add_z_bond_coord"] else GaussianDistanceConverter()
+        if self.config["model"]["add_z_bond_coord"]:
+            bond_converter = FlattenGaussianDistanceConverter(
+                centers=np.linspace(0, self.config['model']['cutoff'], self.config['model']['edge_embed_size'])
+            )
+        else:
+            bond_converter = GaussianDistanceConverter(
+                centers=np.linspace(0, self.config['model']['cutoff'], self.config['model']['edge_embed_size'])
+            )
         atom_converter = AtomFeaturesExtractor(self.config["model"]["atom_features"])
 
         self.model = MEGNet(
@@ -48,21 +52,24 @@ class MEGNetPyTorchTrainer(Trainer):
         self.train_structures = [self.converter.convert(s) for s in tqdm(train_data)]
         self.test_structures = [self.converter.convert(s) for s in tqdm(test_data)]
         self.Scaler.fit(self.train_structures)
+        self.target_name = target_name
 
         self.trainloader = DataLoader(
             self.train_structures,
             batch_size=self.config["model"]["train_batch_size"],
             shuffle=True,
+            num_workers=0
         )
         self.testloader = DataLoader(
             self.test_structures,
             batch_size=self.config["model"]["test_batch_size"],
             shuffle=False,
+            num_workers=0
         )
 
         super().__init__(
-            run_id=1,
-            name="test",
+            run_id=None,
+            name="",
             model=self.model,
             dataset=self.trainloader,
             run_dir=pathlib.Path().resolve(),
@@ -87,13 +94,15 @@ class MEGNetPyTorchTrainer(Trainer):
     def train(self):
 
         wandb.define_metric("epoch")
-        wandb.define_metric("loss_per_epoch", step_metric='epoch')
+        wandb.define_metric(f"{self.target_name} test_loss_per_epoch", step_metric='epoch')
+        wandb.define_metric(f"{self.target_name} train_loss_per_epoch", step_metric='epoch')
 
         for epoch in trange(self.config["model"]["epochs"]):
             print(f'=========== {epoch} ==============')
             print(len(self.trainloader), self.device)
 
             batch_loss = []
+            total_train = []
             self.model.train(True)
             for i, batch in enumerate(self.trainloader):
                 batch = batch.to(self.device)
@@ -107,6 +116,9 @@ class MEGNetPyTorchTrainer(Trainer):
                 self.optimizers.zero_grad()
 
                 batch_loss.append(loss.to("cpu").data.numpy())
+                total_train.append(
+                    F.l1_loss(self.Scaler.inverse_transform(preds), batch.y, reduction='sum').to('cpu').data.numpy()
+                )
 
             total = []
             self.model.train(False)
@@ -119,21 +131,27 @@ class MEGNetPyTorchTrainer(Trainer):
                     ).squeeze()
 
                     total.append(
-                        F.l1_loss(self.Scaler.inverse_transform(preds), batch.y, reduction='sum') \
-                            .to('cpu').data.numpy()
+                        F.l1_loss(self.Scaler.inverse_transform(preds), batch.y, reduction='sum').to('cpu').data.numpy()
                     )
 
-            self.scheduler.step(sum(total) / len(self.test_structures))
+            cur_test_loss = sum(total) / len(self.test_structures)
+            cur_train_loss = sum(total_train) / len(self.train_structures)
+            self.scheduler.step(cur_train_loss)
 
-            # if self.save_checkpoint:
-            #     self.save()
+            if self.save_checkpoint:
+                self.save()
 
             torch.cuda.empty_cache()
 
-            wandb.log({'loss_per_epoch': sum(total) / len(self.test_structures), 'epoch': epoch})
+            wandb.log(
+                {f'{self.target_name} test_loss_per_epoch': cur_test_loss, 'epoch': epoch}
+            )
+            wandb.log(
+                {f'{self.target_name} train_loss_per_epoch': cur_train_loss, 'epoch': epoch}
+            )
 
             print(
-                f"Epoch: {epoch}, train loss: {np.mean(batch_loss)}, test loss: {sum(total) / len(self.test_structures)}"
+                f"{self.target_name} Epoch: {epoch}, train loss: {cur_train_loss}, test loss: {cur_test_loss}"
             )
 
     def predict_test_structures(self):

@@ -10,6 +10,10 @@ import pandas as pd
 from typing import Callable, List, Dict, Union
 import multiprocessing.pool
 import multiprocessing
+multiprocessing.set_start_method('spawn', force=True)
+import torch
+torch.multiprocessing.set_start_method('spawn', force=True)
+torch.multiprocessing.set_sharing_strategy('file_system')
 
 from ai4mat.data.data import (
     StorageResolver,
@@ -23,7 +27,7 @@ from ai4mat.models import get_predictor_by_name
 IS_INTENSIVE = Is_Intensive()
 
 # This might have unexpected effects, haven't been tested on pytorch yet!
-multiprocessing.set_start_method('fork', force=True)
+# multiprocessing.set_start_method('fork', force=True)
 # This should be moved to somewhere else probaby utils
 class NoDaemonProcess(multiprocessing.Process):
     @property
@@ -202,11 +206,9 @@ def predict_on_fold(
     this_wandb_config["test_fold"] = test_fold
 
     with wandb.init(
-        project="ai4material_design_final_run",
+        project="ai4material_design",
         entity=os.environ["WANDB_ENTITY"],
         config=this_wandb_config,
-        name="full-eos",
-        tags=['full', 'eos']
     ) as run:
         return predict_func(
             train,
@@ -217,7 +219,6 @@ def predict_on_fold(
             model_params,
             gpu,
             checkpoint_path=checkpoint_path.joinpath('_'.join(map(str, train_folds))),
-            use_last_checkpoint=True,
         )
 
 

@@ -2,13 +2,13 @@ model: 'megnet_pytorch'
 representation: 'sparse'
 model_params:
   model:
-    epochs: 1500
-    train_batch_size: 32
-    test_batch_size: 32
+    epochs: 500
+    train_batch_size: 500
+    test_batch_size: 500
     add_z_bond_coord: true
     atom_features: 'werespecies'
     state_input_shape: 2
-    cutoff: 15
+    cutoff: 0.5
   optim:
     factor: 0.5
     patience: 150

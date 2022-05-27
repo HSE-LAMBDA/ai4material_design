@@ -1,13 +1,15 @@
-import IPython.core.debugger
-from pymatgen.optimization.neighbors import find_points_in_spheres
+import torch
 import numpy as np
 from torch_geometric.data import Data
-import torch
 from pymatgen.core import Structure
 from pymatgen.core.periodic_table import DummySpecies
+from pymatgen.optimization.neighbors import find_points_in_spheres
 
 
 class MyTensor(torch.Tensor):
+    """
+    this class is needed to work with graphs without edges
+    """
     def max(self, *args, **kwargs):
         if torch.numel(self) == 0:
             return 0
@@ -23,6 +25,14 @@ class SimpleCrystalConverter:
             add_z_bond_coord=False,
             cutoff=5.0
     ):
+        """
+        Parameters
+        ----------
+        atom_converter: converter that converts pymatgen structure to node features
+        bond_converter: converter that converts distances to edge features
+        add_z_bond_coord: use z-coordinate feature or no
+        cutoff: cutoff radius
+        """
         self.cutoff = cutoff
         self.atom_converter = atom_converter if atom_converter else DummyConverter()
         self.bond_converter = bond_converter if bond_converter else DummyConverter()
@@ -53,7 +63,7 @@ class SimpleCrystalConverter:
         edge_attr = torch.Tensor(self.bond_converter.convert(distances_preprocessed))
         state = getattr(d, "state", None) or [[0.0, 0.0]]
         y = d.y if hasattr(d, "y") else 0
-        bond_batch = MyTensor([0 for _ in range(edge_index.shape[1])]).long()
+        bond_batch = MyTensor(np.zeros(edge_index.shape[1])).long()
 
         return Data(
             x=x, edge_index=edge_index, edge_attr=edge_attr, state=torch.Tensor(state), y=y, bond_batch=bond_batch
@@ -97,20 +107,20 @@ class FlattenGaussianDistanceConverter(GaussianDistanceConverter):
 
 
 class AtomFeaturesExtractor:
-    def __init__(self, atom_features="Z"):
+    def __init__(self, atom_features):
         self.atom_features = atom_features
 
     def convert(self, structure: Structure):
         if self.atom_features == "Z":
             return np.array(
-                [0 if isinstance(i.specie, DummySpecies) else i.specie.Z for i in structure.species]
+                [0 if isinstance(i, DummySpecies) else i.Z for i in structure.species]
             ).reshape(-1, 1)
         elif self.atom_features == 'werespecies':
             return np.array([
                 [
-                    0 if isinstance(i.specie, DummySpecies) else i.specie.Z,
+                    0 if isinstance(i, DummySpecies) else i.Z,
                     i.properties["was"],
-                ] for i in structure.sites
+                ] for i in structure.species
             ])
         else:
             raise NotImplementedError
