@@ -4,7 +4,7 @@
 - Project log is in [Notion](https://www.notion.so/AI-for-material-design-1f8f321d2ac54245a7af410d838929ae)
 - Paper in [Overleaf](https://www.overleaf.com/project/61893015795e7b18e7979f53)
 
-## Setting up the envirotment on slurm cluster
+## Setting up the environment on slurm cluster
 
 0. ssh to the cluster head node if you gonna run on a slurm cluster
 1. Load the module `module load Python/Anaconda_v11.2020`
@@ -27,7 +27,7 @@ this step is very ugly but this the fastest way to have a working enviroment
 
 
 
-## Setting up the envirotment
+## Setting up the environment
 [Install Poetry](https://python-poetry.org/docs/#installation)
 ```
 poetry shell
