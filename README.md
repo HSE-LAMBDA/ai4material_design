@@ -43,7 +43,7 @@ Below we descrbie a lightweight test run. The commands are assumed to be ran ins
 dvc pull datasets/csv_cif/pilot.dvc datasets/experiments/pilot-plain-cv.dvc
 ```
 
-1. Prepare splits for experiments. Splits are shared between people, so don't overwrite them.
+1. [For reference] Tis is how the data splits aka experiments are generated. There is no need to do this step, the splits are available in DVC. Splits are shared between people, so don't overwrite them.
 ```
 python scripts/prepare_data_split.py --datasets=datasets/csv_cif/pilot --experiment-name=pilot-plain-cv
 ```
