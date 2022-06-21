@@ -140,7 +140,7 @@ def main():
         defects.loc[row.descriptor_id, "defects"]), axis=1).all()
 
     save_dir = storage_resolver["processed"].joinpath(dataset_name)
-    save_dir.mkdir(exist_ok=True)
+    save_dir.mkdir(exist_ok=True, parents=True)
     structures.to_pickle(
         save_dir.joinpath("data.pickle.gz"))
     structures.to_csv(save_dir.joinpath("targets.csv.gz"),
