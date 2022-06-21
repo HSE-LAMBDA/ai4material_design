@@ -120,7 +120,8 @@ def run_experiment(experiment_name, trials_names, gpus, processes_per_gpu):
             gpus,
             processes_per_gpu,
             wandb_config,
-            checkpoint_path=storage_resolver["checkpoints"].joinpath(experiment_name, str(target_name), this_trial_name)
+            checkpoint_path=storage_resolver["checkpoints"].joinpath(experiment_name, str(target_name), this_trial_name),
+            strategy=experiment['strategy'],
         )
         predictions.rename(lambda target_name: f"predicted_{target_name}_test", axis=1, inplace=True)
         save_path = storage_resolver["predictions"].joinpath(
@@ -145,11 +146,18 @@ def cross_val_predict(
     processes_per_gpu: int,
     wandb_config,
     checkpoint_path,
+    strategy="cv",
 ):
     assert data.index.equals(targets.index)
     assert data.index.equals(folds.index)
 
     n_folds = folds.max() + 1
+    if strategy == "cv":
+        test_fold_generator = range(n_folds)
+    elif strategy == "train_test":
+        test_fold_generator = (1 for _ in range(0))
+    else:
+        raise 'unknown strategy'
     assert set(folds.unique()) == set(range(n_folds))
     with NestablePool(len(gpus) * processes_per_gpu) as pool:
         predictions = pool.starmap(
@@ -165,7 +173,7 @@ def cross_val_predict(
                 wandb_config=wandb_config,
                 checkpoint_path=checkpoint_path,
             ),
-            zip(range(n_folds), cycle(gpus)),
+            zip(test_fold_generator, cycle(gpus)),
         )
     # TODO(kazeevn)
     # Should we add explicit Structure -> graph preprocessing with results shared?

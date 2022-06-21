@@ -8,6 +8,8 @@ import pymatgen.io.cif
 from tqdm.auto import tqdm
 from collections import defaultdict
 import gzip
+
+
 class StorageResolver:
     def __init__(self,
                  config_name=Path(__file__).parent.parent.parent.joinpath("storage.yaml")):
@@ -17,6 +19,7 @@ class StorageResolver:
 
     def __getitem__(self, key):
         return Path(self.root_folder, self.config[key])
+
 
 class Is_Intensive:
     def __init__(self):
@@ -31,6 +34,8 @@ class Is_Intensive:
         if isinstance(item, list):
             return True
         return self.attr[item]
+
+
 class DataLoader:
     def __init__(self, dataset_paths, folds_index):
         self.dataset_paths = dataset_paths
@@ -179,6 +184,7 @@ def read_structures_descriptions(data_path:str):
                        # contains an unnamed index column, and
                        # datasets/dichalcogenides_innopolis_202105/defects.csv
                        # doesn't
+                       # TODO(RomanovI) killed normalization
                        usecols=["_id",
                                 "descriptor_id",
                                 "energy",
@@ -186,17 +192,18 @@ def read_structures_descriptions(data_path:str):
                                 "fermi_level",
                                 "homo",
                                 "lumo",
-                                "normalized_homo",
-                                "normalized_lumo"])
+                                # "normalized_homo",
+                                # "normalized_lumo"
+                                ])
 
 
-def read_defects_descriptions(data_path:str):
+def read_defects_descriptions(data_path: str):
     return pd.read_csv(
         os.path.join(data_path, "descriptors.csv"), index_col="_id",
         converters={"cell": eval, "defects": eval})    
 
 
-def get_dichalcogenides_innopolis(data_path:str):
+def get_dichalcogenides_innopolis(data_path: str):
     structures = read_structures_descriptions(data_path)
     initial_structures = dict()
     structures_folder = os.path.join(data_path, "initial")
