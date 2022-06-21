@@ -155,7 +155,7 @@ def cross_val_predict(
     if strategy == "cv":
         test_fold_generator = range(n_folds)
     elif strategy == "train_test":
-        test_fold_generator = (1 for _ in range(0))
+        test_fold_generator = (1 for _ in range(1))
     else:
         raise 'unknown strategy'
     assert set(folds.unique()) == set(range(n_folds))
