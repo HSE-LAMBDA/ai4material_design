@@ -213,6 +213,9 @@ def predict_on_fold(
     this_wandb_config = wandb_config.copy()
     this_wandb_config["test_fold"] = test_fold
 
+    print(train)
+    print(test)
+
     with wandb.init(
         project="ai4material_design",
         entity=os.environ["WANDB_ENTITY"],
