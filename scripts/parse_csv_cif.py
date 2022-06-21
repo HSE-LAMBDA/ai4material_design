@@ -148,7 +148,7 @@ def main():
                       columns=[
                           "energy", "energy_per_atom", "formation_energy",
                           "formation_energy_per_site", "band_gap", "homo",
-                          "lumo", "normalized_homo", "normalized_lumo", "fermi_level"
+                          "lumo", "fermi_level"
                       ])
 
 
