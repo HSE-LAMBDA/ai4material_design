@@ -114,6 +114,7 @@ class AtomFeaturesExtractor:
         print(type(structure))
         print(structure)
         print(structure.__dir__())
+        print(structure.species)
         if self.atom_features == "Z":
             return np.array(
                 [0 if isinstance(i, DummySpecies) else i.Z for i in structure.species]
