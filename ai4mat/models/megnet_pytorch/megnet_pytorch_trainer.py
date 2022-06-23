@@ -100,12 +100,12 @@ class MEGNetPyTorchTrainer(Trainer):
         for epoch in trange(self.config["model"]["epochs"]):
             print(f'=========== {epoch} ==============')
             print(len(self.trainloader), self.device)
+            print(self.target_name)
 
             batch_loss = []
             total_train = []
             self.model.train(True)
             for i, batch in enumerate(self.trainloader):
-                print(batch.y)
                 batch = batch.to(self.device)
                 preds = self.model(
                     batch.x, batch.edge_index, batch.edge_attr, batch.state, batch.batch, batch.bond_batch
