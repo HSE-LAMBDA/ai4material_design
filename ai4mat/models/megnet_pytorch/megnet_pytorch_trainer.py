@@ -105,7 +105,7 @@ class MEGNetPyTorchTrainer(Trainer):
             total_train = []
             self.model.train(True)
             for i, batch in enumerate(self.trainloader):
-                print(batch)
+                print(batch.y)
                 batch = batch.to(self.device)
                 preds = self.model(
                     batch.x, batch.edge_index, batch.edge_attr, batch.state, batch.batch, batch.bond_batch
