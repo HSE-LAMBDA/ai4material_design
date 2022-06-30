@@ -8,7 +8,7 @@ model_params:
     add_z_bond_coord: true
     atom_features: 'werespecies'
     state_input_shape: 2
-    cutoff: 15
+    cutoff: 5
     edge_embed_size: 10
   optim:
     factor: 0.5
