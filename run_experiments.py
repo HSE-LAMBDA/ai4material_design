@@ -150,44 +150,65 @@ def cross_val_predict(
 ):
     assert data.index.equals(targets.index)
     assert data.index.equals(folds.index)
-
+    
     n_folds = folds.max() + 1
     if strategy == "cv":
         test_fold_generator = range(n_folds)
     elif strategy == "train_test":
-        test_fold_generator = (1 for _ in range(1))
+        TEST_FOLD = 1
+        test_fold_generator = (TEST_FOLD, ) #TODO(Ignat) store this globally
     else:
-        raise 'unknown strategy'
+        raise ValueError('Unknown split strategy')
+    
     assert set(folds.unique()) == set(range(n_folds))
-    with NestablePool(len(gpus) * processes_per_gpu) as pool:
-        predictions = pool.starmap(
-            partial(
-                predict_on_fold,
-                n_folds=n_folds,
-                folds=folds,
-                data=data,
-                targets=targets,
-                predict_func=predict_func,
-                target_is_intensive=target_is_intensive,
-                model_params=model_params,
-                wandb_config=wandb_config,
-                checkpoint_path=checkpoint_path,
-            ),
-            zip(test_fold_generator, cycle(gpus)),
+    
+    if strategy == "cv":
+        with NestablePool(len(gpus) * processes_per_gpu) as pool:
+            predictions = pool.starmap(
+                partial(
+                    predict_on_fold,
+                    n_folds=n_folds,
+                    folds=folds,
+                    data=data,
+                    targets=targets,
+                    predict_func=predict_func,
+                    target_is_intensive=target_is_intensive,
+                    model_params=model_params,
+                    wandb_config=wandb_config,
+                    checkpoint_path=checkpoint_path,
+                ),
+                zip(test_fold_generator, cycle(gpus)),
+            )
+        # TODO(kazeevn)
+        # Should we add explicit Structure -> graph preprocessing with results shared?
+    elif strategy == "train_test":
+        predictions = predict_on_fold(
+            test_fold=TEST_FOLD,
+            gpu=gpus[0],
+            n_folds=n_folds,
+            folds=folds,
+            data=data,
+            targets=targets,
+            predict_func=predict_func,
+            target_is_intensive=target_is_intensive,
+            model_params=model_params,
+            wandb_config=wandb_config,
+            checkpoint_path=checkpoint_path,
         )
-    # TODO(kazeevn)
-    # Should we add explicit Structure -> graph preprocessing with results shared?
 
-    if isinstance(targets, pd.DataFrame):
-        predictions_pd = pd.DataFrame(index=targets.index, columns=targets.columns, data=np.zeros_like(targets.to_numpy()))
-    elif isinstance(targets, pd.Series):
-        predictions_pd = pd.DataFrame(index=targets.index, columns=[targets.name], data=np.zeros_like(targets.to_numpy()))
-
+    if strategy == "cv":
+        if isinstance(targets, pd.DataFrame):
+            predictions_pd = pd.DataFrame(index=targets.index, columns=targets.columns, data=np.zeros_like(targets.to_numpy()))
+        elif isinstance(targets, pd.Series):
+            predictions_pd = pd.DataFrame(index=targets.index, columns=[targets.name], data=np.zeros_like(targets.to_numpy()))
 
 
-    for this_predictions, test_fold in zip(predictions, range(n_folds)):
-        test_mask = folds == test_fold
-        predictions_pd[test_mask] = this_predictions
+        for this_predictions, test_fold in zip(predictions, range(n_folds)):
+            test_mask = folds == test_fold
+            predictions_pd[test_mask] = this_predictions
+    elif strategy == "train_test":
+        predictions_pd = pd.DataFrame(index=folds[folds==TEST_FOLD].index,
+        columns=[targets.name], data=predictions)
 
     return predictions_pd
 
