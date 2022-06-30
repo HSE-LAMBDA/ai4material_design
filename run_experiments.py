@@ -202,7 +202,6 @@ def cross_val_predict(
         elif isinstance(targets, pd.Series):
             predictions_pd = pd.DataFrame(index=targets.index, columns=[targets.name], data=np.zeros_like(targets.to_numpy()))
 
-
         for this_predictions, test_fold in zip(predictions, range(n_folds)):
             test_mask = folds == test_fold
             predictions_pd[test_mask] = this_predictions
