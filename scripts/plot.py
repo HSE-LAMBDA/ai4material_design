@@ -15,6 +15,7 @@ def main():
     parser = argparse.ArgumentParser("Plots predictions")
     parser.add_argument("--experiments", type=str, nargs="+")
     parser.add_argument("--trials", type=str, nargs="+")
+    parser.add_argument("--strategy", type=str, default="cv")
     args = parser.parse_args()
     
     font = {
@@ -42,6 +43,8 @@ def main():
         true_targets = pd.concat([pd.read_csv(get_targets_path(path), index_col="_id")
                                   for path in experiment["datasets"]], axis=0).reindex(
                                           index=folds.index)
+        if args.strategy == "train_test":
+            true_targets = true_targets[folds == 1]
         for target_name, this_trial_name in product(experiment["targets"], args.trials):
             predictions = pd.read_csv(storage_resolver["predictions"].joinpath(
                                            get_prediction_path(
