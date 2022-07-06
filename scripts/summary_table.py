@@ -12,7 +12,7 @@ from ai4mat.data.data import StorageResolver, get_prediction_path, get_targets_p
 
 def name_to_train_WSe2_count(name):
     fraction = float(name.split("_")[-1])
-    return int(5934*fraction)
+    return int(5934*(1. - fraction))
 
 
 def print_experiment_target_table(experiments, targets, trial, unit_multiplier,
