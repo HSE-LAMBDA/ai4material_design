@@ -23,7 +23,8 @@ class SimpleCrystalConverter:
             atom_converter=None,
             bond_converter=None,
             add_z_bond_coord=False,
-            cutoff=5.0
+            cutoff=5.0,
+            ignore_state=False,
     ):
         """
         Parameters
@@ -32,11 +33,14 @@ class SimpleCrystalConverter:
         bond_converter: converter that converts distances to edge features
         add_z_bond_coord: use z-coordinate feature or no
         cutoff: cutoff radius
+        ignore_state: ignore global state. State is normally used to
+            contain information about the pristine material
         """
         self.cutoff = cutoff
         self.atom_converter = atom_converter if atom_converter else DummyConverter()
         self.bond_converter = bond_converter if bond_converter else DummyConverter()
         self.add_z_bond_coord = add_z_bond_coord
+        self.ignore_state = ignore_state
 
     def convert(self, d):
         lattice_matrix = np.ascontiguousarray(np.array(d.lattice.matrix), dtype=float)
@@ -61,7 +65,10 @@ class SimpleCrystalConverter:
             )
 
         edge_attr = torch.Tensor(self.bond_converter.convert(distances_preprocessed))
-        state = getattr(d, "state", None) or [[0.0, 0.0]]
+        if self.ignore_state:
+            state = [[0.0, 0.0]]
+        else:
+            state = getattr(d, "state", None) or [[0.0, 0.0]]
         y = d.y if hasattr(d, "y") else 0
         bond_batch = MyTensor(np.zeros(edge_index.shape[1])).long()
 
