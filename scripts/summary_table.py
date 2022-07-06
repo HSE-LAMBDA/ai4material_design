@@ -25,12 +25,12 @@ def print_target_trial_table(experiment, trials, unit_multiplier):
                                         index=folds.index)
     mae_table = pt()
     mae_table.field_names = ["Model"] + experiment["targets"]
-    for this_trial_name in args.trials:
+    for this_trial_name in trials:
         row = [this_trial_name]
         for target_name in experiment["targets"]:
             predictions = pd.read_csv(storage_resolver["predictions"].joinpath(
                                             get_prediction_path(
-                                                args.experiment,
+                                                experiment,
                                                 target_name,
                                                 this_trial_name
                                             )), index_col="_id", squeeze=True)
