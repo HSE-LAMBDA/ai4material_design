@@ -74,6 +74,11 @@ python scripts/plot.py --experiments pilot-plain-cv --trials megnet-sparse-pilot
 ```
 This produces plots in `datasets/plots/pilot-plain-cv`
 
+### Running with GNU parallel
+```
+parallel -a datasets/experiments/MoS2_to_WSe2/family.txt -j4 python run_experiments.py --experiments {1} --trials megnet_pytorch-sparse-10 --gpus 0 --wandb-entity hse_lambda
+```
+
 ### Running catboost
 
 0. Pull the inputs from DVC
