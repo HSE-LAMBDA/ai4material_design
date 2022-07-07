@@ -75,6 +75,7 @@ def main():
         "targets": args.targets
     }
 
+    family = []
     for train_size in train_sizes:
         this_size_path = output_path.joinpath(f"{train_size}")
         this_size_path.mkdir(exist_ok=True)
@@ -88,6 +89,7 @@ def main():
         if train_size > 0:
             in_domain_path = this_size_path.joinpath("in_domain")
             in_domain_path.mkdir(exist_ok=True)
+            family.append(str(in_domain_path.relative_to(StorageResolver()["experiments"])))
             with open(in_domain_path.joinpath("config.yaml"), "wt") as config_file:
                 yaml.dump(config, config_file)
             in_domain_folds.to_csv(in_domain_path.joinpath("folds.csv"), index_label="_id")
@@ -98,7 +100,10 @@ def main():
         with open(out_domain_path.joinpath("config.yaml"), "wt") as config_file:
             yaml.dump(config, config_file)
         all_folds.to_csv(out_domain_path.joinpath("folds.csv"), index_label="_id")
-
+        family.append(str(out_domain_path.relative_to(StorageResolver()["experiments"])))
+    
+    with open(output_path.joinpath("family.txt"), "wt") as family_file:
+        family_file.write("\n".join(family))
 
 if __name__ == "__main__":
     main()
