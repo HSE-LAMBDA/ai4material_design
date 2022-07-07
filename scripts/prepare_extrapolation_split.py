@@ -72,7 +72,8 @@ def main():
         "datasets": args.train_only_datasets + [args.train_test_dataset],
         "strategy": "train_test",
         "n-folds": 2,
-        "targets": args.targets
+        "targets": args.targets,
+        "test-size": test_size
     }
 
     family = []
@@ -86,19 +87,26 @@ def main():
             index=train_test_structures.iloc[train_indices].index
         )
         in_domain_folds = pd.concat([in_domain_train_folds, test_fold])
+        this_config = config.copy()
+        this_config["in-domain-train-size"] = train_size
         if train_size > 0:
+            in_domain_config = this_config.copy()
+            in_domain_config["out-domain-train-size"] = 0
+
             in_domain_path = this_size_path.joinpath("in_domain")
             in_domain_path.mkdir(exist_ok=True)
             family.append(str(in_domain_path.relative_to(StorageResolver()["experiments"])))
             with open(in_domain_path.joinpath("config.yaml"), "wt") as config_file:
-                yaml.dump(config, config_file)
+                yaml.dump(in_domain_config, config_file)
             in_domain_folds.to_csv(in_domain_path.joinpath("folds.csv"), index_label="_id")
         
         all_folds = pd.concat([train_only_folds, in_domain_folds])
         out_domain_path = this_size_path.joinpath("in_and_out_domain")
         out_domain_path.mkdir(exist_ok=True)
+        out_domain_config = this_config.copy()
+        out_domain_config["out-domain-train-size"] = len(train_only_folds)
         with open(out_domain_path.joinpath("config.yaml"), "wt") as config_file:
-            yaml.dump(config, config_file)
+            yaml.dump(out_domain_config, config_file)
         all_folds.to_csv(out_domain_path.joinpath("folds.csv"), index_label="_id")
         family.append(str(out_domain_path.relative_to(StorageResolver()["experiments"])))
     

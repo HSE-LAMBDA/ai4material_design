@@ -59,7 +59,8 @@ def main():
     args = parser.parse_args()
 
     os.environ["WANDB_START_METHOD"] = "thread"
-    os.environ["WANDB_RUN_GROUP"] = "2D-crystal-" + wandb.util.generate_id()
+    if "WANDB_RUN_GROUP" not in os.environ:
+        os.environ["WANDB_RUN_GROUP"] = "2D-crystal-" + wandb.util.generate_id()
     if args.wandb_entity:
         os.environ["WANDB_ENTITY"] = args.wandb_entity
     for experiment_name in args.experiments:
