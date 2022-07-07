@@ -23,6 +23,7 @@ tensorflow-gpu = "^2.7"
 httplib2 = "^0.20.2"
 catboost = "^1.0.3"
 matminer = "0.7.3"
+plumbum = "^1.7.2"
 
 
 [tool.poetry.dev-dependencies]
