@@ -9,6 +9,8 @@ from tqdm.auto import tqdm
 from collections import defaultdict
 import gzip
 
+TRAIN_FOLD = 0
+TEST_FOLD = 1
 
 class StorageResolver:
     def __init__(self,
