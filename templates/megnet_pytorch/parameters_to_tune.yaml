@@ -1,0 +1,4 @@
+model_params:
+  model:
+    epochs: [1, 2]
+    cutoff: [15, 16]
