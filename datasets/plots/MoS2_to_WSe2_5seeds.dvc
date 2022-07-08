@@ -1,0 +1,5 @@
+outs:
+- md5: ebb2180b9d9641a100591e53e0d0bfbb.dir
+  size: 220050
+  nfiles: 2
+  path: MoS2_to_WSe2_5seeds

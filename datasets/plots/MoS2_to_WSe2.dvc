@@ -1,0 +1,5 @@
+outs:
+- md5: 5185e5c23c8a166c949b01b332ab20c7.dir
+  size: 249504
+  nfiles: 4
+  path: MoS2_to_WSe2
