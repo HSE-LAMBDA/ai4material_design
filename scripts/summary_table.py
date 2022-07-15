@@ -82,10 +82,18 @@ def print_target_trial_table(experiment, trials, unit_multiplier):
     print(mae_table)
 
 
-def print_experiment_trial_table(experiments, trials, target_name, unit_multiplier):
+def print_experiment_trial_table(experiments, trials, target_name, unit_multiplier, parameter_to_extract='cutoff'):
     storage_resolver = StorageResolver()
     mae_table = pt()
-    mae_table.field_names = ["Experiment"] + trials
+
+    trials2params = {}
+    for trial in trials:
+        with open(storage_resolver['trials'].joinpath(trial)) as cur_trial:
+            trials2params[trial] = yaml.safe_load(cur_trial)['model_params']['model'][parameter_to_extract]
+
+    trials.sort(key=lambda x: trials2params[x])
+
+    mae_table.field_names = ["Experiment"] + [str(trials2params[t]) for t in trials]
     for experiment_name in experiments:
         row = [experiment_name]
         experiment_path = storage_resolver["experiments"].joinpath(experiment_name)
