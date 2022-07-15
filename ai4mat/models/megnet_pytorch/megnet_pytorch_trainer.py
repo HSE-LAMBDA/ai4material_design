@@ -144,12 +144,11 @@ class MEGNetPyTorchTrainer(Trainer):
 
             torch.cuda.empty_cache()
 
-            wandb.log(
-                {f'{self.target_name} test_loss_per_epoch': cur_test_loss, 'epoch': epoch}
-            )
-            wandb.log(
-                {f'{self.target_name} train_loss_per_epoch': cur_train_loss, 'epoch': epoch}
-            )
+            wandb.log({
+                    f'{self.target_name} test_loss_per_epoch': cur_test_loss,
+                    f'{self.target_name} train_loss_per_epoch': cur_train_loss,
+                    'epoch': epoch,
+                })
 
             print(
                 f"{self.target_name} Epoch: {epoch}, train loss: {cur_train_loss}, test loss: {cur_test_loss}"

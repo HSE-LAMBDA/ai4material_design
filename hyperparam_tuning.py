@@ -51,7 +51,7 @@ def main():
     parser = argparse.ArgumentParser("Runs experiments")
     parser.add_argument("--model-name", required=True)
     parser.add_argument("--experiments", nargs="+", required=True)
-    parser.add_argument("--warm_start")
+    parser.add_argument("--warm-start")
     parser.add_argument("--wandb-entity", required=True)
     args = parser.parse_args()
 
@@ -72,7 +72,7 @@ def main():
     h = hashlib.new('sha256')
     for trial in generate_trials(template, param_config):
         h.update(json.dumps(trial).encode('utf-8'))
-        cur_trial_name = args.model_name + "_" + h.hexdigest()[-8:]
+        cur_trial_name = h.hexdigest()[-8:]
         with open(res_dir_path.joinpath(cur_trial_name + ".yaml"), 'w') as outf:
             yaml.dump(trial, outf, default_flow_style=False)
 
