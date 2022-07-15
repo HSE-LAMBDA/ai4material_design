@@ -88,7 +88,7 @@ def print_experiment_trial_table(experiments, trials, target_name, unit_multipli
 
     trials2params = {}
     for trial in trials:
-        with open(storage_resolver['trials'].joinpath(trial)) as cur_trial:
+        with open(storage_resolver['trials'].joinpath(trial + ".yaml")) as cur_trial:
             trials2params[trial] = yaml.safe_load(cur_trial)['model_params']['model'][parameter_to_extract]
 
     trials.sort(key=lambda x: trials2params[x])
