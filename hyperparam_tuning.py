@@ -77,7 +77,7 @@ def main():
             with open(res_dir_path.joinpath(cur_trial_name + ".yaml"), 'w') as outf:
                 yaml.dump(trial, outf, default_flow_style=False)
     else:
-        tmp_dir_path = Path('.').joinpath(args.model_name).joinpath(datetime.now().strftime("%d-%m-%Y_%H-%M-%S"))
+        tmp_dir_path = Path('.').joinpath(args.model_name).joinpath(args.warm_start)
         res_dir_path = storage_resolver['trials'].joinpath(tmp_dir_path)
         if res_dir_path not in os.listdir(res_dir_path.parent):
             raise "Wrong timestamp for warm start"
