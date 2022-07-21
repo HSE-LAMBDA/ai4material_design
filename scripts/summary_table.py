@@ -82,14 +82,18 @@ def print_target_trial_table(experiment, trials, unit_multiplier):
     print(mae_table)
 
 
-def print_experiment_trial_table(experiments, trials, target_name, unit_multiplier, parameter_to_extract='cutoff'):
+def get_value_by_path(d, path):
+    return get_value_by_path(d[path[0]], path[1:])
+
+
+def print_experiment_trial_table(experiments, trials, target_name, unit_multiplier, parameter_to_extract):
     storage_resolver = StorageResolver()
     mae_table = pt()
 
     trials2params = {}
     for trial in trials:
         with open(storage_resolver['trials'].joinpath(trial + ".yaml")) as cur_trial:
-            trials2params[trial] = yaml.safe_load(cur_trial)['model_params']['model'][parameter_to_extract]
+            trials2params[trial] = get_value_by_path(yaml.safe_load(cur_trial), parameter_to_extract.split('/'))
 
     trials.sort(key=lambda x: trials2params[x])
 
@@ -142,6 +146,8 @@ def main():
         help="Name of a local function to convert experiment names to for human-readable display")
     parser.add_argument("--experiment_column", type=str, default="Experiment",
                        help="Name of the column in the table that corresponds to experiment")
+    parser.add_argument("--parameter-to-extract", type=str, help="path to parameter to extract for table in format "
+                                                                 "a/b/c")
     args = parser.parse_args()
     
     if args.separate_by == "experiment":
@@ -152,7 +158,7 @@ def main():
         for target_name in targets:
             print(f"{target_name}:")
             print_experiment_trial_table(
-                args.experiments, args.trials, target_name, args.unit_multiplier)
+                args.experiments, args.trials, target_name, args.unit_multiplier, args.parameter_to_extract)
     elif args.separate_by == "trial":
         targets = read_targets(args.experiments[0])
         for trial in args.trials:

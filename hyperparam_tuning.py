@@ -51,39 +51,54 @@ def main():
     parser = argparse.ArgumentParser("Runs experiments")
     parser.add_argument("--model-name", required=True)
     parser.add_argument("--experiments", nargs="+", required=True)
-    parser.add_argument("--warm-start")
+    parser.add_argument("--warm-start", type=str)
     parser.add_argument("--wandb-entity", required=True)
     args = parser.parse_args()
 
     storage_resolver = StorageResolver()
 
-    template_path = storage_resolver['templates'].joinpath(args.model_name).joinpath("parameters_template.yaml")
-    param_config_path = storage_resolver['templates'].joinpath(args.model_name).joinpath("parameters_to_tune.yaml")
+    if args.warm_start is None:
+        template_path = storage_resolver['templates'].joinpath(args.model_name).joinpath("parameters_template.yaml")
+        param_config_path = storage_resolver['templates'].joinpath(args.model_name).joinpath("parameters_to_tune.yaml")
 
-    with open(template_path) as f:
-        with open(param_config_path) as ff:
-            template = yaml.safe_load(f)
-            param_config = yaml.safe_load(ff)
+        with open(template_path) as f:
+            with open(param_config_path) as ff:
+                template = yaml.safe_load(f)
+                param_config = yaml.safe_load(ff)
 
-    tmp_dir_path = Path('.').joinpath(args.model_name).joinpath(datetime.now().strftime("%d-%m-%Y_%H-%M-%S"))
-    res_dir_path = storage_resolver['trials'].joinpath(tmp_dir_path)
-    mkdir = local["mkdir"]['-p'][res_dir_path]
-    mkdir & FG
-    h = hashlib.new('sha256')
-    for trial in generate_trials(template, param_config):
-        h.update(json.dumps(trial).encode('utf-8'))
-        cur_trial_name = h.hexdigest()[-8:]
-        with open(res_dir_path.joinpath(cur_trial_name + ".yaml"), 'w') as outf:
-            yaml.dump(trial, outf, default_flow_style=False)
+        tmp_dir_path = Path('.').joinpath(args.model_name).joinpath(datetime.now().strftime("%d-%m-%Y_%H-%M-%S"))
+        res_dir_path = storage_resolver['trials'].joinpath(tmp_dir_path)
+        mkdir = local["mkdir"]['-p'][res_dir_path]
+        mkdir & FG
+        h = hashlib.new('sha256')
+        for trial in generate_trials(template, param_config):
+            h.update(json.dumps(trial).encode('utf-8'))
+            cur_trial_name = h.hexdigest()[-8:]
+            with open(res_dir_path.joinpath(cur_trial_name + ".yaml"), 'w') as outf:
+                yaml.dump(trial, outf, default_flow_style=False)
+    else:
+        tmp_dir_path = Path('.').joinpath(args.model_name).joinpath(datetime.now().strftime("%d-%m-%Y_%H-%M-%S"))
+        res_dir_path = storage_resolver['trials'].joinpath(tmp_dir_path)
+        if res_dir_path not in os.listdir(res_dir_path.parent):
+            raise "Wrong timestamp for warm start"
 
     for exp in args.experiments:
         print(f"=====starting experiment {exp}=====")
-        for trial in tqdm(os.listdir(res_dir_path)):
-            trial = tmp_dir_path.joinpath(trial[:-5])
-            run_exp = local["python"]["run_experiments.py"]['--experiments'][exp]['--trials'][trial] \
-                ['--gpus']['0']['--wandb-entity'][args.wandb_entity]
+        cur_outfile_name = res_dir_path.joinpath(f"{exp}_finished_runs.txt")
 
-            run_exp & FG
+        with open(cur_outfile_name, 'a') as outfile:
+            print(f'trials stored to {cur_outfile_name}')
+            already_run = set(outfile.read().split())
+
+            for trial in tqdm(os.listdir(res_dir_path)):
+                trial = tmp_dir_path.joinpath(trial[:-5])
+                if args.warm_start is None or trial not in already_run:
+                    run_exp = local["python"]["run_experiments.py"]['--experiments'][exp]['--trials'][trial] \
+                        ['--gpus']['0']['--wandb-entity'][args.wandb_entity]
+                    run_exp & FG
+                    print(trial, file=outfile, end=" ")
+                else:
+                    print(f"restored predictions for trial {trial}")
 
 
 if __name__ == '__main__':
