@@ -96,7 +96,7 @@ def main():
                     run_exp = local["python"]["run_experiments.py"]['--experiments'][exp]['--trials'][trial] \
                         ['--gpus']['0']['--wandb-entity'][args.wandb_entity]
                     run_exp & FG
-                    print(trial, file=outfile, end=" ")
+                    print(trial, file=outfile, end=" ", flush=True)
                 else:
                     print(f"restored predictions for trial {trial}")
 
