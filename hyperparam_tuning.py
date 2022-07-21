@@ -86,7 +86,7 @@ def main():
         print(f"=====starting experiment {exp}=====")
         cur_outfile_name = res_dir_path.joinpath(f"{exp.replace('/', '_')}_finished_runs.txt")
 
-        with open(cur_outfile_name, 'a') as outfile:
+        with open(cur_outfile_name, 'a+') as outfile:
             print(f'trials stored to {cur_outfile_name}')
             already_run = set(outfile.read().split())
 
