@@ -91,14 +91,15 @@ def main():
             already_run = set(outfile.read().split())
 
             for trial in tqdm(os.listdir(res_dir_path)):
-                trial = tmp_dir_path.joinpath(trial[:-5])
-                if args.warm_start is None or trial not in already_run:
-                    run_exp = local["python"]["run_experiments.py"]['--experiments'][exp]['--trials'][trial] \
-                        ['--gpus']['0']['--wandb-entity'][args.wandb_entity]
-                    run_exp & FG
-                    print(trial, file=outfile, end=" ", flush=True)
-                else:
-                    print(f"restored predictions for trial {trial}")
+                if len(trial) == 13:
+                    trial = tmp_dir_path.joinpath(trial[:-5])
+                    if args.warm_start is None or trial not in already_run:
+                        run_exp = local["python"]["run_experiments.py"]['--experiments'][exp]['--trials'][trial] \
+                            ['--gpus']['0']['--wandb-entity'][args.wandb_entity]
+                        run_exp & FG
+                        print(trial, file=outfile, end=" ", flush=True)
+                    else:
+                        print(f"restored predictions for trial {trial}")
 
 
 if __name__ == '__main__':
