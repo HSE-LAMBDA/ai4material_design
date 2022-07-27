@@ -83,6 +83,8 @@ def print_target_trial_table(experiment, trials, unit_multiplier):
 
 
 def get_value_by_path(d, path):
+    if len(path) == 1:
+        return d[path[0]]
     return get_value_by_path(d[path[0]], path[1:])
 
 
