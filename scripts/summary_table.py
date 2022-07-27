@@ -93,14 +93,15 @@ def print_experiment_trial_table(experiments, trials, target_name, unit_multipli
     mae_table = pt()
 
     trials2params = {}
-    for trial in trials:
+    exp_len = len(trials) // 3
+    for i, trial in enumerate(trials):
         with open(storage_resolver['trials'].joinpath(trial + ".yaml")) as cur_trial:
-            trials2params[trial] = get_value_by_path(yaml.safe_load(cur_trial), parameter_to_extract.split('/'))
+            trials2params[trial] = (i // exp_len, get_value_by_path(yaml.safe_load(cur_trial), parameter_to_extract.split('/')))
 
     trials.sort(key=lambda x: trials2params[x])
 
-    mae_table.field_names = ["Experiment"] + [str(trials2params[t]) for t in trials]
-    for experiment_name in experiments:
+    mae_table.field_names = ["Experiment"] + [str(trials2params[t][1]) for t in trials[:exp_len]]
+    for j, experiment_name in enumerate(experiments):
         row = [experiment_name]
         experiment_path = storage_resolver["experiments"].joinpath(experiment_name)
         with open(experiment_path.joinpath("config.yaml")) as experiment_file:
@@ -112,7 +113,7 @@ def print_experiment_trial_table(experiments, trials, target_name, unit_multipli
                                     usecols=["_id", target_name]).squeeze("columns")
                                     for path in experiment["datasets"]], axis=0).reindex(
                                     index=folds.index)
-        for trial in trials:
+        for trial in trials[j * exp_len: (j + 1) * exp_len]:
             predictions = pd.read_csv(storage_resolver["predictions"].joinpath(
                                             get_prediction_path(
                                                 experiment_name,
