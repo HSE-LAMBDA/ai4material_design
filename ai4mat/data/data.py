@@ -1,3 +1,4 @@
+from enum import Enum
 import os
 import shutil
 from pathlib import Path
@@ -8,6 +9,22 @@ import pymatgen.io.cif
 from tqdm.auto import tqdm
 from collections import defaultdict
 import gzip
+
+NICE_TARGET_NAMES = {
+    "homo": "HOMO, eV",
+    "lumo": "LUMO, eV",
+    "band_gap": "Band gap, eV",
+    "formation_energy_per_site": "Formation energy per site, eV"
+}
+
+class Columns(dict):
+    def __init__(self,
+                 config_name=Path(__file__).parent.parent.parent.joinpath("data_format.yaml")):
+        with open(config_name) as config_file:
+            config = yaml.safe_load(config_file)
+        super().__init__(config)
+
+
 class StorageResolver:
     def __init__(self,
                  config_name=Path(__file__).parent.parent.parent.joinpath("storage.yaml")):
@@ -95,14 +112,6 @@ class DataLoader:
         return self.targets[target_name]
 
 
-NICE_TARGET_NAMES = {
-    "homo": "HOMO, eV",
-    "lumo": "LUMO, eV",
-    "band_gap": "Band gap, eV",
-    "formation_energy_per_site": "Formation energy per site, eV"
-}
-
-
 def get_experiment_name(experiment_path):
     return Path(experiment_path).name
 
@@ -154,9 +163,6 @@ def copy_indexed_structures(structures, input_folder, output_folder):
                       index_label="_id")
 
 
-
-
-
 def get_gpaw_trajectories(defect_db_path:str):
     res = defaultdict(list)
     for file_ in os.listdir(defect_db_path):
@@ -172,23 +178,12 @@ def get_gpaw_trajectories(defect_db_path:str):
 
 
 def read_structures_descriptions(data_path:str):
+    """
+    Reads the description of the structures in the folder.
+    We assume that all columns not in Column emum are targets.
+    """
     return pd.read_csv(os.path.join(data_path, "defects.csv"),
-                       index_col="_id",
-                       # An explicit list of columns is due to the fact that
-                       # dichalcogenides8x8_innopolis_202108/defects.csv
-                       # contains an unnamed index column, and
-                       # datasets/dichalcogenides_innopolis_202105/defects.csv
-                       # doesn't
-                       usecols=["_id",
-                                "descriptor_id",
-                                "energy",
-                                "energy_per_atom",
-                                "fermi_level",
-                                "homo",
-                                "lumo",
-                                "normalized_homo",
-                                "normalized_lumo"])
-
+                       index_col=Columns()["structure"]["id"])
 
 def read_defects_descriptions(data_path:str):
     return pd.read_csv(
@@ -204,5 +199,6 @@ def get_dichalcogenides_innopolis(data_path:str):
         this_file = pymatgen.io.cif.CifParser(os.path.join(structures_folder, structure_file))
         initial_structures[os.path.splitext(structure_file)[0]] = \
             this_file.get_structures(primitive=False)[0]
-    structures["initial_structure"] = structures.apply(lambda row: initial_structures[row.name], axis=1)
+    structures[Columns()["structure"]["unrelaxed"]] = \
+        structures.apply(lambda row: initial_structures[row.name], axis=1)
     return structures, read_defects_descriptions(data_path)
