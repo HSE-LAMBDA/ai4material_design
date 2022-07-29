@@ -14,7 +14,7 @@ import numpy as np
 from pymatgen.core.periodic_table import DummySpecies, Element
 from pymatgen.core.structure import Structure
 import shutil
-
+from tqdm.auto import trange
 
 sys.path.append('.')
 from ai4mat.data.data import (
@@ -152,7 +152,8 @@ def main():
     for total_concentration in config["total_concentrations"]:
         try:
             this_structures = []
-            for _ in range(config["structures_per_concentration"]):
+            print(f"Generating structures with total concentration {total_concentration}")
+            for _ in trange(config["structures_per_concentration"]):
                 target_total_defects = int(total_concentration*len(reference_supercell))
 
                 is_unique = False
