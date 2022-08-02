@@ -9,7 +9,11 @@ from pymatgen.io.cif import CifParser
 import sys
 sys.path.append('.')
 
-from ai4mat.data.data import get_dichalcogenides_innopolis, StorageResolver
+from ai4mat.data.data import (
+    get_dichalcogenides_innopolis,
+    StorageResolver,
+    Columns
+)
 
 SINGLE_ENENRGY_COLUMN = "chemical_potential"
 
@@ -115,9 +119,10 @@ def main():
                                        index_col=0,
                                        converters={0: Element})
 
+    COLUMNS = Columns()
     # TODO(kazeevn) this all is very ugly
     def get_defecs_from_row(row):
-        defect_description = defects.loc[row.descriptor_id]
+        defect_description = defects.loc[row[COLUMNS["structure"]["descriptor_id"]]]
         unit_cell = unit_cells[defect_description.base]
         initial_energy = initial_structure_properties.loc[
             defect_description.base, defect_description.cell[0]].energy
@@ -129,27 +134,29 @@ def main():
     defect_properties = structures.apply(get_defecs_from_row,
                                          axis=1,
                                          result_type="expand")
-    structures = structures.drop('initial_structure', axis=1)                                     
-    defect_properties.columns = ["defect_representation", "formation_energy", "initial_structure"]
+    structures = structures.drop(COLUMNS["structure"]["unrelaxed"], axis=1)                                     
+    defect_properties.columns = [
+        COLUMNS["structure"]["sparse_unrelaxed"],
+        "formation_energy",
+        COLUMNS["structure"]["unrelaxed"]
+    ]
     structures = structures.join(defect_properties)
     structures["formation_energy_per_site"] = structures[
-        "formation_energy"] / structures["defect_representation"].apply(len)
+        "formation_energy"] / structures[COLUMNS["structure"]["sparse_unrelaxed"]].apply(len)
     structures["band_gap"] = structures["lumo"] - structures["homo"]
 
-    assert structures.apply(lambda row: len(row.defect_representation) == len(
-        defects.loc[row.descriptor_id, "defects"]), axis=1).all()
+    assert structures.apply(lambda row: len(row[COLUMNS["structure"]["sparse_unrelaxed"]]) == len(
+        defects.loc[row[COLUMNS["structure"]["descriptor_id"]], "defects"]), axis=1).all()
 
     save_dir = storage_resolver["processed"].joinpath(dataset_name)
     save_dir.mkdir(exist_ok=True)
     structures.to_pickle(
         save_dir.joinpath("data.pickle.gz"))
-    structures.to_csv(save_dir.joinpath("targets.csv.gz"),
-                      index_label="_id",
-                      columns=[
-                          "energy", "energy_per_atom", "formation_energy",
-                          "formation_energy_per_site", "band_gap", "homo",
-                          "lumo", "normalized_homo", "normalized_lumo", "fermi_level"
-                      ])
+    structures.drop(columns=[
+            COLUMNS["structure"]["unrelaxed"],
+            COLUMNS["structure"]["sparse_unrelaxed"]]
+        ).to_csv(save_dir.joinpath("targets.csv.gz"),
+            index_label=COLUMNS["structure"]["id"])
 
 
 if __name__ == "__main__":

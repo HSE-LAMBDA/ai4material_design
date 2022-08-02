@@ -1,0 +1,8 @@
+base_material: "MoS2"
+supercell: [8, 8, 1]
+total_concentrations: [0.02, 0.06, 0.1 , 0.14, 0.18]
+max_concentration_per_type: 0.1
+defects:
+  Mo: ["W", "Vacancy"]
+  S: ["Se", "Vacancy"]
+structures_per_concentration: 100
