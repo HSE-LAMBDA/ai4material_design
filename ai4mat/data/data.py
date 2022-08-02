@@ -177,10 +177,14 @@ def get_gpaw_trajectories(defect_db_path:str):
     return res
 
 
-def read_structures_descriptions(data_path:str):
+def read_structures_descriptions(data_path:str) -> pd.DataFrame:
     """
     Reads the description of the structures in the folder.
-    We assume that all columns not in Column emum are targets.
+    We assume that all columns not in Column enum are targets.
+    Args:
+        data_path: path to the folder with the data
+    Returns:
+        pandas DataFrame with the description of the structures
     """
     return pd.read_csv(os.path.join(data_path, "defects.csv"),
                        index_col=Columns()["structure"]["id"])

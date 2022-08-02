@@ -1,5 +1,3 @@
-from collections import defaultdict
-from email.policy import default
 from itertools import repeat
 from copy import deepcopy
 import uuid
