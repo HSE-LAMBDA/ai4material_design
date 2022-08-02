@@ -129,6 +129,7 @@ def main():
     
     absolute_max_defect_count = int(max(config["total_concentrations"])*len(reference_supercell))
     if max_allowed_defects < absolute_max_defect_count:
+        print(max_defect_counts)
         raise ValueError(f"Can't reach the desired total defect count {absolute_max_defect_count} "
                          "under the per-type constraints.")
 
@@ -201,6 +202,7 @@ def main():
     structures_pd = pd.DataFrame.from_dict(structures_dict)
     structures_pd.set_index([COLUMNS["structure"]["id"]], inplace=True)
     structures_pd.to_csv(target_folder / "defects.csv")
+
 
 if __name__ == "__main__":
     main()
