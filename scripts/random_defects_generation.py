@@ -1,17 +1,17 @@
-from itertools import repeat
-from copy import deepcopy
-import uuid
-import pandas as pd
 import sys
 import logging
 import argparse
-import yaml
 from pathlib import Path
-from pymatgen.io.cif import CifParser
+from itertools import repeat
+import shutil
+from copy import deepcopy
+import uuid
+import pandas as pd
+import yaml
 import numpy as np
+from pymatgen.io.cif import CifParser
 from pymatgen.core.periodic_table import DummySpecies, Element
 from pymatgen.core.structure import Structure
-import shutil
 from tqdm.auto import trange
 
 sys.path.append('.')
@@ -42,7 +42,7 @@ def generate_structure_with_defects(
         rng: random number generator
     Returns:
         Structure with defects
-    """  
+    """
     supercell = reference_supercell.copy()
     if target_total_defects == 0:
         if generate_innopolis_descritption:
@@ -83,7 +83,11 @@ def generate_structure_with_defects(
     else:
         return supercell
 
-class MaxGenerationRetries(RuntimeError): pass
+class MaxGenerationRetries(RuntimeError):
+    """
+    Reached the limit on the number of retries to generate a unique structure with defects.
+    """
+    pass
 
 def main():
     parser = argparse.ArgumentParser(description='Generate structures with random defects')
@@ -102,15 +106,15 @@ def main():
                         help="Clean the output directory before generating")
     args = parser.parse_args()
 
-    with open(args.config_path) as config_file:
+    with open(args.config_path, encoding="ascii") as config_file:
         config = yaml.safe_load(config_file)
-    
+
     unit_cell = CifParser(StorageResolver()["materials"] /
         f"{config['base_material']}.cif").get_structures(primitive=False)
     if len(unit_cell) > 1:
         raise ValueError("Unit cell has multiple structures")
     unit_cell = unit_cell[0]
-    
+
     reference_supercell = unit_cell.copy()
     reference_supercell.make_supercell(config["supercell"])
 
@@ -126,7 +130,7 @@ def main():
             max_defect_counts[element] = dict(zip(
                 replacement_list,
                 repeat(max_for_element)))
-    
+
     absolute_max_defect_count = int(max(config["total_concentrations"])*len(reference_supercell))
     if max_allowed_defects < absolute_max_defect_count:
         print(max_defect_counts)
@@ -151,10 +155,10 @@ def main():
     for total_concentration in config["total_concentrations"]:
         try:
             this_structures = []
-            print(f"Generating structures with total concentration {total_concentration}")
+            target_total_defects = int(total_concentration*len(reference_supercell))
+            print(f"Generating structures with total concentration {total_concentration}; "
+                  f"target defect count {target_total_defects}")
             for _ in trange(config["structures_per_concentration"]):
-                target_total_defects = int(total_concentration*len(reference_supercell))
-
                 is_unique = False
                 tries = 0
                 while not is_unique:
@@ -188,13 +192,15 @@ def main():
                 structures_dict["descriptor_id"].append(descriptors_dict[compact_formula]["_id"])
         except MaxGenerationRetries:
             if args.continue_on_max_regeneration_retries:
-                logging.warning(f"Maximum number of retries ({args.max_regeneration_retries}) reached.")
-                logging.warning(f"Concentration {total_concentration} has {len(this_structures)} structures "
-                                f"instead of {config['structures_per_concentration']} requested.")
+                logging.warning("Maximum number of retries (%i) reached.",
+                    args.max_regeneration_retries)
+                logging.warning("Concentration %f has %i structures instead of %i requested.",
+                                total_concentration, len(this_structures),
+                                config['structures_per_concentration'])
                 continue
             else:
                 raise
-    
+
     descriptors_pd = pd.DataFrame.from_dict(list(descriptors_dict.values()))
     descriptors_pd.set_index(["_id"], inplace=True)
     descriptors_pd.to_csv(target_folder / "descriptors.csv")
