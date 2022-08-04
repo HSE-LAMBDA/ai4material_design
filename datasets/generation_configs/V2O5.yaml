@@ -1,7 +1,7 @@
 base_material: "V2O5"
-supercell: [8, 8, 1]
+supercell: [6, 2, 1]
 total_concentrations: [0.025, 0.05 , 0.075, 0.1, 0.125]
-max_concentration_per_type: 0.062501 # ~4/64 with a room for float error
+max_concentration_per_type: 0.083
 defects:
   V: ["Nb", "Vacancy"]
   O: ["S", "Vacancy"]
