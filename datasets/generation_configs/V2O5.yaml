@@ -3,6 +3,6 @@ supercell: [6, 2, 1]
 total_concentrations: [0.025, 0.05 , 0.075, 0.1, 0.125]
 max_concentration_per_type: 0.083
 defects:
-  V: ["Nb", "Vacancy"]
+  V: ["Nb"]
   O: ["S", "Vacancy"]
 structures_per_concentration: 100
