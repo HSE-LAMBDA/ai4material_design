@@ -1,13 +1,14 @@
 # Datasets
 ## Structure
-1. `raw` contains raw VASP outputs
+1. `raw_vasp` contains raw VASP outputs
 2. `csv_cif` contains data in the Innopolis format
 3. `processed` contains precomputed matminer features and targets along with piclked structures that
    are ignored by DVC. Each fodler here corresponds to a folder in `csv_cif`
 4. `experiments` contains the definitions of the data splits for different experiments
 5. `predictions` contains predictions from different models
 6. `plots` contains plots with the results
-7. `others` contains situational files that don't fall into above categories
+7. `POSCARs` contains initial structures in POSCAR format, with metadata similar to `csv_cif`
+8. `others` contains situational files that don't fall into above categories
 
 ## Datasets
 ### `dichalcogenides_x1s6_202109`
