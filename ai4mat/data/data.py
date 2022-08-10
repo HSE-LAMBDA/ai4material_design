@@ -1,3 +1,4 @@
+from enum import Enum
 import os
 import shutil
 from pathlib import Path
@@ -9,8 +10,23 @@ from tqdm.auto import tqdm
 from collections import defaultdict
 import gzip
 
+
 TRAIN_FOLD = 0
 TEST_FOLD = 1
+
+NICE_TARGET_NAMES = {
+    "homo": "HOMO, eV",
+    "lumo": "LUMO, eV",
+    "band_gap": "Band gap, eV",
+    "formation_energy_per_site": "Formation energy per site, eV"
+}
+
+class Columns(dict):
+    def __init__(self,
+                 config_name=Path(__file__).parent.parent.parent.joinpath("data_format.yaml")):
+        with open(config_name) as config_file:
+            config = yaml.safe_load(config_file)
+        super().__init__(config)
 
 
 class StorageResolver:
@@ -104,14 +120,6 @@ class DataLoader:
         return self.targets[target_name]
 
 
-NICE_TARGET_NAMES = {
-    "homo": "HOMO, eV",
-    "lumo": "LUMO, eV",
-    "band_gap": "Band gap, eV",
-    "formation_energy_per_site": "Formation energy per site, eV"
-}
-
-
 def get_experiment_name(experiment_path):
     return Path(experiment_path).name
 
@@ -165,7 +173,8 @@ def copy_indexed_structures(structures, input_folder, output_folder):
                       index_label="_id")
 
 
-def get_gpaw_trajectories(defect_db_path: str):
+
+def get_gpaw_trajectories(defect_db_path:str):
     res = defaultdict(list)
     for file_ in os.listdir(defect_db_path):
         if not file_.startswith("id"):
@@ -177,6 +186,7 @@ def get_gpaw_trajectories(defect_db_path: str):
             except ase.io.formats.UnknownFileTypeError:
                 pass
     return res
+
 
 
 def read_structures_descriptions(data_path: str):
@@ -201,7 +211,19 @@ def read_structures_descriptions(data_path: str):
                        )
 
 
-def read_defects_descriptions(data_path: str):
+def read_structures_descriptions(data_path:str) -> pd.DataFrame:
+    """
+    Reads the description of the structures in the folder.
+    We assume that all columns not in Column enum are targets.
+    Args:
+        data_path: path to the folder with the data
+    Returns:
+        pandas DataFrame with the description of the structures
+    """
+    return pd.read_csv(os.path.join(data_path, "defects.csv"),
+                       index_col=Columns()["structure"]["id"])
+
+def read_defects_descriptions(data_path:str):
     return pd.read_csv(
         os.path.join(data_path, "descriptors.csv"), index_col="_id",
         converters={"cell": eval, "defects": eval})
@@ -215,5 +237,6 @@ def get_dichalcogenides_innopolis(data_path: str):
         this_file = pymatgen.io.cif.CifParser(os.path.join(structures_folder, structure_file))
         initial_structures[os.path.splitext(structure_file)[0]] = \
             this_file.get_structures(primitive=False)[0]
-    structures["initial_structure"] = structures.apply(lambda row: initial_structures[row.name], axis=1)
+    structures[Columns()["structure"]["unrelaxed"]] = \
+        structures.apply(lambda row: initial_structures[row.name], axis=1)
     return structures, read_defects_descriptions(data_path)

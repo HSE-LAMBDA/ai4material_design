@@ -1,0 +1,11 @@
+base_material: "GaSe"
+supercell: [6, 6, 1]
+total_concentrations: [0.025, 0.05 , 0.075, 0.1, 0.125]
+# 0.125 * 144 is 18 defects
+# 18/4 = 4.5
+# Since the number of defects is an integer, we must allow for the additional 0.5
+max_concentration_per_type: 0.0695
+defects:
+  Ga: ["In", "Vacancy"]
+  Se: ["S", "Vacancy"]
+structures_per_concentration: 100
