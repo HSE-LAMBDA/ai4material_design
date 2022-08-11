@@ -15,7 +15,7 @@ from ai4mat.data.data import (
     read_structures_descriptions
 )
 
-TARGET_FIELDS = ['energy', 'final_structure', 'fermi_level', 'homo', 'lumo', 'band_gap']
+TARGET_FIELDS = ['energy', 'fermi_level', 'homo', 'lumo', 'band_gap']
 
 def extract_data_from_vasp(vasprun_directory: Path) -> dict:
     """

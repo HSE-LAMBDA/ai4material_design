@@ -57,7 +57,7 @@ def main():
     output_path.mkdir(exist_ok=True)
     fold_full = pd.Series(data=get_folds(len(structures), args.n_folds, random_state),
                           index=structures.index, name="fold")
-    fold_full.to_csv(output_path.joinpath("folds.csv"), index_label="_id")
+    fold_full.to_csv(output_path.joinpath("folds.csv.gz"), index_label="_id")
 
     config = {
         "datasets": args.datasets,

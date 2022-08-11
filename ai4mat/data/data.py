@@ -1,4 +1,5 @@
 from enum import Enum
+import logging
 import os
 import shutil
 from pathlib import Path
@@ -8,7 +9,7 @@ import ase.io
 import pymatgen.io.cif
 from tqdm.auto import tqdm
 from collections import defaultdict
-import gzip
+import tarfile
 
 NICE_TARGET_NAMES = {
     "homo": "HOMO, eV",
@@ -186,8 +187,14 @@ def read_structures_descriptions(data_path:str) -> pd.DataFrame:
     Returns:
         pandas DataFrame with the description of the structures
     """
-    return pd.read_csv(os.path.join(data_path, "defects.csv"),
-                       index_col=Columns()["structure"]["id"])
+    try:
+        return pd.read_csv(os.path.join(data_path, "defects.csv.gz"),
+                           index_col=Columns()["structure"]["id"])
+    except FileNotFoundError:
+        logging.warn(f"Deprecation warning: defects.csv {data_path} should be defects.csv.gz")
+        return pd.read_csv(os.path.join(data_path, "defects.csv"),
+                           index_col=Columns()["structure"]["id"])
+
 
 def read_defects_descriptions(data_path:str):
     return pd.read_csv(
@@ -198,11 +205,23 @@ def read_defects_descriptions(data_path:str):
 def get_dichalcogenides_innopolis(data_path:str):
     structures = read_structures_descriptions(data_path)
     initial_structures = dict()
-    structures_folder = os.path.join(data_path, "initial")
-    for structure_file in tqdm(os.listdir(structures_folder)):
-        this_file = pymatgen.io.cif.CifParser(os.path.join(structures_folder, structure_file))
-        initial_structures[os.path.splitext(structure_file)[0]] = \
+    structures_tar = Path(data_path) / "initial.tar.gz"
+    try:
+        with tarfile.open(structures_tar, "r:gz") as tar:
+            for member in tqdm(tar.getmembers()):
+                assert member.name.endswith(".cif")
+                structure_id = os.path.splitext(member.name)[0]
+                this_structure_file = pymatgen.io.cif.CifParser.from_string(tar.extractfile(member).read().decode("ascii"))
+                initial_structures[structure_id] = this_structure_file.get_structures(primitive=False)[0]
+    except FileNotFoundError as e:
+        logging.warning(e)
+        logging.warning('Trying obsolete format (folder without .tar.gz)')
+        structures_folder = os.path.join(data_path, "initial")
+        for structure_file in tqdm(os.listdir(structures_folder)):
+            this_file = pymatgen.io.cif.CifParser(os.path.join(structures_folder, structure_file))
+            initial_structures[os.path.splitext(structure_file)[0]] = \
             this_file.get_structures(primitive=False)[0]
-    structures[Columns()["structure"]["unrelaxed"]] = \
-        structures.apply(lambda row: initial_structures[row.name], axis=1)
+        logging.warn(f"Data in {data_path} is in obsolete format")
+    structures[Columns()["structure"]["unrelaxed"]] =  structures.apply(
+        lambda row: initial_structures[row.name], axis=1)
     return structures, read_defects_descriptions(data_path)

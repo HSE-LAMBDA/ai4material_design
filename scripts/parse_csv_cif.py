@@ -88,7 +88,7 @@ def get_sparse_defect(structure, unit_cell, supercell_size,
 
 
 def main():
-    parser = argparse.ArgumentParser("Parses csv/cif into pickle and targets.csv")
+    parser = argparse.ArgumentParser("Parses csv/cif into pickle and targets.csv.gz")
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--input-folder", type=str)
     group.add_argument("--input-name", type=str)
@@ -113,8 +113,7 @@ def main():
     data_path = Path(input_folder)
     initial_structure_properties = pd.read_csv(
         data_path.joinpath("initial_structures.csv"),
-        index_col=["base", "cell_length"],
-        usecols=[1, 2, 3, 4])
+        index_col=["base", "cell_length"])
     single_atom_energies = pd.read_csv(data_path.joinpath("elements.csv"),
                                        index_col=0,
                                        converters={0: Element})
@@ -143,13 +142,12 @@ def main():
     structures = structures.join(defect_properties)
     structures["formation_energy_per_site"] = structures[
         "formation_energy"] / structures[COLUMNS["structure"]["sparse_unrelaxed"]].apply(len)
-    structures["band_gap"] = structures["lumo"] - structures["homo"]
 
     assert structures.apply(lambda row: len(row[COLUMNS["structure"]["sparse_unrelaxed"]]) == len(
         defects.loc[row[COLUMNS["structure"]["descriptor_id"]], "defects"]), axis=1).all()
 
     save_dir = storage_resolver["processed"].joinpath(dataset_name)
-    save_dir.mkdir(exist_ok=True)
+    save_dir.mkdir(exist_ok=True, parents=True)
     structures.to_pickle(
         save_dir.joinpath("data.pickle.gz"))
     structures.drop(columns=[
