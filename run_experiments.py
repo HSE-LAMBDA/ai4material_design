@@ -8,12 +8,8 @@ from itertools import cycle, product
 from functools import partial
 import pandas as pd
 from typing import Callable, List, Dict, Union
-import multiprocessing.pool
-import multiprocessing
-multiprocessing.set_start_method('spawn', force=True)
 import torch
-torch.multiprocessing.set_start_method('spawn', force=True)
-torch.multiprocessing.set_sharing_strategy('file_system')
+from torch.multiprocessing import get_context
 
 from ai4mat.data.data import (
     StorageResolver,
@@ -25,29 +21,6 @@ from ai4mat.data.data import (
 from ai4mat.models import get_predictor_by_name
 
 IS_INTENSIVE = Is_Intensive()
-
-# This might have unexpected effects, haven't been tested on pytorch yet!
-# multiprocessing.set_start_method('fork', force=True)
-# This should be moved to somewhere else probaby utils
-class NoDaemonProcess(multiprocessing.Process):
-    @property
-    def daemon(self):
-        return False
-
-    @daemon.setter
-    def daemon(self, value):
-        pass
-
-
-class NoDaemonContext(type(multiprocessing.get_context())):
-    Process = NoDaemonProcess
-
-
-class NestablePool(multiprocessing.pool.Pool):
-    def __init__(self, *args, **kwargs):
-        kwargs["context"] = NoDaemonContext()
-        super(NestablePool, self).__init__(*args, **kwargs)
-
 
 def main():
     parser = argparse.ArgumentParser("Runs experiments")
@@ -151,23 +124,22 @@ def cross_val_predict(
 
     n_folds = folds.max() + 1
     assert set(folds.unique()) == set(range(n_folds))
-    #with NestablePool(len(gpus) * processes_per_gpu) as pool:
-    from itertools import starmap
-    predictions = starmap(
-        partial(
-            predict_on_fold,
-            n_folds=n_folds,
-            folds=folds,
-            data=data,
-            targets=targets,
-            predict_func=predict_func,
-            target_is_intensive=target_is_intensive,
-            model_params=model_params,
-            wandb_config=wandb_config,
-            checkpoint_path=checkpoint_path,
-        ),
-        zip(range(n_folds), cycle(gpus)),
-    )
+    with get_context('spawn').Pool(len(gpus) * processes_per_gpu) as pool:
+        predictions = pool.starmap(
+            partial(
+                    predict_on_fold,
+                    n_folds=n_folds,
+                    folds=folds,
+                    data=data,
+                    targets=targets,
+                    predict_func=predict_func,
+                    target_is_intensive=target_is_intensive,
+                    model_params=model_params,
+                    wandb_config=wandb_config,
+                    checkpoint_path=checkpoint_path,
+               ),
+               zip(range(n_folds), cycle(gpus)),
+           )   
     # TODO(kazeevn)
     # Should we add explicit Structure -> graph preprocessing with results shared?
 

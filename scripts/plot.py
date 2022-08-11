@@ -35,12 +35,11 @@ def main():
         experiment_path = storage_resolver["experiments"].joinpath(experiment_name)
         with open(experiment_path.joinpath("config.yaml")) as experiment_file:
             experiment = yaml.safe_load(experiment_file)
-        folds = pd.read_csv(experiment_path.joinpath("folds.csv"),
+        folds = pd.read_csv(experiment_path.joinpath("folds.csv.gz"),
                             index_col="_id",
                             squeeze=True)
-        # Support running on a part of the dataset, defined via folds
-        true_targets = pd.concat([pd.read_csv(get_targets_path(path), index_col="_id")
-                                  for path in experiment["datasets"]], axis=0).reindex(
+        true_targets = pd.concat([pd.read_csv(storage_resolver["processed"]/dataset/"targets.csv.gz", index_col="_id")
+                                  for dataset in experiment["datasets"]], axis=0).reindex(
                                           index=folds.index)
         for target_name, this_trial_name in product(experiment["targets"], args.trials):
             predictions = pd.read_csv(storage_resolver["predictions"].joinpath(
