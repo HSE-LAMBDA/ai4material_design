@@ -75,7 +75,7 @@ def run_experiment(experiment_name, trials_names, gpus, processes_per_gpu):
     with open(Path(experiment_path, "config.yaml")) as experiment_file:
         experiment = yaml.safe_load(experiment_file)
     folds = pd.read_csv(
-        Path(experiment_path, "folds.csv"), index_col="_id", squeeze=True
+        Path(experiment_path, "folds.csv.gz"), index_col="_id", squeeze=True
     )
 
     loader = DataLoader(experiment["datasets"], folds.index)
@@ -151,22 +151,23 @@ def cross_val_predict(
 
     n_folds = folds.max() + 1
     assert set(folds.unique()) == set(range(n_folds))
-    with NestablePool(len(gpus) * processes_per_gpu) as pool:
-        predictions = pool.starmap(
-            partial(
-                predict_on_fold,
-                n_folds=n_folds,
-                folds=folds,
-                data=data,
-                targets=targets,
-                predict_func=predict_func,
-                target_is_intensive=target_is_intensive,
-                model_params=model_params,
-                wandb_config=wandb_config,
-                checkpoint_path=checkpoint_path,
-            ),
-            zip(range(n_folds), cycle(gpus)),
-        )
+    #with NestablePool(len(gpus) * processes_per_gpu) as pool:
+    from itertools import starmap
+    predictions = starmap(
+        partial(
+            predict_on_fold,
+            n_folds=n_folds,
+            folds=folds,
+            data=data,
+            targets=targets,
+            predict_func=predict_func,
+            target_is_intensive=target_is_intensive,
+            model_params=model_params,
+            wandb_config=wandb_config,
+            checkpoint_path=checkpoint_path,
+        ),
+        zip(range(n_folds), cycle(gpus)),
+    )
     # TODO(kazeevn)
     # Should we add explicit Structure -> graph preprocessing with results shared?
 

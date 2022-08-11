@@ -49,6 +49,8 @@ class Is_Intensive:
         if isinstance(item, list):
             return True
         return self.attr[item]
+
+
 class DataLoader:
     def __init__(self, dataset_paths, folds_index):
         self.dataset_paths = dataset_paths
@@ -69,7 +71,7 @@ class DataLoader:
             [
                 read_func(
                     storage_resolver["processed"].joinpath(
-                        get_experiment_name(path), filename
+                        path, filename
                     )
                 )
                 for path in self.dataset_paths
