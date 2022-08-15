@@ -10,12 +10,19 @@ from pymatgen.io.vasp.outputs import Vasprun
 from pymatgen.io.vasp.inputs import Poscar
 sys.path.append('.')
 from pymatgen.io.cif import CifWriter
-from ai4mat.data.data import (
-    StorageResolver,
-    read_structures_descriptions
-)
+from ai4mat.data.data import read_structures_descriptions
 
-TARGET_FIELDS = ['energy', 'fermi_level', 'homo', 'lumo', 'band_gap']
+
+TARGET_FIELDS = [
+    'energy',
+    'fermi_level',
+    'homo',
+    'lumo',
+    'band_gap_from_eigenvalue_band_properties',
+    'band_gap_from_get_band_structure',
+    'is_eigenvalue_band_gap_direct'
+]
+
 
 def extract_data_from_vasp(vasprun_directory: Path) -> dict:
     """
@@ -26,8 +33,12 @@ def extract_data_from_vasp(vasprun_directory: Path) -> dict:
     vasprun_file = Vasprun(vasprun_output)
     data['energy'] = vasprun_file.final_energy
     data['fermi_level'] = vasprun_file.efermi
-    _, data['homo'], data['lumo'], _ = vasprun_file.eigenvalue_band_properties
-    data['band_gap'] = vasprun_file.get_band_structure().get_band_gap()['energy']
+    data['band_gap_from_eigenvalue_band_properties'],\
+        data['homo'],\
+        data['lumo'],\
+        data["is_eigenvalue_band_gap_direct"] = \
+        vasprun_file.eigenvalue_band_properties
+    data['band_gap_from_get_band_structure'] = vasprun_file.get_band_structure().get_band_gap()['energy']
     return data
 
 
@@ -42,13 +53,12 @@ def main():
     parser.add_argument('--poscar-prefix', help='Prefix that makes POSCAR in '
                         'input-vasp from structure id', default="poscar_")
     args = parser.parse_args()
-
     structures_description = read_structures_descriptions(args.input_metadata)
     structures_description[TARGET_FIELDS] = np.nan
     input_VASP_dir = Path(args.input_vasp)
     output_csv_cif_dir = Path(args.output_csv_cif)
     output_csv_cif_dir.mkdir(parents=True, exist_ok=False)
-    with tarfile.open(output_csv_cif_dir / 'initial.tar.gz', 'w:gz') as tar:
+    with tarfile.open(output_csv_cif_dir / 'initial.tar.gz', 'w:gz') as tar:    
         for structure_id in tqdm(structures_description.index):
             structure_dir = input_VASP_dir / (args.poscar_prefix + structure_id)
             data = extract_data_from_vasp(structure_dir)

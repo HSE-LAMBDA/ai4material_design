@@ -1,4 +1,3 @@
-from ast import parse
 from itertools import product
 import argparse
 from pathlib import Path
@@ -7,6 +6,7 @@ import pandas as pd
 import numpy as np
 import getpass
 import matplotlib.pyplot as plt
+from scipy.stats import pearsonr
 import sys
 sys.path.append('.')
 from ai4mat.data.data import StorageResolver, get_prediction_path, get_targets_path
@@ -59,10 +59,11 @@ def main():
                                            )), index_col="_id", squeeze=True)
             assert predictions.index.equals(true_targets.index)
             mae = np.abs(predictions - true_targets.loc[:, target_name]).mean()
+            R = pearsonr(predictions, true_targets.loc[:, target_name])[0]
             fig, ax = plt.subplots()
             ax.scatter(true_targets.loc[:, target_name],
                        predictions,
-                       label=f"$\mathrm{{MAE}}={mae:.4f}$",
+                       label=f"$\mathrm{{MAE}}={mae:.4f}$\n$\mathrm{{R}}={R:.4f}$",
                        **plot_kwargs)
             ax.set_xlabel(f"DFT {target_name}, {args.units}")
             ax.set_ylabel(f"Predicted {target_name}, {args.units}")
