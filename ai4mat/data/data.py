@@ -43,7 +43,9 @@ class Is_Intensive:
             "lumo": True,
             "formation_energy": False,
             "band_gap": True,
-            "formation_energy_per_site": True
+            "formation_energy_per_site": True,
+            "band_gap_from_eigenvalue_band_properties": True,
+            "band_gap_from_get_band_structure": True
         }
     def __getitem__(self, item):
         if isinstance(item, list):
