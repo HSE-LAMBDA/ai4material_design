@@ -1,0 +1,5 @@
+outs:
+- md5: a053ff47a5f8f997ef331cfdc9981697.dir
+  size: 1101009839
+  nfiles: 7000
+  path: hBN_spin_500
