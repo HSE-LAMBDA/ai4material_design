@@ -44,6 +44,8 @@ class Is_Intensive:
             "formation_energy": False,
             "energy": False,
             "band_gap": True,
+            "band_gap_1": True,
+            "band_gap_2": True,
             "formation_energy_per_site": True,
             "band_gap_from_eigenvalue_band_properties": True,
             "band_gap_from_get_band_structure": True
