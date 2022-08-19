@@ -40,9 +40,14 @@ class Is_Intensive:
     def __init__(self):
         self.attr = {
             "homo": True,
+            "homo_1": True,
+            "homo_2": True,
             "lumo": True,
+            "lumo_1": True,
+            "lumo_2": True,
             "formation_energy": False,
             "energy": False,
+            "energy_per_atom": True,
             "band_gap": True,
             "band_gap_1": True,
             "band_gap_2": True,
