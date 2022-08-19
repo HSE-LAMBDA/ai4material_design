@@ -142,6 +142,7 @@ def main():
     structures = structures.join(defect_properties)
     structures["formation_energy_per_site"] = structures[
         "formation_energy"] / structures[COLUMNS["structure"]["sparse_unrelaxed"]].apply(len)
+    structures["energy_per_atom"] = structures["energy"] / structures[COLUMNS["structure"]["unrelaxed"]].apply(len)
 
     assert structures.apply(lambda row: len(row[COLUMNS["structure"]["sparse_unrelaxed"]]) == len(
         defects.loc[row[COLUMNS["structure"]["descriptor_id"]], "defects"]), axis=1).all()

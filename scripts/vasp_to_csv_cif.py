@@ -47,9 +47,10 @@ def extract_data_from_vasp(
 def make_1_2(list_):
     result = []
     for item in list_:
-        result.append(item+"_1")
-        result.append(item+"_2")
+        result.append(item + "_1")
+        result.append(item + "_2")
     return result
+
 
 def main():
     parser = argparse.ArgumentParser(description='Process raw VASP output into csv_cif dataset')
