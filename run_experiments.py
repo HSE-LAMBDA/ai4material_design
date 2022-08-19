@@ -26,7 +26,7 @@ def main():
     parser = argparse.ArgumentParser("Runs experiments")
     parser.add_argument("--experiments", type=str, nargs="+")
     parser.add_argument("--trials", type=str, nargs="+")
-    parser.add_argument("--gpus", type=int, nargs="*")
+    parser.add_argument("--gpus", type=int, nargs="+")
     parser.add_argument("--wandb-entity", type=str)
     parser.add_argument("--processes-per-gpu", type=int, default=1)
     args = parser.parse_args()
@@ -124,10 +124,9 @@ def cross_val_predict(
 
     n_folds = folds.max() + 1
     assert set(folds.unique()) == set(range(n_folds))
-    with get_context('spawn').Pool(len(gpus) * processes_per_gpu) as pool:
+    with get_context('spawn').Pool(len(gpus) * processes_per_gpu, maxtasksperchild = 1) as pool:
         predictions = pool.starmap(
-            partial(
-                    predict_on_fold,
+            partial(predict_on_fold,
                     n_folds=n_folds,
                     folds=folds,
                     data=data,
