@@ -1,0 +1,5 @@
+outs:
+- md5: a15f32dfcfcbae31d88c5645b74ac677.dir
+  size: 160307
+  nfiles: 2
+  path: MoS2-plain-cv-bandgap

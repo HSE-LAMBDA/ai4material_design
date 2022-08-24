@@ -100,6 +100,7 @@ class MEGNetPyTorchTrainer(Trainer):
         for epoch in trange(self.config["model"]["epochs"]):
             print(f'=========== {epoch} ==============')
             print(len(self.trainloader), self.device)
+            print(self.target_name)
 
             batch_loss = []
             total_train = []
@@ -143,12 +144,11 @@ class MEGNetPyTorchTrainer(Trainer):
 
             torch.cuda.empty_cache()
 
-            wandb.log(
-                {f'{self.target_name} test_loss_per_epoch': cur_test_loss, 'epoch': epoch}
-            )
-            wandb.log(
-                {f'{self.target_name} train_loss_per_epoch': cur_train_loss, 'epoch': epoch}
-            )
+            wandb.log({
+                    f'{self.target_name} test_loss_per_epoch': cur_test_loss,
+                    f'{self.target_name} train_loss_per_epoch': cur_train_loss,
+                    'epoch': epoch,
+                })
 
             print(
                 f"{self.target_name} Epoch: {epoch}, train loss: {cur_train_loss}, test loss: {cur_test_loss}"

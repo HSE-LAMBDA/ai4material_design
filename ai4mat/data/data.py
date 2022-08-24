@@ -11,6 +11,10 @@ from tqdm.auto import tqdm
 from collections import defaultdict
 import tarfile
 
+
+TRAIN_FOLD = 0
+TEST_FOLD = 1
+
 NICE_TARGET_NAMES = {
     "homo": "HOMO, eV",
     "lumo": "LUMO, eV",
@@ -36,6 +40,7 @@ class StorageResolver:
     def __getitem__(self, key):
         return Path(self.root_folder, self.config[key])
 
+
 class Is_Intensive:
     def __init__(self):
         self.attr = {
@@ -55,6 +60,7 @@ class Is_Intensive:
             "band_gap_from_eigenvalue_band_properties": True,
             "band_gap_from_get_band_structure": True
         }
+
     def __getitem__(self, item):
         if isinstance(item, list):
             return True
@@ -89,17 +95,17 @@ class DataLoader:
             axis=0,
         )
         return data
-    
-    def _load_matminer(self,):
+
+    def _load_matminer(self, ):
         return self._load_data("matminer.csv.gz").set_index("_id").reindex(self.folds_index)
-    
-    def _load_sparse(self,):
+
+    def _load_sparse(self, ):
         return self._load_data("data.pickle.gz")[get_column_from_data_type("sparse")].reindex(self.folds_index)
-        
-    def _load_full(self,):
+
+    def _load_full(self, ):
         return self._load_data("data.pickle.gz")[get_column_from_data_type("full")].reindex(self.folds_index)
 
-    def _load_targets(self,):
+    def _load_targets(self, ):
         return self._load_data("targets.csv.gz").set_index("_id").reindex(self.folds_index)
 
     def get_structures(self, representation):
@@ -144,8 +150,10 @@ def get_prediction_path(experiment_name,
 def get_targets_path(csv_cif_path):
     return Path(csv_cif_path.replace("csv_cif", "processed"), "targets.csv.gz")
 
+
 def get_matminer_path(csv_cif_path):
     return Path(csv_cif_path.replace("csv_cif", "processed"), "matminer.csv.gz")
+
 
 def get_column_from_data_type(data_type):
     if data_type == 'sparse':
@@ -176,6 +184,7 @@ def copy_indexed_structures(structures, input_folder, output_folder):
                       index_label="_id")
 
 
+
 def get_gpaw_trajectories(defect_db_path:str):
     res = defaultdict(list)
     for file_ in os.listdir(defect_db_path):
@@ -188,6 +197,29 @@ def get_gpaw_trajectories(defect_db_path:str):
             except ase.io.formats.UnknownFileTypeError:
                 pass
     return res
+
+
+
+def read_structures_descriptions(data_path: str):
+    return pd.read_csv(os.path.join(data_path, "defects.csv"),
+                       index_col="_id",
+                       # An explicit list of columns is due to the fact that
+                       # dichalcogenides8x8_innopolis_202108/defects.csv
+                       # contains an unnamed index column, and
+                       # datasets/dichalcogenides_innopolis_202105/defects.csv
+                       # doesn't
+                       # TODO(RomanovI) killed normalization
+                       # usecols=["_id",
+                       #          "descriptor_id",
+                       #          "energy",
+                       #          "energy_per_atom",
+                       #          "fermi_level",
+                       #          "homo",
+                       #          "lumo",
+                       #          # "normalized_homo",
+                       #          # "normalized_lumo"
+                       #          ]
+                       )
 
 
 def read_structures_descriptions(data_path:str) -> pd.DataFrame:
@@ -211,10 +243,10 @@ def read_structures_descriptions(data_path:str) -> pd.DataFrame:
 def read_defects_descriptions(data_path:str):
     return pd.read_csv(
         os.path.join(data_path, "descriptors.csv"), index_col="_id",
-        converters={"cell": eval, "defects": eval})    
+        converters={"cell": eval, "defects": eval})
 
 
-def get_dichalcogenides_innopolis(data_path:str):
+def get_dichalcogenides_innopolis(data_path: str):
     structures = read_structures_descriptions(data_path)
     initial_structures = dict()
     structures_tar = Path(data_path) / "initial.tar.gz"

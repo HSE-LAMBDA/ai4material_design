@@ -16,6 +16,7 @@ from ai4mat.data.data import (
     DataLoader,
     get_prediction_path,
     Is_Intensive,
+    TEST_FOLD,
 )
 
 from ai4mat.models import get_predictor_by_name
@@ -32,7 +33,8 @@ def main():
     args = parser.parse_args()
 
     os.environ["WANDB_START_METHOD"] = "thread"
-    os.environ["WANDB_RUN_GROUP"] = "2D-crystal-" + wandb.util.generate_id()
+    if "WANDB_RUN_GROUP" not in os.environ:
+        os.environ["WANDB_RUN_GROUP"] = "2D-crystal-" + wandb.util.generate_id()
     if args.wandb_entity:
         os.environ["WANDB_ENTITY"] = args.wandb_entity
     for experiment_name in args.experiments:
@@ -93,7 +95,8 @@ def run_experiment(experiment_name, trials_names, gpus, processes_per_gpu):
             gpus,
             processes_per_gpu,
             wandb_config,
-            checkpoint_path=storage_resolver["checkpoints"].joinpath(experiment_name, str(target_name), this_trial_name)
+            checkpoint_path=storage_resolver["checkpoints"].joinpath(experiment_name, str(target_name), this_trial_name),
+            strategy=experiment['strategy'],
         )
         predictions.rename(lambda target_name: f"predicted_{target_name}_test", axis=1, inplace=True)
         save_path = storage_resolver["predictions"].joinpath(
@@ -118,27 +121,54 @@ def cross_val_predict(
     processes_per_gpu: int,
     wandb_config,
     checkpoint_path,
+    strategy="cv",
 ):
     assert data.index.equals(targets.index)
     assert data.index.equals(folds.index)
-
+    
     n_folds = folds.max() + 1
+    if strategy == "cv":
+        test_fold_generator = range(n_folds)
+    elif strategy == "train_test":
+        test_fold_generator = (TEST_FOLD, )
+    else:
+        raise ValueError('Unknown split strategy')
+    
     assert set(folds.unique()) == set(range(n_folds))
+
+
     with get_context('spawn').Pool(len(gpus) * processes_per_gpu, maxtasksperchild = 1) as pool:
-        predictions = pool.starmap(
-            partial(predict_on_fold,
-                    n_folds=n_folds,
-                    folds=folds,
-                    data=data,
-                    targets=targets,
-                    predict_func=predict_func,
-                    target_is_intensive=target_is_intensive,
-                    model_params=model_params,
-                    wandb_config=wandb_config,
-                    checkpoint_path=checkpoint_path,
-               ),
-               zip(range(n_folds), cycle(gpus)),
-           )   
+        if strategy == "cv":
+            predictions = pool.starmap(
+                partial(predict_on_fold,
+                        n_folds=n_folds,
+                        folds=folds,
+                        data=data,
+                        targets=targets,
+                        predict_func=predict_func,
+                        target_is_intensive=target_is_intensive,
+                        model_params=model_params,
+                        wandb_config=wandb_config,
+                        checkpoint_path=checkpoint_path,
+                    ),
+                    zip(test_fold_generator, cycle(gpus)),
+                )
+        # TODO(kazeevn)
+        # Should we add explicit Structure -> graph preprocessing with results shared?
+        elif strategy == "train_test":
+            predictions = predict_on_fold(
+                test_fold=TEST_FOLD,
+                gpu=gpus[0],
+                n_folds=n_folds,
+                folds=folds,
+                data=data,
+                targets=targets,
+                predict_func=predict_func,
+                target_is_intensive=target_is_intensive,
+                model_params=model_params,
+                wandb_config=wandb_config,
+                checkpoint_path=checkpoint_path,
+            )
     # TODO(kazeevn)
     # Should we add explicit Structure -> graph preprocessing with results shared?
 
@@ -148,10 +178,18 @@ def cross_val_predict(
         predictions_pd = pd.DataFrame(index=targets.index, columns=[targets.name], data=np.zeros_like(targets.to_numpy()))
 
 
+    if strategy == "cv":
+        if isinstance(targets, pd.DataFrame):
+            predictions_pd = pd.DataFrame(index=targets.index, columns=targets.columns, data=np.zeros_like(targets.to_numpy()))
+        elif isinstance(targets, pd.Series):
+            predictions_pd = pd.DataFrame(index=targets.index, columns=[targets.name], data=np.zeros_like(targets.to_numpy()))
 
-    for this_predictions, test_fold in zip(predictions, range(n_folds)):
-        test_mask = folds == test_fold
-        predictions_pd[test_mask] = this_predictions
+        for this_predictions, test_fold in zip(predictions, range(n_folds)):
+            test_mask = folds == test_fold
+            predictions_pd[test_mask] = this_predictions
+    elif strategy == "train_test":
+        predictions_pd = pd.DataFrame(index=folds[folds==TEST_FOLD].index,
+        columns=[targets.name], data=predictions)
 
     return predictions_pd
 

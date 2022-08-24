@@ -9,17 +9,19 @@ import matplotlib.pyplot as plt
 from scipy.stats import pearsonr
 import sys
 sys.path.append('.')
-from ai4mat.data.data import StorageResolver, get_prediction_path, get_targets_path
+from ai4mat.data.data import StorageResolver, get_prediction_path, get_targets_path, TEST_FOLD
 
 
 def main():
     parser = argparse.ArgumentParser("Plots predictions")
     parser.add_argument("--experiments", type=str, nargs="+")
     parser.add_argument("--trials", type=str, nargs="+")
+    parser.add_argument("--strategy", type=str, default="cv")
     parser.add_argument("--targets", type=str, nargs="+")
     parser.add_argument("--filetype", type=str, default="pdf")
     parser.add_argument("--units", type=str, default="eV")
     parser.add_argument("--limits", type=float, nargs=2)
+
     args = parser.parse_args()
     
     font = {
@@ -46,11 +48,16 @@ def main():
         true_targets = pd.concat([pd.read_csv(storage_resolver["processed"]/dataset/"targets.csv.gz", index_col="_id")
                                   for dataset in experiment["datasets"]], axis=0).reindex(
                                           index=folds.index)
+
+        if args.strategy == "train_test":
+            true_targets = true_targets[folds == TEST_FOLD]
+
         if args.targets:
             targets = args.targets
         else:
             targets = experiment["targets"]
         for target_name, this_trial_name in product(targets, args.trials):
+
             predictions = pd.read_csv(storage_resolver["predictions"].joinpath(
                                            get_prediction_path(
                                                experiment_name,
