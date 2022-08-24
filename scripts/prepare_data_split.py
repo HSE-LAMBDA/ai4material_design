@@ -9,7 +9,7 @@ sys.path.append('.')
 from ai4mat.data.data import (
     read_structures_descriptions,
     StorageResolver,
-    TEST_FOLD,
+    TEST_FOLD, read_defects_descriptions,
 )
 
 
@@ -47,9 +47,11 @@ def main():
                         help="Drop the ids for which fields are missing")
     parser.add_argument("--strategy", type=str, default="cv")
 
-    args = parser.parse_args()
-    structures = list(map(read_structures_descriptions, args.datasets))
     folds = None
+    args = parser.parse_args()
+    storage_resolver = StorageResolver()
+    structures = [read_structures_descriptions(storage_resolver["csv_cif"]/dataset_name)
+                  for dataset_name in args.datasets]
 
     if any(map(indices_intersect, combinations(structures, 2))):
         raise ValueError("Structures contain duplicate indices")
@@ -66,6 +68,12 @@ def main():
     if args.drop_na:
         structures.dropna(inplace=True)
 
+    defects = [read_defects_descriptions(storage_resolver["csv_cif"]/dataset_name)
+               for dataset_name in args.datasets]
+    if any(map(indices_intersect, combinations(defects, 2))):
+        raise ValueError("Defects contain duplicate indices")
+    defects = pd.concat(defects, axis=0)
+
     random_state = np.random.RandomState(args.random_seed)
     
     output_path = StorageResolver()["experiments"].joinpath(args.experiment_name)
@@ -73,7 +81,7 @@ def main():
     folds = folds if folds is not None else get_folds(len(structures), args.n_folds, random_state)
     fold_full = pd.Series(data=folds,
                           index=structures.index, name="fold")
-    fold_full.to_csv(output_path.joinpath("folds.csv"), index_label="_id")
+    fold_full.to_csv(output_path.joinpath("folds.csv.gz"), index_label="_id")
 
     config = {
         "datasets": args.datasets,
