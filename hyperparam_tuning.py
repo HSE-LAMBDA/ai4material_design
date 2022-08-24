@@ -15,17 +15,20 @@ from tqdm import tqdm
 from ai4mat.data.data import StorageResolver
 
 
-def dfs(d, path, sets):
-    for key in d:
+def dfs(data, path, sets):
+    """
+    walk through nested dict and store all paths in format 'a b c'
+    """
+    for key, value in data.items():
         path.append(key)
-        if type(d[key]) == list:
+        if type(value) == list:
             cur_set = []
             cur_path = " ".join(path)
-            for val in d[key]:
+            for val in value:
                 cur_set.append((cur_path, val))
             sets.append(cur_set)
         else:
-            dfs(d[key], path, sets)
+            dfs(value, path, sets)
         path = path[:-1]
 
 
@@ -66,8 +69,8 @@ def main():
                 template = yaml.safe_load(f)
                 param_config = yaml.safe_load(ff)
 
-        tmp_dir_path = Path('.').joinpath(args.model_name).joinpath(datetime.now().strftime("%d-%m-%Y_%H-%M-%S"))
-        res_dir_path = storage_resolver['trials'].joinpath(tmp_dir_path)
+        relative_dir_path = Path(args.model_name).joinpath(datetime.now().strftime("%d-%m-%Y_%H-%M-%S"))
+        res_dir_path = storage_resolver['trials'].joinpath(relative_dir_path)
         mkdir = local["mkdir"]['-p'][res_dir_path]
         mkdir & FG
         h = hashlib.new('sha256')
@@ -77,8 +80,8 @@ def main():
             with open(res_dir_path.joinpath(cur_trial_name + ".yaml"), 'w') as outf:
                 yaml.dump(trial, outf, default_flow_style=False)
     else:
-        tmp_dir_path = Path('.').joinpath(args.model_name).joinpath(args.warm_start)
-        res_dir_path = storage_resolver['trials'].joinpath(tmp_dir_path)
+        relative_dir_path = Path(args.model_name).joinpath(args.warm_start)
+        res_dir_path = storage_resolver['trials'].joinpath(relative_dir_path)
         if res_dir_path not in os.listdir(res_dir_path.parent):
             raise "Wrong timestamp for warm start"
 
@@ -91,8 +94,8 @@ def main():
             already_run = set(outfile.read().split())
 
             for trial in tqdm(os.listdir(res_dir_path)):
-                if len(trial) == 13:
-                    trial = tmp_dir_path.joinpath(trial[:-5])
+                if trial.endswith(".yaml"):
+                    trial = relative_dir_path.joinpath(trial[:-5])
                     if args.warm_start is None or trial not in already_run:
                         run_exp = local["python"]["run_experiments.py"]['--experiments'][exp]['--trials'][trial] \
                             ['--gpus']['0']['--wandb-entity'][args.wandb_entity]

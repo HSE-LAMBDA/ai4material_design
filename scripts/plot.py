@@ -8,7 +8,7 @@ import getpass
 import matplotlib.pyplot as plt
 import sys
 sys.path.append('.')
-from ai4mat.data.data import StorageResolver, get_prediction_path, get_targets_path
+from ai4mat.data.data import StorageResolver, get_prediction_path, get_targets_path, TEST_FOLD
 
 
 def main():
@@ -44,7 +44,7 @@ def main():
                                   for path in experiment["datasets"]], axis=0).reindex(
                                           index=folds.index)
         if args.strategy == "train_test":
-            true_targets = true_targets[folds == 1]
+            true_targets = true_targets[folds == TEST_FOLD]
         for target_name, this_trial_name in product(experiment["targets"], args.trials):
             predictions = pd.read_csv(storage_resolver["predictions"].joinpath(
                                            get_prediction_path(

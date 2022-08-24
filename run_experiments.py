@@ -20,6 +20,7 @@ from ai4mat.data.data import (
     DataLoader,
     get_prediction_path,
     Is_Intensive,
+    TEST_FOLD,
 )
 
 from ai4mat.models import get_predictor_by_name
@@ -156,8 +157,7 @@ def cross_val_predict(
     if strategy == "cv":
         test_fold_generator = range(n_folds)
     elif strategy == "train_test":
-        TEST_FOLD = 1
-        test_fold_generator = (TEST_FOLD, ) #TODO(Ignat) store this globally
+        test_fold_generator = (TEST_FOLD, )
     else:
         raise ValueError('Unknown split strategy')
     

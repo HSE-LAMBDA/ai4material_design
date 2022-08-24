@@ -8,7 +8,8 @@ sys.path.append('.')
 
 from ai4mat.data.data import (
     read_structures_descriptions,
-    StorageResolver
+    StorageResolver,
+    TEST_FOLD,
 )
 
 
@@ -25,11 +26,11 @@ def get_folds(length, n_folds, random_state):
     return random_state.permutation(np.repeat(np.arange(n_folds), repetions))
 
 
-def get_train_test_split(length, size, random_state):
+def get_train_test_split(length, test_size, random_state):
     np.random.seed(random_state)
     res = np.zeros(length, dtype=int)
-    amount_of_positives = int(length * size)
-    res[:amount_of_positives] = 1
+    amount_of_positives = int(length * test_size)
+    res[:amount_of_positives] = TEST_FOLD
     return np.random.permutation(res)
 
 

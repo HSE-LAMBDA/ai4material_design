@@ -152,13 +152,6 @@ def main():
     save_dir.mkdir(exist_ok=True, parents=True)
     structures.to_pickle(
         save_dir.joinpath("data.pickle.gz"))
-    structures.to_csv(save_dir.joinpath("targets.csv.gz"),
-                      index_label="_id",
-                      columns=[
-                          "energy", "energy_per_atom", "formation_energy",
-                          "formation_energy_per_site", "band_gap", "homo",
-                          "lumo", "fermi_level"
-                      ])
     structures.drop(columns=[
             COLUMNS["structure"]["unrelaxed"],
             COLUMNS["structure"]["sparse_unrelaxed"]]
