@@ -1,0 +1,5 @@
+outs:
+- md5: ccaf372a699077b4ec42fac9d151e1b7.dir
+  size: 197913
+  nfiles: 5
+  path: BP_spin_500
