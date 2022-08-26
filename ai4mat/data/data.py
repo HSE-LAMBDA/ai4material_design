@@ -96,16 +96,16 @@ class DataLoader:
         )
         return data
 
-    def _load_matminer(self, ):
+    def _load_matminer(self):
         return self._load_data("matminer.csv.gz").set_index("_id").reindex(self.folds_index)
 
-    def _load_sparse(self, ):
+    def _load_sparse(self):
         return self._load_data("data.pickle.gz")[get_column_from_data_type("sparse")].reindex(self.folds_index)
 
-    def _load_full(self, ):
+    def _load_full(self):
         return self._load_data("data.pickle.gz")[get_column_from_data_type("full")].reindex(self.folds_index)
 
-    def _load_targets(self, ):
+    def _load_targets(self):
         return self._load_data("targets.csv.gz").set_index("_id").reindex(self.folds_index)
 
     def get_structures(self, representation):
@@ -243,7 +243,7 @@ def read_structures_descriptions(data_path:str) -> pd.DataFrame:
 def read_defects_descriptions(data_path:str):
     return pd.read_csv(
         os.path.join(data_path, "descriptors.csv"), index_col="_id",
-        converters={"cell": eval, "defects": eval})
+        converters={"cell": lambda x: tuple(eval(x)), "defects": eval})
 
 
 def get_dichalcogenides_innopolis(data_path: str):
