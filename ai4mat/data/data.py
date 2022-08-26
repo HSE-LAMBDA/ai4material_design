@@ -56,6 +56,12 @@ class Is_Intensive:
             "band_gap": True,
             "band_gap_1": True,
             "band_gap_2": True,
+            "band_gap_majority": True,
+            "band_gap_minority": True,
+            "homo_majority": True,
+            "homo_minority": True,
+            "lumo_majority": True,
+            "lumo_minority": True,
             "formation_energy_per_site": True,
             "band_gap_from_eigenvalue_band_properties": True,
             "band_gap_from_get_band_structure": True
