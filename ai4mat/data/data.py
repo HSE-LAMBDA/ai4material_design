@@ -64,7 +64,8 @@ class Is_Intensive:
             "lumo_minority": True,
             "formation_energy_per_site": True,
             "band_gap_from_eigenvalue_band_properties": True,
-            "band_gap_from_get_band_structure": True
+            "band_gap_from_get_band_structure": True,
+            "total_mag": True
         }
 
     def __getitem__(self, item):

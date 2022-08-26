@@ -1,9 +1,11 @@
+from operator import imod
 import torch
 import numpy as np
 from torch_geometric.data import Data
 from pymatgen.core import Structure
 from pymatgen.core.periodic_table import DummySpecies
 from pymatgen.optimization.neighbors import find_points_in_spheres
+import logging
 
 
 class MyTensor(torch.Tensor):
@@ -69,6 +71,11 @@ class SimpleCrystalConverter:
             state = [[0.0, 0.0]]
         else:
             state = getattr(d, "state", None) or [[0.0, 0.0]]
+        if len(state[0]) > 2:
+            raise NotImplementedError("We currently only support state length of 1 and 2")
+        if len(state[0]) == 1:
+            state[0].append(state[0][0])
+            logging.warning("Tiling state from length 1 to length 2")
         y = d.y if hasattr(d, "y") else 0
         bond_batch = MyTensor(np.zeros(edge_index.shape[1])).long()
 

@@ -1,4 +1,5 @@
 import argparse
+from operator import le
 from pathlib import Path
 import numpy as np
 import pandas as pd
@@ -125,8 +126,8 @@ def main():
     def get_defecs_from_row(row):
         defect_description = defects.loc[row[COLUMNS["structure"]["descriptor_id"]]]
         unit_cell = unit_cells[defect_description.base]
-        initial_energy = initial_structure_properties.loc[
-            (defect_description.base, defect_description.cell), "energy"].squeeze()
+        initial_energy = initial_structure_properties.at[
+            (defect_description.base, defect_description.cell), "energy"]
         defect_structure, formation_energy_part, structure_with_was = get_sparse_defect(
             row.initial_structure, unit_cell, defect_description.cell,
             single_atom_energies)

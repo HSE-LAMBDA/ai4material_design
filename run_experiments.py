@@ -8,7 +8,6 @@ from itertools import cycle, product
 from functools import partial
 import pandas as pd
 from typing import Callable, List, Dict, Union
-import torch
 from torch.multiprocessing import get_context
 
 from ai4mat.data.data import (
@@ -132,13 +131,10 @@ def cross_val_predict(
     elif strategy == "train_test":
         test_fold_generator = (TEST_FOLD, )
     else:
-        raise ValueError('Unknown split strategy')
-    
+        raise ValueError('Unknown split strategy')    
     assert set(folds.unique()) == set(range(n_folds))
-
-
-    with get_context('spawn').Pool(len(gpus) * processes_per_gpu, maxtasksperchild = 1) as pool:
-        if strategy == "cv":
+    if strategy == "cv":
+        with get_context('spawn').Pool(len(gpus) * processes_per_gpu, maxtasksperchild = 1) as pool:
             predictions = pool.starmap(
                 partial(predict_on_fold,
                         n_folds=n_folds,
@@ -149,26 +145,25 @@ def cross_val_predict(
                         target_is_intensive=target_is_intensive,
                         model_params=model_params,
                         wandb_config=wandb_config,
-                        checkpoint_path=checkpoint_path,
-                    ),
-                    zip(test_fold_generator, cycle(gpus)),
-                )
-        # TODO(kazeevn)
-        # Should we add explicit Structure -> graph preprocessing with results shared?
-        elif strategy == "train_test":
-            predictions = predict_on_fold(
-                test_fold=TEST_FOLD,
-                gpu=gpus[0],
-                n_folds=n_folds,
-                folds=folds,
-                data=data,
-                targets=targets,
-                predict_func=predict_func,
-                target_is_intensive=target_is_intensive,
-                model_params=model_params,
-                wandb_config=wandb_config,
-                checkpoint_path=checkpoint_path,
+                        checkpoint_path=checkpoint_path),
+                zip(test_fold_generator, cycle(gpus)),
             )
+    # TODO(kazeevn)
+    # Should we add explicit Structure -> graph preprocessing with results shared?
+    elif strategy == "train_test":
+        predictions = predict_on_fold(
+            test_fold=TEST_FOLD,
+            gpu=gpus[0],
+            n_folds=n_folds,
+            folds=folds,
+            data=data,
+            targets=targets,
+            predict_func=predict_func,
+            target_is_intensive=target_is_intensive,
+            model_params=model_params,
+            wandb_config=wandb_config,
+            checkpoint_path=checkpoint_path,
+        )
     # TODO(kazeevn)
     # Should we add explicit Structure -> graph preprocessing with results shared?
 
