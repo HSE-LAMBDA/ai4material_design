@@ -56,6 +56,12 @@ class Is_Intensive:
             "band_gap": True,
             "band_gap_1": True,
             "band_gap_2": True,
+            "band_gap_majority": True,
+            "band_gap_minority": True,
+            "homo_majority": True,
+            "homo_minority": True,
+            "lumo_majority": True,
+            "lumo_minority": True,
             "formation_energy_per_site": True,
             "band_gap_from_eigenvalue_band_properties": True,
             "band_gap_from_get_band_structure": True
@@ -243,7 +249,7 @@ def read_structures_descriptions(data_path:str) -> pd.DataFrame:
 def read_defects_descriptions(data_path:str):
     return pd.read_csv(
         os.path.join(data_path, "descriptors.csv"), index_col="_id",
-        converters={"cell": eval, "defects": eval})
+        converters={"cell": lambda x: tuple(eval(x)), "defects": eval})
 
 
 def get_dichalcogenides_innopolis(data_path: str):
