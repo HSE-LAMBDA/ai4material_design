@@ -6,7 +6,9 @@ import shutil
 from io import BytesIO
 from tqdm.auto import tqdm
 import tarfile
-from pymatgen.io.vasp.outputs import Vasprun
+import logging
+from xml.etree.ElementTree import ParseError
+from pymatgen.io.vasp.outputs import Vasprun, Outcar
 from pymatgen.io.vasp.inputs import Poscar
 from pymatgen.io.cif import CifWriter
 sys.path.append('.')
@@ -21,7 +23,8 @@ def extract_data_from_vasp(
     Extracts relevant fields from VASP output.
     """
     data = {}
-    vasprun_output = vasprun_directory / '01_relax' / 'vasprun.xml'
+    vasp_folder = vasprun_directory / '01_relax'
+    vasprun_output = vasp_folder / 'vasprun.xml'
     vasprun_file = Vasprun(vasprun_output,
                            parse_potcar_file=False,
                            occu_tol=band_occupancy_tolerence,
@@ -29,27 +32,23 @@ def extract_data_from_vasp(
                            parse_dos=True)
     data['energy'] = vasprun_file.final_energy
     data['fermi_level'] = vasprun_file.efermi
+    outcar = Outcar(vasp_folder / "OUTCAR")
     if separate_spins:
-         [data['band_gap_1'], data['band_gap_2']], \
-         [data['homo_1'], data['homo_2']], \
-         [data['lumo_1'], data['lumo_2']], \
-         [data["is_band_gap_direct_1"], data["is_band_gap_direct_2"]] = \
-            vasprun_file.eigenvalue_band_properties
+        data["total_mag"] = np.abs(outcar.total_mag)
+        eigenvalue_band_properties = list(zip(*vasprun_file.eigenvalue_band_properties))
+        indices = {
+            "majority": int(outcar.total_mag < 0),
+            "minority": int(outcar.total_mag >= 0)}
+        for kind, index in indices.items():
+            data[f'band_gap_{kind}'], \
+                data[f'homo_{kind}'], \
+                data[f'lumo_{kind}'], _ = eigenvalue_band_properties[index]
     else:
         data['band_gap'],\
             data['homo'],\
-            data['lumo'],\
-            data["is_band_gap_direct"] = \
+            data['lumo'], _ = \
             vasprun_file.eigenvalue_band_properties
     return data
-
-
-def make_1_2(list_):
-    result = []
-    for item in list_:
-        result.append(item + "_1")
-        result.append(item + "_2")
-    return result
 
 
 def main():
@@ -64,6 +63,10 @@ def main():
                         'input-vasp from structure id', default="poscar_")
     parser.add_argument('--band-occupancy-tolerence', type=float, default=1e-8,
                         help='Tolerence for band occupancy')
+    parser.add_argument('--pristine-folder', type=str, help=
+                        "Folder with chemical potentials (elements.csv) and "
+                        "pristine structure energies (initial_structures.csv)")
+    parser.add_argument("--allow-missing", action="store_true", help="Allow missing structures")
     # Default from pymatgen v2022.7.25
     # https://github.com/materialsproject/pymatgen/blob/baf62b77788fc43387e15b1e0b60094132815c47/pymatgen/io/vasp/outputs.py#L313
     parser.add_argument("--separate-spins", action="store_true",
@@ -71,38 +74,37 @@ def main():
     args = parser.parse_args()
     structures_description = read_structures_descriptions(args.input_structures)
     structures_path = Path(args.input_structures)
-    TARGET_FIELDS = [
-        'energy',
-        'fermi_level']
-    band_targets = [
-            'homo',
-            'lumo',
-            'band_gap',
-            'is_band_gap_direct'
-        ]
-    if args.separate_spins:
-        TARGET_FIELDS += make_1_2(band_targets)
-    else:
-        TARGET_FIELDS += band_targets
-
-    structures_description[TARGET_FIELDS] = np.nan
     input_VASP_dir = Path(args.input_vasp)
     output_csv_cif_dir = Path(args.output_csv_cif)
     output_csv_cif_dir.mkdir(parents=True, exist_ok=False)
     with tarfile.open(output_csv_cif_dir / 'initial.tar.gz', 'w:gz') as tar:    
         for structure_id in tqdm(structures_description.index):
             structure_dir = input_VASP_dir / (args.poscar_prefix + structure_id)
-            data = extract_data_from_vasp(structure_dir,
-                                          band_occupancy_tolerence=args.band_occupancy_tolerence,
-                                          separate_spins=args.separate_spins)
+            try:
+                data = extract_data_from_vasp(structure_dir,
+                                              band_occupancy_tolerence=args.band_occupancy_tolerence,
+                                              separate_spins=args.separate_spins)
+            except (FileNotFoundError, ParseError) as e:
+                if args.allow_missing:
+                    if isinstance(e, FileNotFoundError):
+                        logging.warning("VASP data for %s not found", structure_id)
+                    else:
+                        logging.warning("VASP data for %s is corrupted", structure_id)
+                    continue
+                else:
+                    raise e
             structures_description.loc[structure_id, data.keys()] = data.values()
             structure = Poscar.from_file(structures_path / "poscars" / f"POSCAR_{structure_id}").structure
             cif_string = str(CifWriter(structure)).encode('ASCII')
             tar_info = tarfile.TarInfo(name=structure_id + '.cif')
             tar_info.size=len(cif_string)
             tar.addfile(tar_info, BytesIO(cif_string))
+            
     structures_description.to_csv(output_csv_cif_dir / 'defects.csv.gz')
     shutil.copyfile(structures_path / 'descriptors.csv', output_csv_cif_dir / 'descriptors.csv')
+    pristine_path = Path(args.pristine_folder)
+    shutil.copyfile(pristine_path / 'elements.csv', output_csv_cif_dir / 'elements.csv')
+    shutil.copyfile(pristine_path / 'initial_structures.csv', output_csv_cif_dir / 'initial_structures.csv')
 
 
 if __name__ == "__main__":

@@ -92,6 +92,7 @@ def main():
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--input-folder", type=str)
     group.add_argument("--input-name", type=str)
+    parser.add_argument("--populate-per-spin-target", action="store_true")
     args = parser.parse_args()
 
     storage_resolver = StorageResolver()
@@ -113,10 +114,11 @@ def main():
     data_path = Path(input_folder)
     initial_structure_properties = pd.read_csv(
         data_path.joinpath("initial_structures.csv"),
-        index_col=["base", "cell_length"])
+        converters={"cell_size": lambda x: tuple(eval(x))},
+        index_col=["base", "cell_size"])
     single_atom_energies = pd.read_csv(data_path.joinpath("elements.csv"),
-                                       index_col=0,
-                                       converters={0: Element})
+                                       index_col="element",
+                                       converters={"element": Element})
 
     COLUMNS = Columns()
     # TODO(kazeevn) this all is very ugly
@@ -124,7 +126,7 @@ def main():
         defect_description = defects.loc[row[COLUMNS["structure"]["descriptor_id"]]]
         unit_cell = unit_cells[defect_description.base]
         initial_energy = initial_structure_properties.loc[
-            defect_description.base, defect_description.cell[0]].energy
+            (defect_description.base, defect_description.cell), "energy"].squeeze()
         defect_structure, formation_energy_part, structure_with_was = get_sparse_defect(
             row.initial_structure, unit_cell, defect_description.cell,
             single_atom_energies)
@@ -146,6 +148,15 @@ def main():
 
     assert structures.apply(lambda row: len(row[COLUMNS["structure"]["sparse_unrelaxed"]]) == len(
         defects.loc[row[COLUMNS["structure"]["descriptor_id"]], "defects"]), axis=1).all()
+    
+    if args.populate_per_spin_target:
+        for kind in ("majority", "minority"):
+            if f"band_gap_{kind}" in structures.columns:
+                raise ValueError("Trying to set per-spin target, while they are already set")
+            structures[f"band_gap_{kind}"] = structures["band_gap"]
+            structures[f"homo_{kind}"] = structures["homo"]
+            structures[f"lumo_{kind}"] = structures["lumo"]
+        structures["total_mag"] = 0.
 
     save_dir = storage_resolver["processed"].joinpath(dataset_name)
     save_dir.mkdir(exist_ok=True, parents=True)
