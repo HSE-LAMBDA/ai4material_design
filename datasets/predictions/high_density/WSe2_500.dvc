@@ -1,0 +1,5 @@
+outs:
+- md5: aaa8f7576639bb4466309d7567f9e9c6.dir
+  size: 70612
+  nfiles: 4
+  path: WSe2_500
