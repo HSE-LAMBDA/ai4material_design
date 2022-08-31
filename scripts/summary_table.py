@@ -44,134 +44,6 @@ def read_results(experiment_name, trial):
     return results
 
 
-def print_experiment_target_table(experiments, targets, trial, unit_multiplier,
-                                  experiment_naming=None, experiment_column="Experiment"):
-    storage_resolver = StorageResolver()
-    mae_table = pt()
-    mae_table.field_names = [experiment_column] + targets
-    for experiment_name in experiments:
-        if experiment_naming is None:
-            row = [experiment_name]
-        else:
-            row = [globals()[experiment_naming](experiment_name)]
-        experiment_path = storage_resolver["experiments"].joinpath(experiment_name)
-        with open(experiment_path.joinpath("config.yaml")) as experiment_file:
-            experiment = yaml.safe_load(experiment_file)
-        folds = pd.read_csv(experiment_path.joinpath("folds.csv.gz"),
-                            index_col="_id",
-                            squeeze=True)
-        for target_name in targets:
-            true_targets = pd.concat([pd.read_csv(storage_resolver["processed"]/path/"targets.csv.gz",
-                                        index_col="_id",
-                                        usecols=["_id", target_name]).squeeze("columns")
-                                        for path in experiment["datasets"]], axis=0).reindex(
-                                        index=folds.index)
-            try:
-                predictions = pd.read_csv(storage_resolver["predictions"].joinpath(
-                                                get_prediction_path(
-                                                    experiment_name,
-                                                    target_name,
-                                                    trial
-                                                )), index_col="_id", squeeze=True)
-                these_targets = true_targets.reindex(index=predictions.index)
-                errors = np.abs(predictions - these_targets)
-                mae = errors.mean()
-                row.append(f"{mae*unit_multiplier:.1f}")
-            except FileNotFoundError:
-                row.append("NA")
-        mae_table.add_row(row)
-    print(mae_table)
-
-
-def print_target_trial_table(experiment, trials, unit_multiplier):
-    storage_resolver = StorageResolver()
-    experiment_path = storage_resolver["experiments"].joinpath(experiment)
-    with open(experiment_path.joinpath("config.yaml")) as experiment_file:
-        experiment = yaml.safe_load(experiment_file)
-    folds = pd.read_csv(experiment_path.joinpath("folds.csv"),
-                        index_col="_id",
-                        squeeze=True)
-    # Support running on a part of the dataset, defined via folds
-    true_targets = pd.concat([pd.read_csv(get_targets_path(path), index_col="_id")
-                                for path in experiment["datasets"]], axis=0).reindex(
-                                        index=folds.index)
-    mae_table = pt()
-    mae_table.field_names = ["Model"] + experiment["targets"]
-    for this_trial_name in trials:
-        row = [this_trial_name]
-        for target_name in experiment["targets"]:
-            predictions = pd.read_csv(storage_resolver["predictions"].joinpath(
-                                            get_prediction_path(
-                                                experiment,
-                                                target_name,
-                                                this_trial_name
-                                            )), index_col="_id", squeeze=True)
-            assert predictions.index.equals(true_targets.index)
-            errors = np.abs(predictions - true_targets.loc[:, target_name])
-            mae = errors.mean()
-            mae_cv_std = np.std(errors.groupby(by=folds).mean())
-            row.append(f"{mae*unit_multiplier:.1f} ± {mae_cv_std*unit_multiplier:.1f}")
-        mae_table.add_row(row)
-    print(mae_table)
-
-
-def get_value_by_path(d, path):
-    if len(path) == 1:
-        return d[path[0]]
-    return get_value_by_path(d[path[0]], path[1:])
-
-
-def print_experiment_trial_table(experiments, trials, target_name, unit_multiplier, parameter_to_extract):
-    storage_resolver = StorageResolver()
-    mae_table = pt()
-
-    trials2params = {}
-    exp_len = len(trials) // 3
-    for i, trial in enumerate(trials):
-        with open(storage_resolver['trials'].joinpath(trial + ".yaml")) as cur_trial:
-            trials2params[trial] = (i // exp_len, get_value_by_path(yaml.safe_load(cur_trial), parameter_to_extract.split('/')))
-
-    trials.sort(key=lambda x: trials2params[x])
-
-    mae_table.field_names = ["Experiment"] + [str(trials2params[t][1]) for t in trials[:exp_len]]
-    for j, experiment_name in enumerate(experiments):
-        row = [experiment_name]
-        experiment_path = storage_resolver["experiments"].joinpath(experiment_name)
-        with open(experiment_path.joinpath("config.yaml")) as experiment_file:
-            experiment = yaml.safe_load(experiment_file)
-        folds = pd.read_csv(experiment_path.joinpath("folds.csv"),
-                            index_col="_id",
-                            squeeze=True)
-        true_targets = pd.concat([pd.read_csv(get_targets_path(path), index_col="_id",
-                                    usecols=["_id", target_name]).squeeze("columns")
-                                    for path in experiment["datasets"]], axis=0).reindex(
-                                    index=folds.index)
-        for trial in trials[j * exp_len: (j + 1) * exp_len]:
-            try:
-                predictions = pd.read_csv(storage_resolver["predictions"].joinpath(
-                                                get_prediction_path(
-                                                    experiment_name,
-                                                    target_name,
-                                                    trial
-                                                )), index_col="_id", squeeze=True)
-                these_targets = true_targets.reindex(index=predictions.index)
-                errors = np.abs(predictions - these_targets)
-                mae = errors.mean()
-                row.append(f"{mae*unit_multiplier:.1f}")
-            except FileNotFoundError:
-                row.append("NA")
-        mae_table.add_row(row)
-    print(mae_table)
-
-
-def read_targets(experiment_name):
-    storage_resolver = StorageResolver()
-    experiment_path = storage_resolver["experiments"].joinpath(experiment_name)
-    with open(experiment_path.joinpath("config.yaml")) as experiment_file:
-        experiment = yaml.safe_load(experiment_file)
-    return experiment["targets"]
-
-
 def main():
     parser = argparse.ArgumentParser("Makes a text table with MAEs")
     parser.add_argument("--experiments", type=str, nargs="+")
@@ -230,12 +102,12 @@ def main():
             mae_table.field_names = [args.experiment_column] + list(present_targets)
             for experiment in table_data.index.get_level_values("experiment").unique():
                 table_row = [experiment.split("/")[-1][:-4]]
-                for _, row in table_data.loc[:, experiment, trial].iterrows():
+                for _, row in table_data.loc[(slice(None), experiment), :].iterrows():
                     table_row.append(f"{row['MAE']*args.unit_multiplier:.1f} ± "
                     f"{row['MAE_CV_std']*args.unit_multiplier:.1f}")
                 mae_table.add_row(table_row)
         print(mae_table)
-   
+
 
 if __name__ == "__main__":
     main()
