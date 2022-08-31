@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
-from torch_geometric.nn import MessagePassing, global_mean_pool
-from torch_geometric.nn.aggr import MultiAggregation
+from torch_geometric.nn import MessagePassing, global_mean_pool, aggr
 
 
 class ShiftedSoftplus(nn.Module):
