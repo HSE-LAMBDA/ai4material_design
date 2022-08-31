@@ -164,7 +164,7 @@ def get_matminer_path(csv_cif_path):
 
 def get_column_from_data_type(data_type):
     if data_type == 'sparse':
-        return "defect_representation"
+        return ["defect_representation", "initial_structure"]
     elif data_type == 'full':
         return "initial_structure"
     elif data_type == 'matminer':
