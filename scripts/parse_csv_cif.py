@@ -1,4 +1,5 @@
 import argparse
+import logging
 from operator import le
 from pathlib import Path
 import numpy as np
@@ -108,10 +109,15 @@ def main():
     materials = defects.base.unique()
     unit_cells = {}
     for material in materials:
-        unit_cells[material] = CifParser(Path(
-            "defects_generation",
-            "molecules",
-            f"{material}.cif")).get_structures(primitive=False)[0]
+        try:
+            unit_cells[material] = CifParser(
+                input_folder/"unit_cells"/f"{material}.cif").get_structures(primitive=False)[0]
+        except FileNotFoundError:
+            logging.warning(f"Unit cell for {material} not found in the dataset folder, using the global one")
+            unit_cells[material] = CifParser(Path(
+                "defects_generation",
+                "molecules",
+                f"{material}.cif")).get_structures(primitive=False)[0]
     data_path = Path(input_folder)
     initial_structure_properties = pd.read_csv(
         data_path.joinpath("initial_structures.csv"),
