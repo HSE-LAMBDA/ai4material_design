@@ -1,3 +1,4 @@
+from functools import cached_property
 from operator import imod
 import torch
 import numpy as np
@@ -6,7 +7,10 @@ from pymatgen.core import Structure
 from pymatgen.core.periodic_table import DummySpecies
 from pymatgen.optimization.neighbors import find_points_in_spheres
 import logging
-
+from copy import deepcopy
+from pymatgen.core.periodic_table import Element, ElementBase, DummySpecie
+from pymatgen.analysis.local_env import CrystalNN
+from collections import defaultdict
 
 class MyTensor(torch.Tensor):
     """
@@ -25,6 +29,7 @@ class SimpleCrystalConverter:
             atom_converter=None,
             bond_converter=None,
             add_z_bond_coord=False,
+            add_eos_features=True,
             cutoff=5.0,
             ignore_state=False,
     ):
@@ -42,9 +47,12 @@ class SimpleCrystalConverter:
         self.atom_converter = atom_converter if atom_converter else DummyConverter()
         self.bond_converter = bond_converter if bond_converter else DummyConverter()
         self.add_z_bond_coord = add_z_bond_coord
+        self.add_eos_features = add_eos_features
         self.ignore_state = ignore_state
 
     def convert(self, d):
+        if isinstance(d, tuple):
+            d, kwargs = d
         lattice_matrix = np.ascontiguousarray(np.array(d.lattice.matrix), dtype=float)
         pbc = np.array([1, 1, 1], dtype=int)
         cart_coords = np.ascontiguousarray(np.array(d.cart_coords), dtype=float)
@@ -67,6 +75,11 @@ class SimpleCrystalConverter:
             )
 
         edge_attr = torch.Tensor(self.bond_converter.convert(distances_preprocessed))
+        
+        if self.add_eos_features:
+            eos = EOS(initial_structure=kwargs.get('initial_struct'), defect_rep=d)
+            eos.shells
+
         if self.ignore_state:
             state = [[0.0, 0.0]]
         else:
@@ -91,6 +104,88 @@ class DummyConverter:
     def convert(self, d):
         return d.reshape((-1, 1))
 
+class EOS:
+    def __init__(self, initial_structure, defect_rep):
+        self.initial_structure = initial_structure
+        self.defect_rep = defect_rep
+        
+    @staticmethod
+    def get_pristine_lattice(struct, defect_rep):
+        """ Get a lattice without defects 
+        """
+        struct = deepcopy(struct)
+        replace_dict = {}
+        for atom in defect_rep:
+            was = ElementBase.from_Z(atom.properties['was'])
+            # The element type in sparse representaion is compound thus we need to make it an element
+            current = atom.species.elements[0]
+            if current == DummySpecie():
+                struct.append(was, atom.coords, coords_are_cartesian=True)
+            else:
+                replace_dict[current] = was
+        # inplace operation hence the deepcopy above
+        struct.replace_species(replace_dict)
+        struct.lattice._pbc = (1, 1, 1)
+        return struct
+
+    def get_shells(self, pristine):
+        nn = CrystalNN(
+            distance_cutoffs=None, x_diff_weight=0.0, porous_adjustment=False
+        )
+
+        # Filter each element to its corresponding sites
+        seperate_sites = {}
+        for _site in set(pristine.species):
+            seperate_sites[_site] = Structure.from_sites(
+                [site for site in pristine if site.species.elements[0] == _site]
+            )
+            # get rid of z dimension by removing the layer
+            layer_z = list(set(seperate_sites[_site].cart_coords[..., 2].round()))
+            if len(layer_z) > 1:
+                seperate_sites[_site] = Structure.from_sites(
+                    [site for site in seperate_sites[_site] if site.coords[2].round() == layer_z[0]]
+                )
+        shells = defaultdict(list)
+        structures = defaultdict(list)
+
+        for element, _structure in seperate_sites.items():
+            structure = deepcopy(_structure)
+            center_idx = len(structure) // 2
+
+            structure[center_idx].center = True
+            while True:
+                match = nn.get_nn_info(structure, center_idx)
+                # remove self matching
+                match = [m for m in match if m.get('site_index') != center_idx]
+
+                site_idx = list(map(lambda x: x.get('site_index'), match))
+                # distance between the center and any nearest neighbor atom
+                distances_nn = [pristine.get_distance(center_idx, idx) for idx in site_idx]
+                
+                shells[element.symbol].append(distances_nn)
+                structures[element.symbol].append(Structure.from_sites(list(map(lambda x: x.get('site'), match))))
+
+                # remove the nearest neighbor atoms from the structure so we can get a new nearest neighbor           
+                structure.remove_sites(site_idx)
+                # break if there are no more nearest neighbors
+                if len(structure) <= 1:
+                    break
+                # fine the center index after removing sites
+                found_center = False
+                for i, site in enumerate(structure):
+                    if hasattr(site, 'center'):
+                        center_idx = i
+                        found_center = True
+                        break
+        return shells, structures
+    
+    @cached_property
+    def shells(self):
+        return self.get_shells(self.get_pristine_lattice(self.initial_structure, self.defect_rep))
+
+    
+    def get_eos(self, d):
+        return d.eos
 
 class GaussianDistanceConverter:
     def __init__(self, centers=np.linspace(0, 5, 100), sigma=0.5):
