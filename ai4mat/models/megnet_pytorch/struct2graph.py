@@ -77,8 +77,8 @@ class SimpleCrystalConverter:
         edge_attr = torch.Tensor(self.bond_converter.convert(distances_preprocessed))
         
         if self.add_eos_features:
-            eos = EOS(initial_structure=kwargs.get('initial_struct'), defect_rep=d)
-            eos.shells
+            eos = EOS(initial_structure=kwargs.get('initial_struct'), defect_rep=d, bond_converter=self.bond_converter)
+            edge_attr = eos.add_eos_features(edge_attr, center_indices, neighbor_indices, distances)
 
         if self.ignore_state:
             state = [[0.0, 0.0]]
@@ -105,9 +105,22 @@ class DummyConverter:
         return d.reshape((-1, 1))
 
 class EOS:
-    def __init__(self, initial_structure, defect_rep):
+    def __init__(self, initial_structure, defect_rep, bond_converter):
         self.initial_structure = initial_structure
         self.defect_rep = defect_rep
+
+        # monke patch getshape bond converter to add eos features
+        self.bond_converter = bond_converter
+        self.bond_converter.get_shape = self.get_shape
+    
+    def get_shape(self, d):
+        if isinstance(self.bond_converter, FlattenGaussianDistanceConverter):
+            return 2 * len(bond_converter.centers) + 2
+        elif isinstance(self.bond_converter, GaussianDistanceConverter):
+            return len(bond_converter.centers) + 2
+        else:
+            raise NotImplementedError
+
         
     @staticmethod
     def get_pristine_lattice(struct, defect_rep):
@@ -181,11 +194,29 @@ class EOS:
     
     @cached_property
     def shells(self):
-        return self.get_shells(self.get_pristine_lattice(self.initial_structure, self.defect_rep))
-
+        shells , stuctures = self.get_shells(self.get_pristine_lattice(self.initial_structure, self.defect_rep))
+        return {k:np.array(range(1, 20))*min(v[0]) for k, v in shells.items()}
     
-    def get_eos(self, d):
-        return d.eos
+    def add_eos_features(self, edge_attr, center_indices, neighbor_indices, distances):
+        shells = self.shells
+        edges_eos = []
+        edges_eos_parity = []
+        for center_index, neighbor_index, distance in zip(center_indices, neighbor_indices, distances):
+                if center_index == neighbor_index:
+                    continue
+                center_atom = self.defect_rep[center_index]
+                neighbor_atom = self.defect_rep[neighbor_index]
+                # Get the distance between the center atom and the nearest neighbor atom
+                center_atom_was: str = ElementBase.from_Z(center_atom.properties['was']).symbol
+                if center_atom.properties['was'] == neighbor_atom.properties['was']:
+                    edges_eos.append(np.searchsorted(shells[center_atom_was], distance))
+                else:
+                    edges_eos.append(np.isclose(shells[center_atom_was], distance, rtol=1, atol=1e-01).argmin())
+                edges_eos_parity.append(edges_eos[-1] % 2)
+
+        edges_eos = np.vstack([edges_eos, edges_eos_parity]).T
+        return np.hstack([edge_attr, edges_eos])
+
 
 class GaussianDistanceConverter:
     def __init__(self, centers=np.linspace(0, 5, 100), sigma=0.5):
