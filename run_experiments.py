@@ -68,7 +68,7 @@ def run_experiment(experiment_name, trials_names, gpus, processes_per_gpu):
         # State stores the material composition and is semi-supported by pymatgen
         # so we ensure it's present
         if this_trial["representation"] == "sparse":
-            assert getattr(structures.iloc[0], "state", None) is not None
+            assert getattr(structures.iloc[0, 0], "state", None) is not None
 
         if this_trial["representation"] == "matminer":
             assert (
@@ -148,6 +148,8 @@ def cross_val_predict(
                         checkpoint_path=checkpoint_path),
                 zip(test_fold_generator, cycle(gpus)),
             )
+
+       
     # TODO(kazeevn)
     # Should we add explicit Structure -> graph preprocessing with results shared?
     elif strategy == "train_test":
