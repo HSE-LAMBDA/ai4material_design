@@ -167,12 +167,6 @@ def cross_val_predict(
     # TODO(kazeevn)
     # Should we add explicit Structure -> graph preprocessing with results shared?
 
-    if isinstance(targets, pd.DataFrame):
-        predictions_pd = pd.DataFrame(index=targets.index, columns=targets.columns, data=np.zeros_like(targets.to_numpy()))
-    elif isinstance(targets, pd.Series):
-        predictions_pd = pd.DataFrame(index=targets.index, columns=[targets.name], data=np.zeros_like(targets.to_numpy()))
-
-
     if strategy == "cv":
         if isinstance(targets, pd.DataFrame):
             predictions_pd = pd.DataFrame(index=targets.index, columns=targets.columns, data=np.zeros_like(targets.to_numpy()))
