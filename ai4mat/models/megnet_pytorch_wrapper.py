@@ -1,18 +1,19 @@
+from typing import Union
 import pandas as pd
 from ai4mat.models.megnet_pytorch.megnet_pytorch_trainer import MEGNetPyTorchTrainer
 import os
 
 
-def set_y(structure, y):
+def set_y(structure, y, **kwargs):
     setattr(structure, "y", y)
-    return structure
+    return structure, kwargs
 
 
 def get_megnet_pytorch_predictions(
-        train_structures: pd.Series,  # series of pymatgen object
-        train_targets: pd.Series,  # series of scalars
-        test_structures: pd.Series,  # series of pymatgen object
-        test_targets: pd.Series,  # series of scalars
+        train_structures: Union[pd.Series, pd.DataFrame] ,  # series of pymatgen object
+        train_targets: Union[pd.Series, pd.DataFrame],  # series of scalars
+        test_structures: Union[pd.Series, pd.DataFrame],  # series of pymatgen object
+        test_targets: Union[pd.Series, pd.DataFrame],  # series of scalars
         target_is_intensive: bool,
         model_params: dict,
         gpu: int,
@@ -24,9 +25,12 @@ def get_megnet_pytorch_predictions(
     target_name = train_targets.name
     train_targets = train_targets.tolist()
     test_targets = test_targets.tolist()
-
-    train_data = [set_y(s, y) for s, y in zip(train_structures, train_targets)]
-    test_data = [set_y(s, y) for s, y in zip(test_structures, test_targets)]
+    if isinstance(train_structures, pd.DataFrame):
+        train_data = [set_y(s, y, initial_struct=init) for (name, (s, init)), y in zip(train_structures.iterrows(), train_targets)]
+        test_data = [set_y(s, y, initial_struct=init) for (name, (s, init)), y in zip(test_structures.iterrows(), test_targets)]
+    else:
+        train_data = [set_y(s, y) for s, y in zip(train_structures, train_targets)]
+        test_data = [set_y(s, y) for s, y in zip(test_structures, test_targets)]
 
     model = MEGNetPyTorchTrainer(
         train_data,
