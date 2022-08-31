@@ -29,6 +29,8 @@ def main():
     parser.add_argument("--gpus", type=int, nargs="+")
     parser.add_argument("--wandb-entity", type=str)
     parser.add_argument("--processes-per-gpu", type=int, default=1)
+    parser.add_argument("--targets", type=str, nargs="+",
+                        help="Only run on these targets")
     args = parser.parse_args()
 
     os.environ["WANDB_START_METHOD"] = "thread"
@@ -37,24 +39,47 @@ def main():
     if args.wandb_entity:
         os.environ["WANDB_ENTITY"] = args.wandb_entity
     for experiment_name in args.experiments:
-        run_experiment(experiment_name, args.trials, args.gpus, args.processes_per_gpu)
+        run_experiment(experiment_name,
+                       args.trials,
+                       args.gpus,
+                       args.processes_per_gpu,
+                       args.targets)
 
 
-def run_experiment(experiment_name, trials_names, gpus, processes_per_gpu):
-    # used variables:
-    # experiment - config file, path to the dataset, cv strategy, n folds and targets
-    # this trial - config with model name, representation and model params
+def run_experiment(experiment_name: str,
+                   trials_names: List[str],
+                   gpus: List[int],
+                   processes_per_gpu: int,
+                   requested_targets: List[str]=None) -> None:
+    """
+    Runs an experiment.
+
+    Args:
+        experiment_name: Name of the experiment.
+        trials_names: Names of the trials.
+        gpus: List of GPUs to use.
+        processes_per_gpu: Number of processes to use per GPU.
+        targets: List of targets to run on. If None, run on all targets in the experiment.
+    Used files and fields:
+        experiment - config file, path to the dataset, cv strategy, n folds and targets
+        trial - config with model name, representation and model params
+    """
+    
     storage_resolver = StorageResolver()
     experiment_path = storage_resolver["experiments"].joinpath(experiment_name)
     with open(Path(experiment_path, "config.yaml")) as experiment_file:
         experiment = yaml.safe_load(experiment_file)
     folds = pd.read_csv(
-        Path(experiment_path, "folds.csv.gz"), index_col="_id", squeeze=True
-    )
+        Path(experiment_path, "folds.csv.gz"), index_col="_id").squeeze("columns")
 
     loader = DataLoader(experiment["datasets"], folds.index)
+    
+    if requested_targets is None:
+        used_targets = experiment["targets"]
+    else:
+        used_targets = set(experiment["targets"]).intersection(requested_targets)
 
-    for target_name, this_trial_name in product(experiment["targets"], trials_names):
+    for target_name, this_trial_name in product(used_targets, trials_names):
         with open(
             storage_resolver["trials"].joinpath(f"{this_trial_name}.yaml")
         ) as this_trial_file:
