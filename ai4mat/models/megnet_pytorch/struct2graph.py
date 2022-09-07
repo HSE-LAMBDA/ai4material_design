@@ -78,7 +78,7 @@ class SimpleCrystalConverter:
         
         if self.add_eos_features:
             eos = EOS(initial_structure=kwargs.get('initial_struct'), defect_rep=d, bond_converter=self.bond_converter)
-            edge_attr = eos.add_eos_features(edge_attr, center_indices, neighbor_indices, distances)
+            edge_attr = torch.tensor(eos.add_eos_features(edge_attr, center_indices, neighbor_indices, distances), dtype=torch.float)
 
         if self.ignore_state:
             state = [[0.0, 0.0]]
@@ -108,19 +108,6 @@ class EOS:
     def __init__(self, initial_structure, defect_rep, bond_converter):
         self.initial_structure = initial_structure
         self.defect_rep = defect_rep
-
-        # monke patch getshape bond converter to add eos features
-        self.bond_converter = bond_converter
-        self.bond_converter.get_shape = self.get_shape
-    
-    def get_shape(self, d):
-        if isinstance(self.bond_converter, FlattenGaussianDistanceConverter):
-            return 2 * len(bond_converter.centers) + 2
-        elif isinstance(self.bond_converter, GaussianDistanceConverter):
-            return len(bond_converter.centers) + 2
-        else:
-            raise NotImplementedError
-
         
     @staticmethod
     def get_pristine_lattice(struct, defect_rep):
@@ -138,7 +125,7 @@ class EOS:
                 replace_dict[current] = was
         # inplace operation hence the deepcopy above
         struct.replace_species(replace_dict)
-        struct.lattice._pbc = (1, 1, 1)
+        [atom.properties.update({'was': None}) for atom in struct if not atom.properties.get('was')]
         return struct
 
     def get_shells(self, pristine):
@@ -228,8 +215,11 @@ class GaussianDistanceConverter:
             -((d.reshape((-1, 1)) - self.centers.reshape((1, -1))) / self.sigma) ** 2
         )
 
-    def get_shape(self):
-        return len(self.centers)
+    def get_shape(self, eos=False):
+        shape = len(self.centers)
+        if eos:
+            shape += 2
+        return shape
 
 
 class FlattenGaussianDistanceConverter(GaussianDistanceConverter):
@@ -242,8 +232,11 @@ class FlattenGaussianDistanceConverter(GaussianDistanceConverter):
             res.append(super().convert(arr))
         return np.hstack(res)
 
-    def get_shape(self):
-        return 2 * len(self.centers)
+    def get_shape(self, eos=False):
+        shape = 2 * len(self.centers)
+        if eos:
+            shape += 2
+        return shape
 
 
 class AtomFeaturesExtractor:
