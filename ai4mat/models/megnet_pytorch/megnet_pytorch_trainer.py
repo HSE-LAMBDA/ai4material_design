@@ -47,6 +47,7 @@ class MEGNetPyTorchTrainer(Trainer):
             atom_converter=atom_converter,
             cutoff=self.config["model"]["cutoff"],
             add_z_bond_coord=self.config["model"]["add_z_bond_coord"]
+            add_eos_features=self.config["model"]["add_eos_features"]
         )
         print("converting data")
         self.train_structures = [self.converter.convert(s) for s in tqdm(train_data)]
