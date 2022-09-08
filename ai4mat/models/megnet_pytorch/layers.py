@@ -13,15 +13,6 @@ class ShiftedSoftplus(nn.Module):
         return self.sp(x) - self.shift
 
 
-AGGREGATION_MAP = {
-    "mean": "mean",
-    "sum": "sum",
-    "min": "min",
-    "max": "max",
-    # "linear": MultiAggregation()
-}
-
-
 class MegnetModule(MessagePassing):
     def __init__(self,
                  edge_input_shape,
@@ -29,7 +20,7 @@ class MegnetModule(MessagePassing):
                  state_input_shape,
                  inner_skip=False,
                  embed_size=32,
-                 aggr="mean",
+                 aggregation="mean",
                  ):
         """
         Parameters
@@ -40,9 +31,9 @@ class MegnetModule(MessagePassing):
         inner_skip: use inner or outer skip connection
         embed_size: embedding and output size
         """
-        if aggr not in AGGREGATION_MAP:
-            raise "Not valid aggregation type"
-        super().__init__(aggr=AGGREGATION_MAP[aggr])
+        if aggregation == "lin":
+            aggregation = aggr.MultiAggregation(['mean', 'sum', 'max'], mode='proj', in_channels=embed_size, out_channels=embed_size)
+        super().__init__(aggr=aggregation)
         self.inner_skip = inner_skip
         self.phi_e = nn.Sequential(
             nn.Linear(4 * embed_size, 2 * embed_size),

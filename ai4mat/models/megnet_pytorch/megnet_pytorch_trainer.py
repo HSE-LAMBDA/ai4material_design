@@ -39,7 +39,7 @@ class MEGNetPyTorchTrainer(Trainer):
             edge_input_shape=bond_converter.get_shape(),
             node_input_shape=atom_converter.get_shape(),
             state_input_shape=self.config["model"]["state_input_shape"],
-            aggr=self.config["model"]["aggr"],
+            aggregation=self.config["model"]["aggregation"],
         )
         self.Scaler = Scaler()
 
