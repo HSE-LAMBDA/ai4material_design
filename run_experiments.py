@@ -49,7 +49,7 @@ def run_experiment(experiment_name, trials_names, gpus, processes_per_gpu):
     with open(Path(experiment_path, "config.yaml")) as experiment_file:
         experiment = yaml.safe_load(experiment_file)
     folds = pd.read_csv(
-        Path(experiment_path, "folds.csv.gz"), index_col="_id", squeeze=True
+        Path(experiment_path, "folds.csv"), index_col="_id", squeeze=True
     )
 
     loader = DataLoader(experiment["datasets"], folds.index)
