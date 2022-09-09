@@ -95,11 +95,11 @@ def print_experiment_trial_table(experiments, trials, target_name, unit_multipli
     mae_table = pt()
 
     trials2params = {}
-    exp_len = len(trials) // 3
+    exp_len = len(trials) # // 3
     for i, trial in enumerate(trials):
         with open(storage_resolver['trials'].joinpath(trial + ".yaml")) as cur_trial:
             trials2params[trial] = (
-            i // exp_len, get_value_by_path(yaml.safe_load(cur_trial), parameter_to_extract.split('/')))
+                i // exp_len, get_value_by_path(yaml.safe_load(cur_trial), parameter_to_extract.split('/')))
 
     trials.sort(key=lambda x: trials2params[x])
 
