@@ -32,7 +32,14 @@ class MegnetModule(MessagePassing):
         embed_size: embedding and output size
         """
         if aggregation == "lin":
-            aggregation = aggr.MultiAggregation(['mean', 'sum', 'max'], mode='proj', in_channels=embed_size, out_channels=embed_size)
+            aggregation = aggr.MultiAggregation(
+                ['mean', 'sum', 'max'],
+                mode='proj',
+                mode_kwargs={
+                    'in_channels': embed_size,
+                    'out_channels': embed_size,
+                },
+            )
         super().__init__(aggr=aggregation)
         self.inner_skip = inner_skip
         self.phi_e = nn.Sequential(
