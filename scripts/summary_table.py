@@ -126,7 +126,8 @@ def print_experiment_trial_table(experiments, trials, target_name, unit_multipli
             these_targets = true_targets.reindex(index=predictions.index)
             errors = np.abs(predictions - these_targets)
             mae = errors.mean()
-            row.append(f"{mae * unit_multiplier:.1f}")
+            std = errors.std()
+            row.append(f"{mae * unit_multiplier:.1f}±{std}")
         mae_table.add_row(row)
     print(mae_table)
 
