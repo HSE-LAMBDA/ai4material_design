@@ -1,5 +1,6 @@
 import argparse
-from operator import le
+from functools import reduce
+from operator import le, sub
 from pathlib import Path
 import numpy as np
 import pandas as pd
@@ -15,6 +16,8 @@ from ai4mat.data.data import (
     StorageResolver,
     Columns
 )
+
+
 
 SINGLE_ENENRGY_COLUMN = "chemical_potential"
 
@@ -33,6 +36,7 @@ def strucure_to_dict(structure, precision=3):
 def get_sparse_defect(structure, unit_cell, supercell_size,
                       single_atom_energies):
     reference_species = set(unit_cell.species)
+
     reference_supercell = unit_cell.copy()
     reference_supercell.make_supercell(supercell_size)
     reference_sites = get_frac_coords_set(reference_supercell)
@@ -88,6 +92,26 @@ def get_sparse_defect(structure, unit_cell, supercell_size,
     return res, defect_energy_correction, structure_with_was
 
 
+def get_eos_radius(unit_cell: Structure):
+    """
+    This currently only work WSe2 and MoS2
+    """
+    reference_species = set(unit_cell.species)
+    reference_supercell = unit_cell.copy()
+    reference_supercell.make_supercell((2, 1, 1))
+
+    shells = {}
+    for specie in reference_species:
+        single_specie_reference = reference_supercell.copy()
+        single_specie_reference.remove_species([specie])
+        coords = set(map(tuple, np.round(single_specie_reference.cart_coords[..., :2], 3)))        
+        assert len(coords) == 2, f'Expected 2 atoms, got {len(coords)}, {single_specie_reference}'
+        shells[specie] = np.linalg.norm(reduce(sub, map(np.array, coords)))
+    return shells
+
+
+
+
 def main():
     parser = argparse.ArgumentParser("Parses csv/cif into pickle and targets.csv.gz")
     group = parser.add_mutually_exclusive_group(required=True)
@@ -107,11 +131,14 @@ def main():
     structures, defects = get_dichalcogenides_innopolis(input_folder)
     materials = defects.base.unique()
     unit_cells = {}
+    eos = {}
     for material in materials:
         unit_cells[material] = CifParser(Path(
             "defects_generation",
             "molecules",
-            f"{material}.cif")).get_structures(primitive=False)[0]
+            f"{material}.cif")).get_structures(primitive=False)[0]        
+        eos[material] = get_eos_radius(unit_cells[material])
+
     data_path = Path(input_folder)
     initial_structure_properties = pd.read_csv(
         data_path.joinpath("initial_structures.csv"),
@@ -120,6 +147,7 @@ def main():
     single_atom_energies = pd.read_csv(data_path.joinpath("elements.csv"),
                                        index_col="element",
                                        converters={"element": Element})
+    
 
     COLUMNS = Columns()
     # TODO(kazeevn) this all is very ugly
@@ -132,10 +160,16 @@ def main():
             row.initial_structure, unit_cell, defect_description.cell,
             single_atom_energies)
         return defect_structure, formation_energy_part + row.energy - initial_energy, structure_with_was
+    
+    def get_eos_from_row(row):
+        defect_description = defects.loc[row[COLUMNS["structure"]["descriptor_id"]]]
+        return eos[defect_description.base]
 
     defect_properties = structures.apply(get_defecs_from_row,
                                          axis=1,
                                          result_type="expand")
+    structures_eos = structures.apply(get_eos_from_row, axis=1, result_type="expand").add_suffix('_eos')
+
     structures = structures.drop(COLUMNS["structure"]["unrelaxed"], axis=1)                                     
     defect_properties.columns = [
         COLUMNS["structure"]["sparse_unrelaxed"],
@@ -143,6 +177,7 @@ def main():
         COLUMNS["structure"]["unrelaxed"]
     ]
     structures = structures.join(defect_properties)
+    structures = structures.join(structures_eos)
     structures["formation_energy_per_site"] = structures[
         "formation_energy"] / structures[COLUMNS["structure"]["sparse_unrelaxed"]].apply(len)
     structures["energy_per_atom"] = structures["energy"] / structures[COLUMNS["structure"]["unrelaxed"]].apply(len)
