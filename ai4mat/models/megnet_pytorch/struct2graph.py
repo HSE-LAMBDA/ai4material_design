@@ -1,5 +1,3 @@
-from functools import cached_property
-from operator import imod
 import torch
 import numpy as np
 from torch_geometric.data import Data
@@ -7,10 +5,6 @@ from pymatgen.core import Structure
 from pymatgen.core.periodic_table import DummySpecies
 from pymatgen.optimization.neighbors import find_points_in_spheres
 import logging
-from copy import deepcopy
-from pymatgen.core.periodic_table import Element, ElementBase, DummySpecie
-from pymatgen.analysis.local_env import CrystalNN
-from collections import defaultdict
 
 class MyTensor(torch.Tensor):
     """
