@@ -29,6 +29,7 @@ def main():
     parser.add_argument("--gpus", type=int, nargs="+")
     parser.add_argument("--wandb-entity", type=str)
     parser.add_argument("--processes-per-gpu", type=int, default=1)
+    parser.add_argument("--n_jobs", type=int, default=-1)
     args = parser.parse_args()
 
     os.environ["WANDB_START_METHOD"] = "thread"
@@ -37,10 +38,10 @@ def main():
     if args.wandb_entity:
         os.environ["WANDB_ENTITY"] = args.wandb_entity
     for experiment_name in args.experiments:
-        run_experiment(experiment_name, args.trials, args.gpus, args.processes_per_gpu)
+        run_experiment(experiment_name, args.trials, args.gpus, args.processes_per_gpu, args.n_jobs)
 
 
-def run_experiment(experiment_name, trials_names, gpus, processes_per_gpu):
+def run_experiment(experiment_name, trials_names, gpus, processes_per_gpu, n_jobs):
     # used variables:
     # experiment - config file, path to the dataset, cv strategy, n folds and targets
     # this trial - config with model name, representation and model params
@@ -68,7 +69,7 @@ def run_experiment(experiment_name, trials_names, gpus, processes_per_gpu):
         # State stores the material composition and is semi-supported by pymatgen
         # so we ensure it's present
         if this_trial["representation"] == "sparse":
-            assert getattr(structures.iloc[0, 0], "state", None) is not None
+            assert getattr(structures.iloc[0], "state", None) is not None
 
         if this_trial["representation"] == "matminer":
             assert (
@@ -95,6 +96,7 @@ def run_experiment(experiment_name, trials_names, gpus, processes_per_gpu):
             processes_per_gpu,
             wandb_config,
             checkpoint_path=storage_resolver["checkpoints"].joinpath(experiment_name, str(target_name), this_trial_name),
+            n_jobs=n_jobs,
             strategy=experiment['strategy'],
         )
         predictions.rename(lambda target_name: f"predicted_{target_name}_test", axis=1, inplace=True)
@@ -120,6 +122,7 @@ def cross_val_predict(
     processes_per_gpu: int,
     wandb_config,
     checkpoint_path,
+    n_jobs,
     strategy="cv",
 ):
     assert data.index.equals(targets.index)
@@ -145,11 +148,12 @@ def cross_val_predict(
                         target_is_intensive=target_is_intensive,
                         model_params=model_params,
                         wandb_config=wandb_config,
-                        checkpoint_path=checkpoint_path),
+                        checkpoint_path=checkpoint_path,
+                        n_jobs=n_jobs),
                 zip(test_fold_generator, cycle(gpus)),
             )
-
-       
+            
+                
     # TODO(kazeevn)
     # Should we add explicit Structure -> graph preprocessing with results shared?
     elif strategy == "train_test":
@@ -203,6 +207,7 @@ def predict_on_fold(
     model_params,
     wandb_config,
     checkpoint_path,
+    n_jobs,
 ):
     train_folds = set(range(n_folds)) - set((test_fold,))
     train_ids = folds[folds.isin(train_folds)]
@@ -226,6 +231,7 @@ def predict_on_fold(
             model_params,
             gpu,
             checkpoint_path=checkpoint_path.joinpath('_'.join(map(str, train_folds))),
+            n_jobs=n_jobs
         )
 
 
