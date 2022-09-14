@@ -1,12 +1,13 @@
+from lib2to3.pytree import convert
 from typing import Union
 import pandas as pd
 from ai4mat.models.megnet_pytorch.megnet_pytorch_trainer import MEGNetPyTorchTrainer
 import os
 
 
-def set_y(structure, y, **kwargs):
+def set_y(structure, y):
     setattr(structure, "y", y)
-    return structure, kwargs
+    return structure
 
 
 def get_megnet_pytorch_predictions(
@@ -18,6 +19,7 @@ def get_megnet_pytorch_predictions(
         model_params: dict,
         gpu: int,
         checkpoint_path,
+        n_jobs,
         ):
     if not target_is_intensive:
         raise NotImplementedError
@@ -25,12 +27,8 @@ def get_megnet_pytorch_predictions(
     target_name = train_targets.name
     train_targets = train_targets.tolist()
     test_targets = test_targets.tolist()
-    if isinstance(train_structures, pd.DataFrame):
-        train_data = [set_y(s, y, initial_struct=init) for (name, (s, init)), y in zip(train_structures.iterrows(), train_targets)]
-        test_data = [set_y(s, y, initial_struct=init) for (name, (s, init)), y in zip(test_structures.iterrows(), test_targets)]
-    else:
-        train_data = [set_y(s, y) for s, y in zip(train_structures, train_targets)]
-        test_data = [set_y(s, y) for s, y in zip(test_structures, test_targets)]
+    train_data = [set_y(s, y) for s, y in zip(train_structures, train_targets)]
+    test_data = [set_y(s, y) for s, y in zip(test_structures, test_targets)]
 
     model = MEGNetPyTorchTrainer(
         train_data,
@@ -39,6 +37,7 @@ def get_megnet_pytorch_predictions(
         configs=model_params,
         gpu_id=gpu,
         save_checkpoint=False,
+        n_jobs=n_jobs
     )
     model.train()
 
