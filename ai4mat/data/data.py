@@ -107,8 +107,11 @@ class DataLoader:
         return self._load_data("matminer.csv.gz").set_index("_id").reindex(self.folds_index)
 
     def _load_sparse(self):
-        return self._load_data("data.pickle.gz")[get_column_from_data_type("sparse")].reindex(self.folds_index)
+        data = self._load_data("data.pickle.gz")
+        return data[get_column_from_data_type("sparse")].reindex(self.folds_index)
 
+            
+    
     def _load_full(self):
         return self._load_data("data.pickle.gz")[get_column_from_data_type("full")].reindex(self.folds_index)
 
@@ -164,7 +167,7 @@ def get_matminer_path(csv_cif_path):
 
 def get_column_from_data_type(data_type):
     if data_type == 'sparse':
-        return ["defect_representation", "initial_structure"]
+        return "defect_representation"
     elif data_type == 'full':
         return "initial_structure"
     elif data_type == 'matminer':
