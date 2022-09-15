@@ -48,15 +48,23 @@ class EOS:
         self.num_shells = num_shells
 
     @staticmethod
-    def remove_other_species(structure, species):
+    def remove_other_species(structure, center):
         _struct = structure.copy()
-        _struct.remove_species(set(_struct.species).difference({species})) 
-        return _struct
+        # _struct.remove_species(set(_struct.species).difference({center.spiece}))
+        if (num_unique_species := len(set(structure.species))) == 1:
+            return Structure.from_sites([site for site in structure if site.properties['center_index'] is not None] + [center])
+        elif num_unique_species == 2:
+            sites = [site for site in structure if site.specie != center.specie]
+            sites.append(center)
+            return Structure.from_sites(sites)
+        else:
+            raise NotImplementedError
 
     @staticmethod
     def get_distance_of_atoms_on_z_plane(center, sites):
-        return sorted({np.linalg.norm(site.coords - center.coords).round(3) for site in sites if site.coords[2].round(3) == center.coords[2].round(3)})
-
+        # return sorted({np.linalg.norm(site.coords - center.coords).round(3) for site in sites if site.coords[2].round(3) == center.coords[2].round(3)})
+        return sorted({d for site in sites if (d := np.linalg.norm(site.coords[..., :2] - center.coords[..., :2]).round(3)) != 0})
+        
     def get_shell(self, structure, site_idx, num_shells):
         shells = []
         # for i in range(1, num_shells):
@@ -71,22 +79,24 @@ class EOS:
 
     def find_center_index(self, structure, index):
         for i, site in enumerate(structure):
-            if site.properties['site_index'] == index:
+            if site.properties.get('center_index', -1) == index:
                 return i
         
     def get_augmented_struct(self, structure):
-        structure = self.add_site_index_to_structure(structure)
         for center_idx, site in enumerate(structure):
             # add center index
-            structure[center_idx].properties['site_index'] = center_idx 
-            # remove all other species
-            _struct = self.remove_other_species(structure, site.specie)
+            structure[center_idx].properties['center_index'] = center_idx 
             # get shells finder object
-            self.shells_obj = Shells(_struct)
+            self.shells_obj = Shells(structure)
             # get the shells
-            shells_sites = self.get_shell(_struct, self.find_center_index(_struct, center_idx), self.num_shells)
+            shells_sites = self.get_shell(structure, self.find_center_index(structure, center_idx), self.num_shells)
+            # remove all other species
+            _struct = self.remove_other_species(Structure.from_sites(shells_sites), site)
             # add shells to the site
-            site.properties['shells'] = self.get_distance_of_atoms_on_z_plane(site, shells_sites)
+            site.properties['shells'] = self.get_distance_of_atoms_on_z_plane(site, [site for site in _struct])
+            # delete the center index
+            del site.properties['center_index']
+
         assert all(map(lambda s: 'shells' in s.properties, structure))
         return structure
 
