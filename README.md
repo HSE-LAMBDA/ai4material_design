@@ -28,7 +28,7 @@ Below we descrbie a lightweight test run.
 
 0. Pull the inputs from DVC
 ```
-dvc pull datasets/csv_cif/pilot.dvc datasets/experiments/pilot-plain-cv.dvc
+dvc pull datasets/csv_cif/pilot.dvc datasets/experiments/pilot-plain-cv.dvc datasets/processed/pilot.dvc
 ```
 
 1. Preprocess the data to get targets, pickled full and sparse structures
