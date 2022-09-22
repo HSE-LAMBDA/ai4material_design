@@ -4,37 +4,25 @@
 - Project log is in [Notion](https://www.notion.so/AI-for-material-design-1f8f321d2ac54245a7af410d838929ae)
 - Paper in [Overleaf](https://www.overleaf.com/project/61893015795e7b18e7979f53)
 
-## Setting up the environment on slurm cluster
-
-0. ssh to the cluster head node if you gonna run on a slurm cluster
-1. Load the module `module load Python/Anaconda_v11.2020`
-2. Install poetry ```curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -```
-3. create new conda enviroment ```conda create -n exp1 python=3.8``` then activate it `conda activate exp1`
-4. cd to project directory and run `poetry install` if you having internal poetry problem due to the fact you are already using poetry and didn't install it run ```pip install poetry```
-5. find out cuda version, then `export CUDA=cu113` replace the `cu113` with your version
-6. run
-```
-pip install torch==1.10.0+${CUDA} torchvision==0.11.1+${CUDA} torchaudio==0.10.0+${CUDA} -f https://download.pytorch.org/whl/${CUDA}/torch_stable.html
-pip install torch-scatter -f https://data.pyg.org/whl/torch-1.10.0+${CUDA}.html
-pip install torch-sparse -f https://data.pyg.org/whl/torch-1.10.0+${CUDA}.html
-pip install torch-geometric
-```
-if you have error make sure to run and repeat the previous step
-```
-pip uninstall torch-geometric torch-sparse torch-scatter torch-spline-conv torch-cluster
-```
-this step is very ugly but this the fastest way to have a working enviroment
-
-
-
 ## Setting up the environment
-[Install Poetry](https://python-poetry.org/docs/#installation)
+1. [Install Poetry](https://python-poetry.org/docs/#installation)
+2. Next steps depend on your setup
+   - If you don't want to use vritualenv, for example to use system `torch`, run
+   ```
+   poetry config virtualenvs.create false --local
+   ```
+   - If you want to use virtualenv, run
+   ```
+   poetry shell
+   ```
+3. Install ordinary dependcies
 ```
-poetry shell
 poetry install
 ```
+4. [Install pytorch](https://pytorch.org/) according to your CUDA/virtualenv/conda situatoin
+5. [Install pytorch-geometric](https://pytorch-geometric.readthedocs.io/en/latest/notes/installation.html) according to your CUDA/virtualenv/conda situatoin
+6. [Log in to WanDB](https://docs.wandb.ai/ref/cli/wandb-login)
 
-[Log in to WanDB](https://docs.wandb.ai/ref/cli/wandb-login)
 ## Running the pipepline
 Below we descrbie a lightweight test run. The commands are assumed to be ran inside the poetry shell.
 
@@ -113,3 +101,23 @@ This creates predictions in `datasets/predcitions/matminer-test`
 python scripts/plot.py --experiments matminer-test --trials catboost-test
 ```
 This produces plots in `datasets/plots/matminer-test`
+
+## Running on HSE HPC [obsolete]
+0. ssh to the cluster head node if you gonna run on a slurm cluster
+1. Load the module `module load Python/Anaconda_v11.2020`
+2. Install poetry ```curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -```
+3. create new conda enviroment ```conda create -n exp1 python=3.8``` then activate it `conda activate exp1`
+4. cd to project directory and run `poetry install` if you having internal poetry problem due to the fact you are already using poetry and didn't install it run ```pip install poetry```
+5. find out cuda version, then `export CUDA=cu113` replace the `cu113` with your version
+6. run
+```
+pip install torch==1.10.0+${CUDA} torchvision==0.11.1+${CUDA} torchaudio==0.10.0+${CUDA} -f https://download.pytorch.org/whl/${CUDA}/torch_stable.html
+pip install torch-scatter -f https://data.pyg.org/whl/torch-1.10.0+${CUDA}.html
+pip install torch-sparse -f https://data.pyg.org/whl/torch-1.10.0+${CUDA}.html
+pip install torch-geometric
+```
+if you have error make sure to run and repeat the previous step
+```
+pip uninstall torch-geometric torch-sparse torch-scatter torch-spline-conv torch-cluster
+```
+this step is very ugly but this the fastest way to have a working enviroment
