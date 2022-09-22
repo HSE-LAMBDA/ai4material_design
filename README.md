@@ -103,6 +103,13 @@ This creates the experiment definition in `datasets/experiments/pilot-plain-cv`
 
 It supports generating cross-validation and train/test splits.
 
+### `parse_csv_cif.py`
+For data computed without spin interaction, you might want to add `--populate-per-spin-target` flag that would fill `{band_gap,homo,lumo}_{majority,minority}` from `{band_gap,homo,lumo}`. Example:
+```
+python scripts/parse_csv_cif.py --input-name high_density_defects/GaSe --populate-per-spin-target
+```
+Maybe in the future we might want to add it by default.
+
 ## Running on HSE HPC [obsolete]
 0. ssh to the cluster head node if you gonna run on a slurm cluster
 1. Load the module `module load Python/Anaconda_v11.2020`
