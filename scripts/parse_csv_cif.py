@@ -163,11 +163,13 @@ def main():
     if args.fill_missing_band_properties:
         for kind in ("majority", "minority"):
             for property in ("band_gap", "homo", "lumo"):
-                column = f"{property}_{column}"
-                if column not in structures.columns:
-                    structures[column] = structures[property]
+                spin_column = f"{property}_{kind}"
+                if spin_column not in structures.columns:
+                    structures[spin_column] = structures[property]
+                    logging.info("Filling {}", spin_column)
         if "total_mag" not in structures.columns:
             structures["total_mag"] = 0.
+            logging.info("Setting total_mag = 0")
 
     save_dir = storage_resolver["processed"].joinpath(dataset_name)
     save_dir.mkdir(exist_ok=True, parents=True)
