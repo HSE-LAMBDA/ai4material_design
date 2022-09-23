@@ -1,7 +1,9 @@
 import argparse
 import logging
+from multiprocessing.sharedctypes import Value
 from operator import le
 from pathlib import Path
+import struct
 import numpy as np
 import pandas as pd
 from pymatgen.core import Structure
@@ -95,6 +97,8 @@ def main():
     group.add_argument("--input-folder", type=str)
     group.add_argument("--input-name", type=str)
     parser.add_argument("--populate-per-spin-target", action="store_true")
+    parser.add_argument("--bandgap-from-homo-lumo", action="store_true",
+                        help="Compute band gap from HOMO and LUMO")
     args = parser.parse_args()
 
     storage_resolver = StorageResolver()
@@ -106,6 +110,10 @@ def main():
         input_folder = storage_resolver["csv_cif"].joinpath(dataset_name)
 
     structures, defects = get_dichalcogenides_innopolis(input_folder)
+    if args.bandgap_from_homo_lumo:
+        if "band_gap" in structures.columns:
+            raise ValueError("Band gap already present")
+        structures["band_gap"] = structures["lumo"] - structures["homo"]
     materials = defects.base.unique()
     unit_cells = {}
     for material in materials:
