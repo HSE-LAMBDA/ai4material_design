@@ -96,9 +96,7 @@ def main():
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--input-folder", type=str)
     group.add_argument("--input-name", type=str)
-    parser.add_argument("--populate-per-spin-target", action="store_true")
-    parser.add_argument("--bandgap-from-homo-lumo", action="store_true",
-                        help="Compute band gap from HOMO and LUMO")
+    parser.add_argument("--fill-missing-band-properties", action="store_true")
     args = parser.parse_args()
 
     storage_resolver = StorageResolver()
@@ -110,9 +108,7 @@ def main():
         input_folder = storage_resolver["csv_cif"].joinpath(dataset_name)
 
     structures, defects = get_dichalcogenides_innopolis(input_folder)
-    if args.bandgap_from_homo_lumo:
-        if "band_gap" in structures.columns:
-            raise ValueError("Band gap already present")
+    if args.fill_missing_band_properties and "band_gap" not in structures.columns:
         structures["band_gap"] = structures["lumo"] - structures["homo"]
     materials = defects.base.unique()
     unit_cells = {}
@@ -164,14 +160,14 @@ def main():
     assert structures.apply(lambda row: len(row[COLUMNS["structure"]["sparse_unrelaxed"]]) == len(
         defects.loc[row[COLUMNS["structure"]["descriptor_id"]], "defects"]), axis=1).all()
     
-    if args.populate_per_spin_target:
+    if args.fill_missing_band_properties:
         for kind in ("majority", "minority"):
-            if f"band_gap_{kind}" in structures.columns:
-                raise ValueError("Trying to set per-spin target, while they are already set")
-            structures[f"band_gap_{kind}"] = structures["band_gap"]
-            structures[f"homo_{kind}"] = structures["homo"]
-            structures[f"lumo_{kind}"] = structures["lumo"]
-        structures["total_mag"] = 0.
+            for property in ("band_gap", "homo", "lumo"):
+                column = f"{property}_{column}"
+                if column not in structures.columns:
+                    structures[column] = structures[property]
+        if "total_mag" not in structures.columns:
+            structures["total_mag"] = 0.
 
     save_dir = storage_resolver["processed"].joinpath(dataset_name)
     save_dir.mkdir(exist_ok=True, parents=True)

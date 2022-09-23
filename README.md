@@ -33,7 +33,7 @@ dvc pull datasets/csv_cif/pilot.dvc datasets/experiments/pilot-plain-cv.dvc data
 
 1. Preprocess the data to get targets, pickled full and sparse structures
 ```
-python scripts/parse_csv_cif.py --input-name=pilot
+python scripts/parse_csv_cif.py --input-name=pilot --fill-missing-band-properties
 ```
 This creates `datasets/processed/pilot/{data.pickle.gzip,targets.csv}`
 
