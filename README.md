@@ -38,14 +38,18 @@ python scripts/parse_csv_cif.py --input-name=pilot --fill-missing-band-propertie
 This creates `datasets/processed/pilot/{data.pickle.gzip,targets.csv}`
 
 2. Run the experiments
-Make sure you are logged in to WanDB and use WanDB entity you have access to. Adjust the `--gpus` and `--processes-per-gpu` options to your GPU resources
+This step creates predictions in `datasets/predictions/pilot-plain-cv` and run information at [WanDB](https://wandb.ai/hse_lambda/ai4material_design). Make sure you are logged in to WanDB and use WanDB entity you have access to.
+   - GPU
+Adjust the `--gpus` and `--processes-per-unit` options to your GPU resources
 ```
-python run_experiments.py --experiments pilot-plain-cv --trials megnet_pytorch-sparse-pilot --gpus 0 1 2 3 --processes-per-gpu 2 --wandb-entity hse_lambda
+python run_experiments.py --experiments pilot-plain-cv --trials megnet_pytorch-sparse-pilot --gpus 0 1 2 3 --processes-per-unit 2 --wandb-entity hse_lambda
 ```
-If you want to submit it as slurm job then modify `slurm-job.sh` with the desired argument and export the required enviroment variables
-then run `./slurm-job.sh`
-
-This creates predictions in `datasets/predictions/pilot-plain-cv` and run information at [WanDB](https://wandb.ai/hse_lambda/ai4material_design).
+   - CPU
+```
+python run_experiments.py --experiments pilot-plain-cv --trials megnet_pytorch-sparse-pilot --cpu --processes-per-unit 8 --wandb-entity hse_lambda
+```
+   - slurm
+   Modify `slurm-job.sh` with the desired argument and export the required enviroment variables then run `./slurm-job.sh`
 
 3. Plot the plots
 ```
