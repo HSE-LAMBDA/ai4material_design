@@ -4,7 +4,7 @@ import numpy as np
 import wandb
 from pathlib import Path
 import yaml
-from itertools import cycle, product
+from itertools import cycle, product, starmap
 from functools import partial
 import pandas as pd
 from typing import Callable, List, Dict, Union
@@ -26,9 +26,12 @@ def main():
     parser = argparse.ArgumentParser("Runs experiments")
     parser.add_argument("--experiments", type=str, nargs="+")
     parser.add_argument("--trials", type=str, nargs="+")
-    parser.add_argument("--gpus", type=int, nargs="+")
+    hardware = parser.add_mutually_exclusive_group()
+    hardware.add_argument("--gpus", type=int, nargs="+")
+    hardware.add_argument("--cpu", action="store_true")
     parser.add_argument("--wandb-entity", type=str)
-    parser.add_argument("--processes-per-gpu", type=int, default=1)
+    parser.add_argument("--processes-per-unit", type=int, default=1,
+                        help="Number of processes to use per GPU or CPU")
     parser.add_argument("--targets", type=str, nargs="+",
                         help="Only run on these targets")
     args = parser.parse_args()
@@ -38,18 +41,22 @@ def main():
         os.environ["WANDB_RUN_GROUP"] = "2D-crystal-" + wandb.util.generate_id()
     if args.wandb_entity:
         os.environ["WANDB_ENTITY"] = args.wandb_entity
+    if args.cpu:
+        gpus = [None]
+    else:
+        gpus = args.gpus
     for experiment_name in args.experiments:
         run_experiment(experiment_name,
                        args.trials,
-                       args.gpus,
-                       args.processes_per_gpu,
+                       gpus,
+                       args.processes_per_unit,
                        args.targets)
 
 
 def run_experiment(experiment_name: str,
                    trials_names: List[str],
                    gpus: List[int],
-                   processes_per_gpu: int,
+                   processes_per_unit: int,
                    requested_targets: List[str]=None) -> None:
     """
     Runs an experiment.
@@ -58,7 +65,7 @@ def run_experiment(experiment_name: str,
         experiment_name: Name of the experiment.
         trials_names: Names of the trials.
         gpus: List of GPUs to use.
-        processes_per_gpu: Number of processes to use per GPU.
+        processes_per_unit: Number of processes to use per GPU.
         targets: List of targets to run on. If None, run on all targets in the experiment.
     Used files and fields:
         experiment - config file, path to the dataset, cv strategy, n folds and targets
@@ -117,7 +124,7 @@ def run_experiment(experiment_name: str,
             IS_INTENSIVE[target_name],
             this_trial["model_params"],
             gpus,
-            processes_per_gpu,
+            processes_per_unit,
             wandb_config,
             checkpoint_path=storage_resolver["checkpoints"].joinpath(experiment_name, str(target_name), this_trial_name),
             strategy=experiment['strategy'],
@@ -142,7 +149,7 @@ def cross_val_predict(
     target_is_intensive: bool,
     model_params: Dict,
     gpus: List[int],
-    processes_per_gpu: int,
+    processes_per_unit: int,
     wandb_config,
     checkpoint_path,
     strategy="cv",
@@ -159,8 +166,25 @@ def cross_val_predict(
         raise ValueError('Unknown split strategy')    
     assert set(folds.unique()) == set(range(n_folds))
     if strategy == "cv":
-        with get_context('spawn').Pool(len(gpus) * processes_per_gpu, maxtasksperchild = 1) as pool:
-            predictions = pool.starmap(
+        # Not necessary, but makes debug easier
+        n_processes = len(gpus) * processes_per_unit
+        if n_processes > 1:
+            with get_context('spawn').Pool(n_processes, maxtasksperchild=1) as pool:
+                predictions = pool.starmap(
+                    partial(predict_on_fold,
+                            n_folds=n_folds,
+                            folds=folds,
+                            data=data,
+                            targets=targets,
+                            predict_func=predict_func,
+                            target_is_intensive=target_is_intensive,
+                            model_params=model_params,
+                            wandb_config=wandb_config,
+                            checkpoint_path=checkpoint_path),
+                    zip(test_fold_generator, cycle(gpus)),
+                )
+        else:
+            predictions = starmap(
                 partial(predict_on_fold,
                         n_folds=n_folds,
                         folds=folds,
