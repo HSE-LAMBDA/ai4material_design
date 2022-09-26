@@ -15,7 +15,7 @@
    ```
    poetry shell
    ```
-3. Install ordinary dependcies
+3. Install ordinary dependencies
 ```
 poetry install
 ```
