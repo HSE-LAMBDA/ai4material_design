@@ -34,6 +34,8 @@ def main():
                         help="Number of processes to use per GPU or CPU")
     parser.add_argument("--targets", type=str, nargs="+",
                         help="Only run on these targets")
+    parser.add_argument("--n_jobs", type=int, default=-1)
+
     args = parser.parse_args()
 
     os.environ["WANDB_START_METHOD"] = "thread"
@@ -50,14 +52,17 @@ def main():
                        args.trials,
                        gpus,
                        args.processes_per_unit,
-                       args.targets)
+                       args.targets,
+                       args.n_jobs
+                       )
 
 
 def run_experiment(experiment_name: str,
                    trials_names: List[str],
                    gpus: List[int],
                    processes_per_unit: int,
-                   requested_targets: List[str]=None) -> None:
+                   requested_targets: List[str]=None,
+                   n_jobs=1) -> None:
     """
     Runs an experiment.
 
@@ -127,6 +132,7 @@ def run_experiment(experiment_name: str,
             processes_per_unit,
             wandb_config,
             checkpoint_path=storage_resolver["checkpoints"].joinpath(experiment_name, str(target_name), this_trial_name),
+            n_jobs=n_jobs,
             strategy=experiment['strategy'],
         )
         predictions.rename(lambda target_name: f"predicted_{target_name}_test", axis=1, inplace=True)
@@ -152,6 +158,7 @@ def cross_val_predict(
     processes_per_unit: int,
     wandb_config,
     checkpoint_path,
+    n_jobs,
     strategy="cv",
 ):
     assert data.index.equals(targets.index)
@@ -194,9 +201,12 @@ def cross_val_predict(
                         target_is_intensive=target_is_intensive,
                         model_params=model_params,
                         wandb_config=wandb_config,
-                        checkpoint_path=checkpoint_path),
+                        checkpoint_path=checkpoint_path,
+                        n_jobs=n_jobs),
                 zip(test_fold_generator, cycle(gpus)),
             )
+            
+                
     # TODO(kazeevn)
     # Should we add explicit Structure -> graph preprocessing with results shared?
     elif strategy == "train_test":
@@ -250,6 +260,7 @@ def predict_on_fold(
     model_params,
     wandb_config,
     checkpoint_path,
+    n_jobs,
 ):
     train_folds = set(range(n_folds)) - set((test_fold,))
     train_ids = folds[folds.isin(train_folds)]
@@ -273,6 +284,7 @@ def predict_on_fold(
             model_params,
             gpu,
             checkpoint_path=checkpoint_path.joinpath('_'.join(map(str, train_folds))),
+            n_jobs=n_jobs
         )
 
 
