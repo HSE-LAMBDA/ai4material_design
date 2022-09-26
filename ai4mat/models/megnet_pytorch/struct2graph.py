@@ -23,7 +23,7 @@ class SimpleCrystalConverter:
             atom_converter=None,
             bond_converter=None,
             add_z_bond_coord=False,
-            add_eos_features=True,
+            add_eos_features=False,
             cutoff=5.0,
             ignore_state=False,
     ):
