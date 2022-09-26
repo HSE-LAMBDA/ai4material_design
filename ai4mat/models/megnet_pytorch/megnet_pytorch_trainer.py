@@ -51,8 +51,8 @@ class MEGNetPyTorchTrainer(Trainer):
 
         
         print("converting data")
-        self.train_structures = Parallel(n_jobs=n_jobs)(delayed(self.converter.convert)(s) for s in tqdm(train_data))
-        self.test_structures = Parallel(n_jobs=n_jobs)(delayed(self.converter.convert)(s) for s in tqdm(test_data))
+        self.train_structures = Parallel(n_jobs=n_jobs, backend='threading')(delayed(self.converter.convert)(s) for s in tqdm(train_data))
+        self.test_structures = Parallel(n_jobs=n_jobs, backend='threading')(delayed(self.converter.convert)(s) for s in tqdm(test_data))
         self.Scaler.fit(self.train_structures)
         self.target_name = target_name
 
