@@ -90,7 +90,7 @@ class EOS:
             # get shells finder object
             self.shells_obj = Shells(structure)
             # get the shells
-            shells_sites = self.get_shell(structure, self.find_center_index(structure, center_idx), self.num_shells)
+            shells_sites = self.get_shell(structure, self.find_center_index(structure, center_idx), self.num_shells) + [site]
             # remove all other species
             _struct = self.remove_other_species(Structure.from_sites(shells_sites), site)
             # add shells to the site
