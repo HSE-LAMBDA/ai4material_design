@@ -43,8 +43,7 @@ def get_E1(eigenvalues: dict[str, np.ndarray], separate_spins: bool) -> list[flo
 def extract_data_from_vasp(
     vasprun_directory: Path,
     band_occupancy_tolerence: float = None,
-    separate_spins: bool = False,
-    subtract_E1: bool = False) -> dict:
+    separate_spins: bool = False) -> dict:
     """
     Extracts relevant fields from VASP output.
     """
@@ -59,9 +58,9 @@ def extract_data_from_vasp(
     data['energy'] = vasprun_file.final_energy
     data['fermi_level'] = vasprun_file.efermi
     outcar = Outcar(vasp_folder / "OUTCAR")
-    if subtract_E1:
-        E_1 = get_E1(vasprun_file.eigenvalues, separate_spins)
+    E_1 = get_E1(vasprun_file.eigenvalues, separate_spins)
     if separate_spins:
+        assert len(E_1) == 2
         data["total_mag"] = np.abs(outcar.total_mag)
         eigenvalue_band_properties = list(zip(*vasprun_file.eigenvalue_band_properties))
         indices = {
@@ -71,19 +70,14 @@ def extract_data_from_vasp(
             data[f'band_gap_{kind}'], \
                 data[f'homo_{kind}'], \
                 data[f'lumo_{kind}'], _ = eigenvalue_band_properties[index]
-            if subtract_E1:
-                assert len(E_1) == 2
-                data[f'homo_{kind}'] -= E_1[index]
-                data[f'lumo_{kind}'] -= E_1[index]
+            data[f'E_1_{kind}'] = E_1[index]
     else:
         data['band_gap'],\
             data['homo'],\
             data['lumo'], _ = \
             vasprun_file.eigenvalue_band_properties
-        if subtract_E1:
-            assert len(E_1) == 1
-            data[f'homo'] -= E_1[0]
-            data[f'lumo'] -= E_1[0]
+        assert len(E_1) == 1
+        data["E_1"] = E_1[0]
     return data
 
 
@@ -91,13 +85,13 @@ def main():
     parser = argparse.ArgumentParser(description='Process raw VASP output into csv_cif dataset')
     parser.add_argument('--input-vasp', help='Directory containing VASP outputs. '
                         ' Usually found in datasets/raw_vasp', required=True)
-    parser.add_argument('--input-structures', help='Directory with defects.csv, descriptors.csv '
+    parser.add_argument('--input-structures', help='Directory with defects.csv.gz, descriptors.csv '
                         'and initial structures POSCARs. Usually found in datasets/POSCARs', required=True)
     parser.add_argument('--output-csv-cif', help='Output directory with csv+cif. '
-                        'Usually shoudld be in datasts/csv_cif', required=True)
+                        'Usually should be in datasts/csv_cif', required=True)
     parser.add_argument('--poscar-prefix', help='Prefix that makes POSCAR in '
                         'input-vasp from structure id', default="poscar_")
-    parser.add_argument('--band-occupancy-tolerence', type=float, default=1e-8,
+    parser.add_argument('--band-occupancy-tolerence', type=float, default=5e-2,
                         help='Tolerence for band occupancy')
     parser.add_argument('--pristine-folder', type=str, help=
                         "Folder with chemical potentials (elements.csv) and "
@@ -107,8 +101,6 @@ def main():
     # https://github.com/materialsproject/pymatgen/blob/baf62b77788fc43387e15b1e0b60094132815c47/pymatgen/io/vasp/outputs.py#L313
     parser.add_argument("--separate-spins", action="store_true",
                         help="Report band gap separately for each spin channel")
-    parser.add_argument("--normalize-homo-lumo", action="store_true",
-                        help="Normalize HOMO and LUMO")
     args = parser.parse_args()
     structures_description = read_structures_descriptions(args.input_structures)
     structures_path = Path(args.input_structures)
@@ -121,8 +113,7 @@ def main():
             try:
                 data = extract_data_from_vasp(structure_dir,
                                               band_occupancy_tolerence=args.band_occupancy_tolerence,
-                                              separate_spins=args.separate_spins,
-                                              subtract_E1=args.normalize_homo_lumo)
+                                              separate_spins=args.separate_spins)
             except (FileNotFoundError, ParseError) as e:
                 if args.allow_missing:
                     if isinstance(e, FileNotFoundError):
@@ -139,21 +130,11 @@ def main():
             tar_info.size=len(cif_string)
             tar.addfile(tar_info, BytesIO(cif_string))
 
-    if args.normalize_homo_lumo:
-        pristine_structure_properties = pd.read_csv(
-            pristine_path / "initial_structures.csv",
-            converters={"cell_size": lambda x: tuple(eval(x))},
-            index_col=["base", "cell_size"])
-        normalization_constants = pristine_structure_properties["E_VBM"] - pristine_structure_properties["E_1"]
-        defect_descriptions = read_defects_descriptions(structures_path)
-
-
     structures_description.to_csv(output_csv_cif_dir / 'defects.csv.gz')
     shutil.copyfile(structures_path / 'descriptors.csv', output_csv_cif_dir / 'descriptors.csv')
     pristine_path = Path(args.pristine_folder)    
     shutil.copyfile(pristine_path / 'elements.csv', output_csv_cif_dir / 'elements.csv')
     shutil.copyfile(pristine_path / 'initial_structures.csv', output_csv_cif_dir / 'initial_structures.csv')
-
 
 
 if __name__ == "__main__":

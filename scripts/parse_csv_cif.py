@@ -1,7 +1,7 @@
 import argparse
 from functools import cached_property
 from pathlib import Path
-import struct
+import logging
 import numpy as np
 import pandas as pd
 
@@ -180,6 +180,7 @@ def main():
     group.add_argument("--input-folder", type=str)
     group.add_argument("--input-name", type=str)
     parser.add_argument("--fill-missing-band-properties", action="store_true")
+    parser.add_argument("--normalize-homo-lumo", action="store_true")
     args = parser.parse_args()
 
     storage_resolver = StorageResolver()
@@ -242,13 +243,33 @@ def main():
     assert structures.apply(lambda row: len(row[COLUMNS["structure"]["sparse_unrelaxed"]]) == len(
         defects.loc[row[COLUMNS["structure"]["descriptor_id"]], "defects"]), axis=1).all()
     
+    if args.normalize_homo_lumo:
+        for kind in ("", "majority", "minority"):
+            for property in ("homo", "lumo"):
+                column = "_".join((property, kind))
+                if column not in structures.columns:
+                    continue
+                defects_per_structure = defects.loc[structures[COLUMNS["structure"]["descriptor_id"]]]
+                defects_key = (defects_per_structure.base, defects_per_structure.cell)
+                print(defects_key)
+                normalization_constant = initial_structure_properties.loc[defects_key, "E_VBM"] - initial_structure_properties.loc[defects_key, "E_1"]
+                print(structures[column])
+                print(structures["_".join(("E_1", kind))])
+                print(normalization_constant)
+                structures[f"normalized_{column}"] = \
+                    structures[column] - structures["_".join(("E_1", kind))] - normalization_constant
+                
+
     if args.fill_missing_band_properties:
         for kind in ("majority", "minority"):
-            for property in ("band_gap", "homo", "lumo"):
+            for property in ("band_gap", "homo", "lumo", "normalized_homo", "normalized_lumo"):
                 spin_column = f"{property}_{kind}"
                 if spin_column not in structures.columns:
-                    structures[spin_column] = structures[property]
-                    logging.info("Filling {}", spin_column)
+                    if property in structures.columns:
+                        structures[spin_column] = structures[property]
+                        logging.info("Filling {}", spin_column)
+                    else:
+                        logging.warning("{} is missing in data, can't fill {}", property, spin_column)
         if "total_mag" not in structures.columns:
             structures["total_mag"] = 0.
             logging.info("Setting total_mag = 0")
