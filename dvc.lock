@@ -1,0 +1,296 @@
+schema: '2.0'
+stages:
+  csv-cif-spin-500-data@GaSe:
+    cmd: python scripts/vasp_to_csv_cif.py --input-vasp "datasets/raw_vasp/high_density_defects/GaSe_spin_500"
+      --input-structures "datasets/POSCARs/GaSe" --output-csv-cif "datasets/csv_cif/high_density_defects/GaSe_spin_500"
+      --pristine-folder datasets/others/pristine_high_density --separate-spins
+    deps:
+    - path: datasets/POSCARs/GaSe
+      md5: 81de7a0852048113329d9b7a20ec396b.dir
+      size: 2297962
+      nfiles: 502
+    - path: datasets/others/pristine_high_density
+      md5: 2d5e8d944914ac80b59959fde18d7fec.dir
+      size: 568
+      nfiles: 2
+    - path: datasets/raw_vasp/high_density_defects/GaSe_spin_500
+      md5: e788c7d02a8c5a08948e723878595a10.dir
+      size: 527285871
+      nfiles: 7000
+    - path: scripts/vasp_to_csv_cif.py
+      md5: 2b7cca94ab95076f0aaa27aa3d8a794f
+      size: 6770
+    outs:
+    - path: datasets/csv_cif/high_density_defects/GaSe_spin_500
+      md5: d8d130a6b7054fc0938250855184f1c5.dir
+      size: 311880
+      nfiles: 5
+  csv-cif-spin-500-data@InSe:
+    cmd: python scripts/vasp_to_csv_cif.py --input-vasp "datasets/raw_vasp/high_density_defects/InSe_spin_500"
+      --input-structures "datasets/POSCARs/InSe" --output-csv-cif "datasets/csv_cif/high_density_defects/InSe_spin_500"
+      --pristine-folder datasets/others/pristine_high_density --separate-spins
+    deps:
+    - path: datasets/POSCARs/InSe
+      md5: ac5bac54260a9774c0590f15fe835a03.dir
+      size: 2290862
+      nfiles: 502
+    - path: datasets/others/pristine_high_density
+      md5: 2d5e8d944914ac80b59959fde18d7fec.dir
+      size: 568
+      nfiles: 2
+    - path: datasets/raw_vasp/high_density_defects/InSe_spin_500
+      md5: 53416fed7e9dda3c4442a9b0ffa090f0.dir
+      size: 471477275
+      nfiles: 7000
+    - path: scripts/vasp_to_csv_cif.py
+      md5: 2b7cca94ab95076f0aaa27aa3d8a794f
+      size: 6770
+    outs:
+    - path: datasets/csv_cif/high_density_defects/InSe_spin_500
+      md5: ea2ccb789bc06fe93f4d53e289d579ea.dir
+      size: 302247
+      nfiles: 5
+  processed-high-density-spin@GaSe:
+    cmd: python scripts/parse_csv_cif.py --input-name=high_density_defects/GaSe_spin_500
+      --normalize-homo-lumo --fill-missing-band-properties --skip-eos
+    deps:
+    - path: datasets/csv_cif/high_density_defects/GaSe_spin_500
+      md5: d8d130a6b7054fc0938250855184f1c5.dir
+      size: 311880
+      nfiles: 5
+    - path: scripts/parse_csv_cif.py
+      md5: 288a55d899d9c2bca5be1df78129983e
+      size: 13003
+    outs:
+    - path: datasets/processed/high_density_defects/GaSe_spin_500
+      md5: 70cdec1e7be418c43c04780b67a5192b.dir
+      size: 420814
+      nfiles: 2
+  csv-cif-spin-500-data@hBN:
+    cmd: python scripts/vasp_to_csv_cif.py --input-vasp "datasets/raw_vasp/high_density_defects/hBN_spin_500"
+      --input-structures "datasets/POSCARs/hBN" --output-csv-cif "datasets/csv_cif/high_density_defects/hBN_spin_500"
+      --pristine-folder datasets/others/pristine_high_density --separate-spins
+    deps:
+    - path: datasets/POSCARs/hBN
+      md5: e6fa484d7456798925b84e26bbcdd115.dir
+      size: 4781835
+      nfiles: 502
+    - path: datasets/others/pristine_high_density
+      md5: 2d5e8d944914ac80b59959fde18d7fec.dir
+      size: 568
+      nfiles: 2
+    - path: datasets/raw_vasp/high_density_defects/hBN_spin_500
+      md5: a053ff47a5f8f997ef331cfdc9981697.dir
+      size: 1101009839
+      nfiles: 7000
+    - path: scripts/vasp_to_csv_cif.py
+      md5: 2b7cca94ab95076f0aaa27aa3d8a794f
+      size: 6770
+    outs:
+    - path: datasets/csv_cif/high_density_defects/hBN_spin_500
+      md5: 74797493d2e42e4e4e799ac8b74a0f0b.dir
+      size: 211420
+      nfiles: 5
+  processed-high-density-spin@hBN:
+    cmd: python scripts/parse_csv_cif.py --input-name=high_density_defects/hBN_spin_500
+      --normalize-homo-lumo --fill-missing-band-properties --skip-eos
+    deps:
+    - path: datasets/csv_cif/high_density_defects/hBN_spin_500
+      md5: 74797493d2e42e4e4e799ac8b74a0f0b.dir
+      size: 211420
+      nfiles: 5
+    - path: scripts/parse_csv_cif.py
+      md5: 288a55d899d9c2bca5be1df78129983e
+      size: 13003
+    outs:
+    - path: datasets/processed/high_density_defects/hBN_spin_500
+      md5: b065ba4d7d8ac3a7e69211384f98af07.dir
+      size: 370373
+      nfiles: 2
+  processed-high-density-spin@InSe:
+    cmd: python scripts/parse_csv_cif.py --input-name=high_density_defects/InSe_spin_500
+      --normalize-homo-lumo --fill-missing-band-properties --skip-eos
+    deps:
+    - path: datasets/csv_cif/high_density_defects/InSe_spin_500
+      md5: ea2ccb789bc06fe93f4d53e289d579ea.dir
+      size: 302247
+      nfiles: 5
+    - path: scripts/parse_csv_cif.py
+      md5: 288a55d899d9c2bca5be1df78129983e
+      size: 13003
+    outs:
+    - path: datasets/processed/high_density_defects/InSe_spin_500
+      md5: ac9d366fe9bc0a392298ee5c24b78df6.dir
+      size: 420542
+      nfiles: 2
+  processed-high-density@hBN_spin:
+    cmd: python scripts/parse_csv_cif.py --input-name=high_density_defects/hBN_spin_500
+      --normalize-homo-lumo --fill-missing-band-properties --skip-eos
+    deps:
+    - path: datasets/csv_cif/high_density_defects/hBN_spin_500
+      md5: 74797493d2e42e4e4e799ac8b74a0f0b.dir
+      size: 211420
+      nfiles: 5
+    - path: scripts/parse_csv_cif.py
+      md5: 288a55d899d9c2bca5be1df78129983e
+      size: 13003
+    outs:
+    - path: datasets/processed/high_density_defects/hBN_spin_500
+      md5: b065ba4d7d8ac3a7e69211384f98af07.dir
+      size: 370373
+      nfiles: 2
+  processed-high-density@GaSe_spin:
+    cmd: python scripts/parse_csv_cif.py --input-name=high_density_defects/GaSe_spin_500
+      --normalize-homo-lumo --fill-missing-band-properties --skip-eos
+    deps:
+    - path: datasets/csv_cif/high_density_defects/GaSe_spin_500
+      md5: d8d130a6b7054fc0938250855184f1c5.dir
+      size: 311880
+      nfiles: 5
+    - path: scripts/parse_csv_cif.py
+      md5: 288a55d899d9c2bca5be1df78129983e
+      size: 13003
+    outs:
+    - path: datasets/processed/high_density_defects/GaSe_spin_500
+      md5: 70cdec1e7be418c43c04780b67a5192b.dir
+      size: 420814
+      nfiles: 2
+  processed-high-density@InSe_spin:
+    cmd: python scripts/parse_csv_cif.py --input-name=high_density_defects/InSe_spin_500
+      --normalize-homo-lumo --fill-missing-band-properties --skip-eos
+    deps:
+    - path: datasets/csv_cif/high_density_defects/InSe_spin_500
+      md5: ea2ccb789bc06fe93f4d53e289d579ea.dir
+      size: 302247
+      nfiles: 5
+    - path: scripts/parse_csv_cif.py
+      md5: 288a55d899d9c2bca5be1df78129983e
+      size: 13003
+    outs:
+    - path: datasets/processed/high_density_defects/InSe_spin_500
+      md5: ac9d366fe9bc0a392298ee5c24b78df6.dir
+      size: 420542
+      nfiles: 2
+  csv-cif-no-spin-500-data@MoS2:
+    cmd: python scripts/vasp_to_csv_cif.py --input-vasp "datasets/raw_vasp/high_density_defects/MoS2_500"
+      --input-structures "datasets/POSCARs/MoS2" --output-csv-cif "datasets/csv_cif/high_density_defects/MoS2_500"
+      --pristine-folder datasets/others/pristine_high_density
+    deps:
+    - path: datasets/POSCARs/MoS2
+      md5: ea83da07e80eff558c770d2d570fabe6.dir
+      size: 7118384
+      nfiles: 503
+    - path: datasets/others/pristine_high_density
+      md5: 2d5e8d944914ac80b59959fde18d7fec.dir
+      size: 568
+      nfiles: 2
+    - path: datasets/raw_vasp/high_density_defects/MoS2_500
+      md5: 5799e5525fe147e1fa75e8ad1b81cc7e.dir
+      size: 3811906029
+      nfiles: 7606
+    - path: scripts/vasp_to_csv_cif.py
+      md5: 2b7cca94ab95076f0aaa27aa3d8a794f
+      size: 6770
+    outs:
+    - path: datasets/csv_cif/high_density_defects/MoS2_500
+      md5: 0c2fe4de231f729683a05d6a4c662b05.dir
+      size: 400460
+      nfiles: 6
+  processed-high-density@MoS2:
+    cmd: python scripts/parse_csv_cif.py --input-name=high_density_defects/MoS2_500
+      --normalize-homo-lumo --fill-missing-band-properties --skip-eos
+    deps:
+    - path: datasets/csv_cif/high_density_defects/MoS2_500
+      md5: 0c2fe4de231f729683a05d6a4c662b05.dir
+      size: 400460
+      nfiles: 6
+    - path: scripts/parse_csv_cif.py
+      md5: 288a55d899d9c2bca5be1df78129983e
+      size: 13003
+    outs:
+    - path: datasets/processed/high_density_defects/MoS2_500
+      md5: 0055571fbb184c7fed02ffa9f4aaf8e0.dir
+      size: 488400
+      nfiles: 2
+  csv-cif-no-spin-500-data@WSe2:
+    cmd: python scripts/vasp_to_csv_cif.py --input-vasp "datasets/raw_vasp/high_density_defects/WSe2_500"
+      --input-structures "datasets/POSCARs/WSe2" --output-csv-cif "datasets/csv_cif/high_density_defects/WSe2_500"
+      --pristine-folder datasets/others/pristine_high_density
+    deps:
+    - path: datasets/POSCARs/WSe2
+      md5: 904803382f861967eb2b7283acde92a3.dir
+      size: 7119464
+      nfiles: 503
+    - path: datasets/others/pristine_high_density
+      md5: 2d5e8d944914ac80b59959fde18d7fec.dir
+      size: 568
+      nfiles: 2
+    - path: datasets/raw_vasp/high_density_defects/WSe2_500
+      md5: e940c7cf208a03312591977cf62bf920.dir
+      size: 4018991135
+      nfiles: 7606
+    - path: scripts/vasp_to_csv_cif.py
+      md5: 2b7cca94ab95076f0aaa27aa3d8a794f
+      size: 6770
+    outs:
+    - path: datasets/csv_cif/high_density_defects/WSe2_500
+      md5: 7190a7ed586b24269afd6a2436248568.dir
+      size: 390649
+      nfiles: 6
+  processed-high-density@WSe2:
+    cmd: python scripts/parse_csv_cif.py --input-name=high_density_defects/WSe2_500
+      --normalize-homo-lumo --fill-missing-band-properties --skip-eos
+    deps:
+    - path: datasets/csv_cif/high_density_defects/WSe2_500
+      md5: 7190a7ed586b24269afd6a2436248568.dir
+      size: 390649
+      nfiles: 6
+    - path: scripts/parse_csv_cif.py
+      md5: 288a55d899d9c2bca5be1df78129983e
+      size: 13003
+    outs:
+    - path: datasets/processed/high_density_defects/WSe2_500
+      md5: b32e1a4e6daedd35cbfaff2453ab3bd4.dir
+      size: 487902
+      nfiles: 2
+  csv-cif-spin-500-data@BP:
+    cmd: python scripts/vasp_to_csv_cif.py --input-vasp "datasets/raw_vasp/high_density_defects/BP_spin_500"
+      --input-structures "datasets/POSCARs/BP" --output-csv-cif "datasets/csv_cif/high_density_defects/BP_spin_500"
+      --pristine-folder datasets/others/pristine_high_density --separate-spins
+    deps:
+    - path: datasets/POSCARs/BP
+      md5: 0e3fd0895c52a95c66d7d9820ee12f56.dir
+      size: 2124251
+      nfiles: 502
+    - path: datasets/others/pristine_high_density
+      md5: 2d5e8d944914ac80b59959fde18d7fec.dir
+      size: 568
+      nfiles: 2
+    - path: datasets/raw_vasp/high_density_defects/BP_spin_500
+      md5: b44725fcbf29927f34a3e759b0388b56.dir
+      size: 888270821
+      nfiles: 7063
+    - path: scripts/vasp_to_csv_cif.py
+      md5: 2b7cca94ab95076f0aaa27aa3d8a794f
+      size: 6770
+    outs:
+    - path: datasets/csv_cif/high_density_defects/BP_spin_500
+      md5: 931f1c9d5632eea9aefbffe97538d420.dir
+      size: 201222
+      nfiles: 5
+  processed-high-density@BP_spin:
+    cmd: python scripts/parse_csv_cif.py --input-name=high_density_defects/BP_spin_500
+      --normalize-homo-lumo --fill-missing-band-properties --skip-eos
+    deps:
+    - path: datasets/csv_cif/high_density_defects/BP_spin_500
+      md5: 931f1c9d5632eea9aefbffe97538d420.dir
+      size: 201222
+      nfiles: 5
+    - path: scripts/parse_csv_cif.py
+      md5: 288a55d899d9c2bca5be1df78129983e
+      size: 13003
+    outs:
+    - path: datasets/processed/high_density_defects/BP_spin_500
+      md5: 34a0b091ebb19834996739dd339a0ee6.dir
+      size: 397467
+      nfiles: 2

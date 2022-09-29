@@ -1,0 +1,48 @@
+stages:
+  csv-cif-no-spin-500-data:
+    foreach: 
+      - WSe2
+      - MoS2
+    do:
+      cmd: python scripts/vasp_to_csv_cif.py --input-vasp "datasets/raw_vasp/high_density_defects/${item}_500"
+        --input-structures "datasets/POSCARs/${item}" --output-csv-cif "datasets/csv_cif/high_density_defects/${item}_500"
+        --pristine-folder datasets/others/pristine_high_density
+      deps:
+        - datasets/POSCARs/${item}
+        - datasets/others/pristine_high_density
+        - datasets/raw_vasp/high_density_defects/${item}_500
+        - scripts/vasp_to_csv_cif.py
+      outs:
+        - datasets/csv_cif/high_density_defects/${item}_500
+  csv-cif-spin-500-data:
+    foreach: 
+      - BP
+      - GaSe
+      - hBN
+      - InSe
+    do:
+      cmd: python scripts/vasp_to_csv_cif.py --input-vasp "datasets/raw_vasp/high_density_defects/${item}_spin_500"
+        --input-structures "datasets/POSCARs/${item}" --output-csv-cif "datasets/csv_cif/high_density_defects/${item}_spin_500"
+        --pristine-folder datasets/others/pristine_high_density --separate-spins
+      deps:
+        - datasets/POSCARs/${item}
+        - datasets/others/pristine_high_density
+        - datasets/raw_vasp/high_density_defects/${item}_spin_500
+        - scripts/vasp_to_csv_cif.py
+      outs:
+        - datasets/csv_cif/high_density_defects/${item}_spin_500
+  processed-high-density:
+    foreach: 
+      - BP_spin
+      - GaSe_spin
+      - hBN_spin
+      - InSe_spin
+      - MoS2
+      - WSe2
+    do:
+      cmd: python scripts/parse_csv_cif.py --input-name=high_density_defects/${item}_500 --normalize-homo-lumo --fill-missing-band-properties --skip-eos
+      deps:
+        - scripts/parse_csv_cif.py
+        - datasets/csv_cif/high_density_defects/${item}_500
+      outs:
+        - datasets/processed/high_density_defects/${item}_500

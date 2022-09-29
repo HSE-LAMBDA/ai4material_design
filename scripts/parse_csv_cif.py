@@ -180,6 +180,8 @@ def main():
     group.add_argument("--input-name", type=str)
     parser.add_argument("--fill-missing-band-properties", action="store_true")
     parser.add_argument("--normalize-homo-lumo", action="store_true")
+    parser.add_argument("--skip-eos", action="store_true",
+                        help="Don't add EOS indices")
     args = parser.parse_args()
 
     storage_resolver = StorageResolver()
@@ -189,9 +191,12 @@ def main():
     else:
         dataset_name = args.input_name
         input_folder = storage_resolver["csv_cif"].joinpath(dataset_name)
-    eos = EOS()
+
     structures, defects = get_dichalcogenides_innopolis(input_folder)
-    if args.fill_missing_band_properties and "band_gap" not in structures.columns:
+    if (args.fill_missing_band_properties and
+        "band_gap" not in structures.columns and
+        "homo" in structures.columns and
+        "lumo" in structures.columns):
         structures["band_gap"] = structures["lumo"] - structures["homo"]
     materials = defects.base.unique()
     unit_cells = {}
@@ -205,7 +210,8 @@ def main():
                 "defects_generation",
                 "molecules",
                 f"{material}.cif")).get_structures(primitive=False)[0]
-        unit_cells[material] = eos.get_augmented_struct(unit_cells[material])
+        if not args.skip_eos:
+            unit_cells[material] = EOS().get_augmented_struct(unit_cells[material])
 
     data_path = Path(input_folder)
     initial_structure_properties = pd.read_csv(

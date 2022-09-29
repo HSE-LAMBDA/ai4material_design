@@ -28,7 +28,7 @@ Below we descrbie a lightweight test run.
 
 0. Pull the inputs from DVC
 ```
-dvc pull datasets/csv_cif/pilot.dvc datasets/experiments/pilot-plain-cv.dvc datasets/processed/pilot.dvc
+dvc pull datasets/csv_cif/pilot datasets/experiments/pilot-plain-cv datasets/processed/pilot
 ```
 
 1. Preprocess the data to get targets, pickled full and sparse structures
@@ -56,8 +56,20 @@ Modify `slurm-job.sh` with the desired argument and export the required envirome
 python scripts/plot.py --experiments pilot-plain-cv --trials megnet_pytorch-sparse-pilot
 ```
 This produces plots in `datasets/plots/pilot-plain-cv`
-
-## Running with GNU parallel
+## High-density dataset: DVC pipline
+### Getting the data
+The `.dvc` files are no longer there - but the data are!
+```
+dvc pull datasets/csv_cif/high_density_defects/{BP_spin,GaSe_spin,hBN_spin,InSe_spin,MoS2,WSe2}_500
+dvc pull datasets/processed/high_density_defects/{BP_spin,GaSe_spin,hBN_spin,InSe_spin,MoS2,WSe2}_500
+```
+### Reproducing the pipeline
+VASP -> csv_cif -> processed for high-density dataset has been implemented a [DVC pipeilne](https://dvc.org/doc/start/data-management/data-pipelines)
+```
+parallel --delay 3 -j6 dvc repro processed-high-density@{} ::: hBN_spin GaSe_spin hBN_spin InSe_spin MoS2 WSe2
+```
+Note that unlike GNU Make DVC [currently](https://github.com/iterative/dvc/issues/755) doesn't internally parallelize execution, so we use GNU parallel. We also use `--delay 3` to avoid [DVC lock race](https://github.com/iterative/dvc/issues/755).
+## Running expeiments with GNU parallel
 Single experiment family:
 ```bash
 parallel -a datasets/experiments/MoS2_to_WSe2/family.txt -j4 python run_experiments.py --experiments {1} --trials megnet_pytorch-sparse-10 --gpus 0 --wandb-entity hse_lambda
@@ -66,11 +78,10 @@ Multiple families:
 ```bash
 awk 1 datasets/experiments/MoS2_to_WSe2_4?/family.txt | WANDB_RUN_GROUP="MoS2_to_WSe2 $(date --rfc-3339=seconds)" parallel -j4 python run_experiments.py --experiments {} --trials megnet_pytorch-sparse-10 --gpus 0 --wandb-entity hse_lambda :::: -
 ```
-
 ## Running CatBoost
 0. Pull the inputs from DVC
 ```
-dvc pull datasets/csv_cif/pilot.dvc datasets/experiments/matminer-test.dvc
+dvc pull datasets/csv_cif/pilot datasets/experiments/matminer-test
 ```
 
 1. Prepare the targets and matminer features  
@@ -81,7 +92,7 @@ python scripts/compute_matminer_features.py --input-name=pilot --n-proc 8
 ```
 OR load existing features
 ```
-dvc pull datasets/processed/pilot.dvc
+dvc pull datasets/processed/pilot
 ```
 Both scenarios produce `datasets/processed/pilot/matminer.csv.gz`
 
@@ -108,7 +119,7 @@ This creates the experiment definition in `datasets/experiments/pilot-plain-cv`
 It supports generating cross-validation and train/test splits.
 
 ### `parse_csv_cif.py`
-For data computed without spin interaction, you might want to add `--fill-missing-band-properties` flag that would fill `{band_gap,homo,lumo}_{majority,minority}` from `{band_gap,homo,lumo}`. For old data you might also want to use the flag to fill `band_gap = lumo-homo` Example:
+For data computed without spin interaction, you might want to add `--fill-missing-band-properties` flag that would fill `{band_gap,homo,lumo}_{majority,minority}` from `{band_gap,homo,lumo}`. For old data you might also want to use the flag to fill `band_gap = lumo - homo` Example:
 ```
 python scripts/parse_csv_cif.py --input-name high_density_defects/GaSe --fill-missing-band-properties
 ```

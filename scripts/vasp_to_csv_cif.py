@@ -68,13 +68,13 @@ def extract_data_from_vasp(
             "minority": int(outcar.total_mag >= 0)}
         for kind, index in indices.items():
             data[f'band_gap_{kind}'], \
-                data[f'homo_{kind}'], \
-                data[f'lumo_{kind}'], _ = eigenvalue_band_properties[index]
+                data[f'lumo_{kind}'], \
+                data[f'homo_{kind}'], _ = eigenvalue_band_properties[index]
             data[f'E_1_{kind}'] = E_1[index]
     else:
         data['band_gap'],\
-            data['homo'],\
-            data['lumo'], _ = \
+            data['lumo'],\
+            data['homo'], _ = \
             vasprun_file.eigenvalue_band_properties
         assert len(E_1) == 1
         data["E_1"] = E_1[0]
