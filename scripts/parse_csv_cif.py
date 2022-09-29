@@ -250,12 +250,11 @@ def main():
                 if column not in structures.columns:
                     continue
                 defects_per_structure = defects.loc[structures[COLUMNS["structure"]["descriptor_id"]]]
-                defects_key = (defects_per_structure.base, defects_per_structure.cell)
-                print(defects_key)
-                normalization_constant = initial_structure_properties.loc[defects_key, "E_VBM"] - initial_structure_properties.loc[defects_key, "E_1"]
-                print(structures[column])
-                print(structures["_".join(("E_1", kind))])
-                print(normalization_constant)
+                defects_key = (defects_per_structure.base.unique(), defects_per_structure.cell.unique())
+                if len(defects_key[0]) != 1 or len(defects_key[1]) != 1:
+                    raise NotImplementedError("Handling different pristine materials in same dataset not implemented")
+                defects_key = (defects_key[0][0], defects_key[1][0])
+                normalization_constant = initial_structure_properties.at[defects_key, "E_VBM"] - initial_structure_properties.at[defects_key, "E_1"]
                 structures[f"normalized_{column}"] = \
                     structures[column] - structures["_".join(("E_1", kind))] - normalization_constant
                 
