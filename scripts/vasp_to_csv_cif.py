@@ -112,8 +112,8 @@ def main():
             structure_dir = input_VASP_dir / (args.poscar_prefix + structure_id)
             try:
                 data = extract_data_from_vasp(structure_dir,
-                                              band_occupancy_tolerence=args.band_occupancy_tolerence,
-                                              separate_spins=args.separate_spins)
+                                            band_occupancy_tolerence=args.band_occupancy_tolerence,
+                                            separate_spins=args.separate_spins)
             except (FileNotFoundError, ParseError) as e:
                 if args.allow_missing:
                     if isinstance(e, FileNotFoundError):
@@ -135,6 +135,10 @@ def main():
     pristine_path = Path(args.pristine_folder)    
     shutil.copyfile(pristine_path / 'elements.csv', output_csv_cif_dir / 'elements.csv')
     shutil.copyfile(pristine_path / 'initial_structures.csv', output_csv_cif_dir / 'initial_structures.csv')
+    try:
+        shutil.copytree(structures_path / 'unit_cells', output_csv_cif_dir / 'unit_cells')
+    except FileNotFoundError:
+        logging.warning("unit_cells not found in %s", structures_path / 'unit_cells')
 
 
 if __name__ == "__main__":
