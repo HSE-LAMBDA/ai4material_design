@@ -10,6 +10,7 @@ model_params:
     state_input_shape: 2
     cutoff: 15
     edge_embed_size: 10
+    add_eos_features: true
   optim:
     factor: 0.5
     patience: 30

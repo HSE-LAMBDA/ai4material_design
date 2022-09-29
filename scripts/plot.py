@@ -43,8 +43,7 @@ def main():
         with open(experiment_path.joinpath("config.yaml")) as experiment_file:
             experiment = yaml.safe_load(experiment_file)
         folds = pd.read_csv(experiment_path.joinpath("folds.csv.gz"),
-                            index_col="_id",
-                            squeeze=True)
+                            index_col="_id").squeeze("columns")
         true_targets = pd.concat([pd.read_csv(storage_resolver["processed"]/dataset/"targets.csv.gz", index_col="_id")
                                   for dataset in experiment["datasets"]], axis=0).reindex(
                                           index=folds.index)
@@ -63,7 +62,7 @@ def main():
                                                experiment_name,
                                                target_name,
                                                this_trial_name
-                                           )), index_col="_id", squeeze=True)
+                                           )), index_col="_id").squeeze("columns")
             assert predictions.index.equals(true_targets.index)
             mae = np.abs(predictions - true_targets.loc[:, target_name]).mean()
             R = pearsonr(predictions, true_targets.loc[:, target_name])[0]

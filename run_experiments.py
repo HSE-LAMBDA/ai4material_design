@@ -4,7 +4,7 @@ import numpy as np
 import wandb
 from pathlib import Path
 import yaml
-from itertools import cycle, product
+from itertools import cycle, product, starmap
 from functools import partial
 import pandas as pd
 from typing import Callable, List, Dict, Union
@@ -26,9 +26,16 @@ def main():
     parser = argparse.ArgumentParser("Runs experiments")
     parser.add_argument("--experiments", type=str, nargs="+")
     parser.add_argument("--trials", type=str, nargs="+")
-    parser.add_argument("--gpus", type=int, nargs="+")
+    hardware = parser.add_mutually_exclusive_group()
+    hardware.add_argument("--gpus", type=int, nargs="+")
+    hardware.add_argument("--cpu", action="store_true")
     parser.add_argument("--wandb-entity", type=str)
-    parser.add_argument("--processes-per-gpu", type=int, default=1)
+    parser.add_argument("--processes-per-unit", type=int, default=1,
+                        help="Number of processes to use per GPU or CPU")
+    parser.add_argument("--targets", type=str, nargs="+",
+                        help="Only run on these targets")
+    parser.add_argument("--n_jobs", type=int, default=-1)
+
     args = parser.parse_args()
 
     os.environ["WANDB_START_METHOD"] = "thread"
@@ -36,25 +43,55 @@ def main():
         os.environ["WANDB_RUN_GROUP"] = "2D-crystal-" + wandb.util.generate_id()
     if args.wandb_entity:
         os.environ["WANDB_ENTITY"] = args.wandb_entity
+    if args.cpu:
+        gpus = [None]
+    else:
+        gpus = args.gpus
     for experiment_name in args.experiments:
-        run_experiment(experiment_name, args.trials, args.gpus, args.processes_per_gpu)
+        run_experiment(experiment_name,
+                       args.trials,
+                       gpus,
+                       args.processes_per_unit,
+                       args.targets,
+                       args.n_jobs
+                       )
 
 
-def run_experiment(experiment_name, trials_names, gpus, processes_per_gpu):
-    # used variables:
-    # experiment - config file, path to the dataset, cv strategy, n folds and targets
-    # this trial - config with model name, representation and model params
+def run_experiment(experiment_name: str,
+                   trials_names: List[str],
+                   gpus: List[int],
+                   processes_per_unit: int,
+                   requested_targets: List[str]=None,
+                   n_jobs=1) -> None:
+    """
+    Runs an experiment.
+
+    Args:
+        experiment_name: Name of the experiment.
+        trials_names: Names of the trials.
+        gpus: List of GPUs to use.
+        processes_per_unit: Number of processes to use per GPU.
+        targets: List of targets to run on. If None, run on all targets in the experiment.
+    Used files and fields:
+        experiment - config file, path to the dataset, cv strategy, n folds and targets
+        trial - config with model name, representation and model params
+    """
+    
     storage_resolver = StorageResolver()
     experiment_path = storage_resolver["experiments"].joinpath(experiment_name)
     with open(Path(experiment_path, "config.yaml")) as experiment_file:
         experiment = yaml.safe_load(experiment_file)
     folds = pd.read_csv(
-        Path(experiment_path, "folds.csv"), index_col="_id", squeeze=True
-    )
+        Path(experiment_path, "folds.csv.gz"), index_col="_id").squeeze("columns")
 
     loader = DataLoader(experiment["datasets"], folds.index)
+    
+    if requested_targets is None:
+        used_targets = experiment["targets"]
+    else:
+        used_targets = set(experiment["targets"]).intersection(requested_targets)
 
-    for target_name, this_trial_name in product(experiment["targets"], trials_names):
+    for target_name, this_trial_name in product(used_targets, trials_names):
         with open(
             storage_resolver["trials"].joinpath(f"{this_trial_name}.yaml")
         ) as this_trial_file:
@@ -92,9 +129,10 @@ def run_experiment(experiment_name, trials_names, gpus, processes_per_gpu):
             IS_INTENSIVE[target_name],
             this_trial["model_params"],
             gpus,
-            processes_per_gpu,
+            processes_per_unit,
             wandb_config,
             checkpoint_path=storage_resolver["checkpoints"].joinpath(experiment_name, str(target_name), this_trial_name),
+            n_jobs=n_jobs,
             strategy=experiment['strategy'],
         )
         predictions.rename(lambda target_name: f"predicted_{target_name}_test", axis=1, inplace=True)
@@ -117,9 +155,10 @@ def cross_val_predict(
     target_is_intensive: bool,
     model_params: Dict,
     gpus: List[int],
-    processes_per_gpu: int,
+    processes_per_unit: int,
     wandb_config,
     checkpoint_path,
+    n_jobs,
     strategy="cv",
 ):
     assert data.index.equals(targets.index)
@@ -134,8 +173,25 @@ def cross_val_predict(
         raise ValueError('Unknown split strategy')    
     assert set(folds.unique()) == set(range(n_folds))
     if strategy == "cv":
-        with get_context('spawn').Pool(len(gpus) * processes_per_gpu, maxtasksperchild = 1) as pool:
-            predictions = pool.starmap(
+        # Not necessary, but makes debug easier
+        n_processes = len(gpus) * processes_per_unit
+        if n_processes > 1:
+            with get_context('spawn').Pool(n_processes, maxtasksperchild=1) as pool:
+                predictions = pool.starmap(
+                    partial(predict_on_fold,
+                            n_folds=n_folds,
+                            folds=folds,
+                            data=data,
+                            targets=targets,
+                            predict_func=predict_func,
+                            target_is_intensive=target_is_intensive,
+                            model_params=model_params,
+                            wandb_config=wandb_config,
+                            checkpoint_path=checkpoint_path),
+                    zip(test_fold_generator, cycle(gpus)),
+                )
+        else:
+            predictions = starmap(
                 partial(predict_on_fold,
                         n_folds=n_folds,
                         folds=folds,
@@ -145,9 +201,12 @@ def cross_val_predict(
                         target_is_intensive=target_is_intensive,
                         model_params=model_params,
                         wandb_config=wandb_config,
-                        checkpoint_path=checkpoint_path),
+                        checkpoint_path=checkpoint_path,
+                        n_jobs=n_jobs),
                 zip(test_fold_generator, cycle(gpus)),
             )
+            
+                
     # TODO(kazeevn)
     # Should we add explicit Structure -> graph preprocessing with results shared?
     elif strategy == "train_test":
@@ -195,6 +254,7 @@ def predict_on_fold(
     model_params,
     wandb_config,
     checkpoint_path,
+    n_jobs,
 ):
     train_folds = set(range(n_folds)) - set((test_fold,))
     train_ids = folds[folds.isin(train_folds)]
@@ -218,6 +278,7 @@ def predict_on_fold(
             model_params,
             gpu,
             checkpoint_path=checkpoint_path.joinpath('_'.join(map(str, train_folds))),
+            n_jobs=n_jobs
         )
 
 

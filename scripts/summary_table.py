@@ -17,164 +17,130 @@ def name_to_train_WSe2_count(name):
     return int(5934 * (1. - fraction))
 
 
-def print_experiment_target_table(experiments, targets, trial, unit_multiplier,
-                                  experiment_naming=None, experiment_column="Experiment"):
+def read_results(folds_experiment_name: str,
+                 predictions_experiment_name: str,
+                 trial: str) -> dict[str, tuple[float]]:
     storage_resolver = StorageResolver()
-    mae_table = pt()
-    mae_table.field_names = [experiment_column] + targets
-    for experiment_name in experiments:
-        if experiment_naming is None:
-            row = [experiment_name]
-        else:
-            row = [globals()[experiment_naming](experiment_name)]
-        experiment_path = storage_resolver["experiments"].joinpath(experiment_name)
-        with open(experiment_path.joinpath("config.yaml")) as experiment_file:
-            experiment = yaml.safe_load(experiment_file)
-        folds = pd.read_csv(experiment_path.joinpath("folds.csv"),
-                            index_col="_id",
-                            squeeze=True)
-        for target_name in targets:
-            true_targets = pd.concat([pd.read_csv(get_targets_path(path), index_col="_id",
-                                                  usecols=["_id", target_name]).squeeze("columns")
-                                      for path in experiment["datasets"]], axis=0).reindex(
-                index=folds.index)
-            predictions = pd.read_csv(storage_resolver["predictions"].joinpath(
-                get_prediction_path(
-                    experiment_name,
-                    target_name,
-                    trial
-                )), index_col="_id", squeeze=True)
-            these_targets = true_targets.reindex(index=predictions.index)
-            errors = np.abs(predictions - these_targets)
-            mae = errors.mean()
-            row.append(f"{mae * unit_multiplier:.1f}")
-        mae_table.add_row(row)
-    print(mae_table)
+    folds = pd.read_csv(storage_resolver["experiments"].joinpath(
+        folds_experiment_name).joinpath("folds.csv.gz"),
+                        index_col="_id").squeeze('columns')
 
-
-def print_target_trial_table(experiment, trials, unit_multiplier):
-    storage_resolver = StorageResolver()
-    experiment_path = storage_resolver["experiments"].joinpath(experiment)
+    experiment_path = storage_resolver["experiments"].joinpath(predictions_experiment_name)
     with open(experiment_path.joinpath("config.yaml")) as experiment_file:
         experiment = yaml.safe_load(experiment_file)
-    folds = pd.read_csv(experiment_path.joinpath("folds.csv"),
-                        index_col="_id",
-                        squeeze=True)
-    # Support running on a part of the dataset, defined via folds
-    true_targets = pd.concat([pd.read_csv(get_targets_path(path), index_col="_id")
+
+    results = {}
+    true_targets = pd.concat([pd.read_csv(storage_resolver["processed"] / path / "targets.csv.gz",
+                                          index_col="_id",
+                                          usecols=["_id"] + experiment["targets"])
                               for path in experiment["datasets"]], axis=0).reindex(
         index=folds.index)
-    mae_table = pt()
-    mae_table.field_names = ["Model"] + experiment["targets"]
-    for this_trial_name in trials:
-        row = [this_trial_name]
-        for target_name in experiment["targets"]:
-            predictions = pd.read_csv(storage_resolver["predictions"].joinpath(
-                get_prediction_path(
-                    experiment,
-                    target_name,
-                    this_trial_name
-                )), index_col="_id", squeeze=True)
-            assert predictions.index.equals(true_targets.index)
-            errors = np.abs(predictions - true_targets.loc[:, target_name])
-            mae = errors.mean()
-            mae_cv_std = np.std(errors.groupby(by=folds).mean())
-            row.append(f"{mae * unit_multiplier:.1f} ± {mae_cv_std * unit_multiplier:.1f}")
-        mae_table.add_row(row)
-    print(mae_table)
-
-
-def get_value_by_path(d, path):
-    if len(path) == 1:
-        return d[path[0]]
-    return get_value_by_path(d[path[0]], path[1:])
-
-
-def print_experiment_trial_table(experiments, trials, target_name, unit_multiplier, parameter_to_extract):
-    storage_resolver = StorageResolver()
-    mae_table = pt()
-
-    trials2params = {}
-    exp_len = len(trials) # // 3
-    for i, trial in enumerate(trials):
-        with open(storage_resolver['trials'].joinpath(trial + ".yaml")) as cur_trial:
-            trials2params[trial] = (
-                i // exp_len, get_value_by_path(yaml.safe_load(cur_trial), parameter_to_extract.split('/')))
-
-    trials.sort(key=lambda x: trials2params[x])
-
-    mae_table.field_names = ["Experiment"] + [str(trials2params[t][1]) for t in trials[:exp_len]]
-    for j, experiment_name in enumerate(experiments):
-        row = [experiment_name]
-        experiment_path = storage_resolver["experiments"].joinpath(experiment_name)
-        with open(experiment_path.joinpath("config.yaml")) as experiment_file:
-            experiment = yaml.safe_load(experiment_file)
-        folds = pd.read_csv(experiment_path.joinpath("folds.csv"),
-                            index_col="_id",
-                            squeeze=True)
-        true_targets = pd.concat([pd.read_csv(get_targets_path("datasets/csv_cif/" + path), index_col="_id",
-                                              usecols=["_id", target_name]).squeeze("columns")
-                                  for path in experiment["datasets"]], axis=0).reindex(
-            index=folds.index)
-        for trial in trials[j * exp_len: (j + 1) * exp_len]:
-            predictions = pd.read_csv(storage_resolver["predictions"].joinpath(
-                get_prediction_path(
-                    experiment_name,
-                    target_name,
-                    trial
-                )), index_col="_id", squeeze=True)
-            these_targets = true_targets.reindex(index=predictions.index)
-            errors = np.abs(predictions - these_targets)
-            mae = errors.mean()
-            std = (errors * unit_multiplier).std()
-            row.append(f"{mae * unit_multiplier:.1f} ± {std}")
-        mae_table.add_row(row)
-    print(mae_table)
-
-
-def read_targets(experiment_name):
-    storage_resolver = StorageResolver()
-    experiment_path = storage_resolver["experiments"].joinpath(experiment_name)
-    with open(experiment_path.joinpath("config.yaml")) as experiment_file:
-        experiment = yaml.safe_load(experiment_file)
-    return experiment["targets"]
+    for target_name in experiment["targets"]:
+        predictions = pd.read_csv(storage_resolver["predictions"].joinpath(
+            get_prediction_path(
+                predictions_experiment_name,
+                target_name,
+                trial
+            )), index_col="_id").squeeze("columns")
+        errors = np.abs(predictions - true_targets.loc[:, target_name])
+        mae = errors.mean()
+        error_std = errors.std()
+        mae_cv_std = np.std(errors.groupby(by=folds).mean())
+        results[target_name] = (mae, mae_cv_std, error_std)
+    return results
 
 
 def main():
     parser = argparse.ArgumentParser("Makes a text table with MAEs")
     parser.add_argument("--experiments", type=str, nargs="+")
+    parser.add_argument("--combined-experiment", type=str)
     parser.add_argument("--trials", type=str, nargs="+")
+    parser.add_argument("--targets", type=str, nargs="+")
     parser.add_argument("--separate-by", choices=["experiment", "target", "trial"],
                         help="Tables are 2D, but we have 3 dimensions: target, trial, experiment. "
                              "One of them must be used to separate the tables.")
-    parser.add_argument("--unit-multiplier", type=float, default=1e3,
-                        help="As of May 2022, data in the project are in eV, so the 1000 mutliplier makes it meV")
+    parser.add_argument("--presentation-config", type=str)
     parser.add_argument("--experiment-name-converter", type=str,
                         help="Name of a local function to convert experiment names to for human-readable display")
     parser.add_argument("--experiment_column", type=str, default="Experiment",
                         help="Name of the column in the table that corresponds to experiment")
-    parser.add_argument("--parameter-to-extract", type=str, help="path to parameter to extract for table in format "
-                                                                 "a/b/c")
+    parser.add_argument("--populate-per-spin-target", action="store_true",
+                        help="Populate {band_gap,homo,lumo}_{majority,minority} columns with"
+                             " values from the non-spin-specific versions")
     args = parser.parse_args()
 
-    if args.separate_by == "experiment":
-        for experiment in args.experiments:
-            print_target_trial_table(experiment, args.trials, args.unit_multiplier)
-    elif args.separate_by == "target":
-        targets = read_targets(args.experiments[0])
-        for target_name in targets:
-            print(f"{target_name}:")
-            print_experiment_trial_table(
-                args.experiments, args.trials, target_name, args.unit_multiplier, args.parameter_to_extract)
-    elif args.separate_by == "trial":
-        targets = read_targets(args.experiments[0])
+    results = []
+    for experiment in args.experiments:
         for trial in args.trials:
-            print_experiment_target_table(args.experiments,
-                                          targets,
-                                          trial,
-                                          args.unit_multiplier,
-                                          experiment_naming=args.experiment_name_converter,
-                                          experiment_column=args.experiment_column)
+            these_results = pd.DataFrame.from_dict(read_results(experiment, experiment, trial),
+                                                   orient="index", columns=["MAE", "MAE_CV_std", "error_std"])
+            these_results['experiment'] = experiment
+            these_results['trial'] = trial
+            these_results.index.name = "target"
+            these_results.set_index(["experiment", "trial"], inplace=True, append=True)
+            results.append(these_results)
+
+    if args.combined_experiment:
+        for experiment in args.experiments:
+            if experiment == args.combined_experiment:
+                continue
+            for trial in args.trials:
+                these_results = pd.DataFrame.from_dict(read_results(experiment, args.combined_experiment, trial),
+                                                       orient="index", columns=["MAE", "MAE_CV_std", "error_std"])
+                these_results['experiment'] = experiment + "_combined"
+                these_results['trial'] = trial
+                these_results.index.name = "target"
+                these_results.set_index(["experiment", "trial"], inplace=True, append=True)
+                results.append(these_results)
+    results_pd = pd.concat(results, axis=0)
+
+    if args.presentation_config:
+        with open(args.presentation_config) as config_file:
+            presentatation_config = yaml.safe_load(config_file)
+    else:
+        presentatation_config = None
+
+    all_per_spin_targets = ("homo", "lumo", "band_gap")
+    if args.separate_by == "trial":
+        for trial in args.trials:
+            table_data = results_pd.loc[:, :, trial]
+            present_targets = table_data.index.get_level_values("target").unique()
+            per_spin_targets = present_targets.intersection(all_per_spin_targets)
+            # Add None for missing values
+            new_index = pd.MultiIndex.from_product(table_data.index.remove_unused_levels().levels)
+            table_data = table_data.reindex(new_index)
+            if args.populate_per_spin_target:
+                for spin in ("majority", "minority"):
+                    for target in per_spin_targets:
+                        if target not in present_targets:
+                            continue
+                        table_data.loc[f"{target}_{spin}"].update(
+                            table_data.xs(f"{target}_{spin}").fillna(table_data.xs(target)))
+                table_data.drop(list(per_spin_targets), level="target", inplace=True)
+                table_data.index = table_data.index.remove_unused_levels()
+                present_targets = table_data.index.get_level_values("target").unique()
+            if args.targets:
+                table_data = table_data.loc[args.targets]
+                present_targets = table_data.index.get_level_values("target").unique()
+            mae_table = pt()
+            mae_table.field_names = [args.experiment_column] + list(present_targets)
+            experiment_order = table_data.index.get_level_values("experiment").unique()
+            if args.combined_experiment and args.combined_experiment in experiment_order:
+                experiment_order = [args.combined_experiment] + list(experiment_order.drop(args.combined_experiment))
+            for experiment in experiment_order:
+                table_row = [experiment.split("/")[-1].replace("_500", "")]
+                for _, row in table_data.loc[(slice(None), experiment), :].iterrows():
+                    target = row.name[0]
+                    if (presentatation_config is not None and
+                            target in presentatation_config and
+                            "presentation_multiplier" in presentatation_config[target]):
+                        unit_multiplier = presentatation_config[target]["presentation_multiplier"]
+                    else:
+                        unit_multiplier = 1
+                    table_row.append(f"{row['MAE'] * unit_multiplier:.3f} ± "
+                                     f"{row['MAE_CV_std'] * unit_multiplier:.3f}")
+                mae_table.add_row(table_row)
+        print(mae_table)
 
 
 if __name__ == "__main__":
