@@ -1,6 +1,7 @@
 import argparse
 import sys
 import numpy as np
+import pandas as pd
 from pathlib import Path
 import shutil
 from io import BytesIO
@@ -12,13 +13,38 @@ from pymatgen.io.vasp.outputs import Vasprun, Outcar
 from pymatgen.io.vasp.inputs import Poscar
 from pymatgen.io.cif import CifWriter
 sys.path.append('.')
-from ai4mat.data.data import read_structures_descriptions
+from ai4mat.data.data import read_structures_descriptions, read_defects_descriptions
+
+
+def get_E1(eigenvalues: dict[str, np.ndarray], separate_spins: bool) -> list[float]:
+    """
+    Extracts the energy of the lowest orbital from vasprun.xml.
+    Args:
+        eigenvalues: dictionary of eigenvalues from vasprun.xml,
+            vasprun_file.eigenvalues
+        separate_spins: whether to separate spins
+    Returns:
+        E1: list of E1 values
+    """
+    if separate_spins:
+        if len(eigenvalues) != 2:
+            raise ValueError("Separate spins requires 2 spin channels")
+    else:
+        if len(eigenvalues) != 1:
+            raise NotImplemented("Collating values for different spins is not implemented")
+    result = []
+    for d in eigenvalues.values():
+            if d.shape[0] != 1:
+                raise NotImplemented("Multiple k-point not implemented")
+            result.append(d[0, 0, 0])
+    return result
 
 
 def extract_data_from_vasp(
     vasprun_directory: Path,
     band_occupancy_tolerence: float = None,
-    separate_spins: bool = False) -> dict:
+    separate_spins: bool = False,
+    subtract_E1: bool = False) -> dict:
     """
     Extracts relevant fields from VASP output.
     """
@@ -33,6 +59,8 @@ def extract_data_from_vasp(
     data['energy'] = vasprun_file.final_energy
     data['fermi_level'] = vasprun_file.efermi
     outcar = Outcar(vasp_folder / "OUTCAR")
+    if subtract_E1:
+        E_1 = get_E1(vasprun_file.eigenvalues, separate_spins)
     if separate_spins:
         data["total_mag"] = np.abs(outcar.total_mag)
         eigenvalue_band_properties = list(zip(*vasprun_file.eigenvalue_band_properties))
@@ -43,11 +71,19 @@ def extract_data_from_vasp(
             data[f'band_gap_{kind}'], \
                 data[f'homo_{kind}'], \
                 data[f'lumo_{kind}'], _ = eigenvalue_band_properties[index]
+            if subtract_E1:
+                assert len(E_1) == 2
+                data[f'homo_{kind}'] -= E_1[index]
+                data[f'lumo_{kind}'] -= E_1[index]
     else:
         data['band_gap'],\
             data['homo'],\
             data['lumo'], _ = \
             vasprun_file.eigenvalue_band_properties
+        if subtract_E1:
+            assert len(E_1) == 1
+            data[f'homo'] -= E_1[0]
+            data[f'lumo'] -= E_1[0]
     return data
 
 
@@ -71,6 +107,8 @@ def main():
     # https://github.com/materialsproject/pymatgen/blob/baf62b77788fc43387e15b1e0b60094132815c47/pymatgen/io/vasp/outputs.py#L313
     parser.add_argument("--separate-spins", action="store_true",
                         help="Report band gap separately for each spin channel")
+    parser.add_argument("--normalize-homo-lumo", action="store_true",
+                        help="Normalize HOMO and LUMO")
     args = parser.parse_args()
     structures_description = read_structures_descriptions(args.input_structures)
     structures_path = Path(args.input_structures)
@@ -83,7 +121,8 @@ def main():
             try:
                 data = extract_data_from_vasp(structure_dir,
                                               band_occupancy_tolerence=args.band_occupancy_tolerence,
-                                              separate_spins=args.separate_spins)
+                                              separate_spins=args.separate_spins,
+                                              subtract_E1=args.normalize_homo_lumo)
             except (FileNotFoundError, ParseError) as e:
                 if args.allow_missing:
                     if isinstance(e, FileNotFoundError):
@@ -99,12 +138,22 @@ def main():
             tar_info = tarfile.TarInfo(name=structure_id + '.cif')
             tar_info.size=len(cif_string)
             tar.addfile(tar_info, BytesIO(cif_string))
-            
+
+    if args.normalize_homo_lumo:
+        pristine_structure_properties = pd.read_csv(
+            pristine_path / "initial_structures.csv",
+            converters={"cell_size": lambda x: tuple(eval(x))},
+            index_col=["base", "cell_size"])
+        normalization_constants = pristine_structure_properties["E_VBM"] - pristine_structure_properties["E_1"]
+        defect_descriptions = read_defects_descriptions(structures_path)
+
+
     structures_description.to_csv(output_csv_cif_dir / 'defects.csv.gz')
     shutil.copyfile(structures_path / 'descriptors.csv', output_csv_cif_dir / 'descriptors.csv')
-    pristine_path = Path(args.pristine_folder)
+    pristine_path = Path(args.pristine_folder)    
     shutil.copyfile(pristine_path / 'elements.csv', output_csv_cif_dir / 'elements.csv')
     shutil.copyfile(pristine_path / 'initial_structures.csv', output_csv_cif_dir / 'initial_structures.csv')
+
 
 
 if __name__ == "__main__":
