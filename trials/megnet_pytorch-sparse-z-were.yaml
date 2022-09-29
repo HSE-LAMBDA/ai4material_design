@@ -11,6 +11,7 @@ model_params:
     cutoff: 10
     edge_embed_size: 10
     aggregation: 'mean'
+    global_aggregation: 'mean'
   optim:
     factor: 0.5
     patience: 30

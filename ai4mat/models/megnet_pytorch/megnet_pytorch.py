@@ -17,6 +17,7 @@ class MEGNet(nn.Module):
                  embedding_size=32,
                  n_blocks=3,
                  aggregation="mean",
+                 global_aggregation="mean",
                  ):
         """
         Parameters
@@ -41,10 +42,17 @@ class MEGNet(nn.Module):
             inner_skip=True,
             embed_size=embedding_size,
             aggregation=aggregation,
+            global_aggregation=global_aggregation,
         )
         self.blocks = nn.ModuleList()
         for i in range(n_blocks - 1):
-            self.blocks.append(MegnetModule(embedding_size, embedding_size, embedding_size, aggregation=aggregation))
+            self.blocks.append(MegnetModule(
+                embedding_size,
+                embedding_size,
+                embedding_size,
+                aggregation=aggregation,
+                global_aggregation=global_aggregation,
+            ))
 
         self.se = Set2Set(embedding_size, 1)
         self.sv = Set2Set(embedding_size, 1)
