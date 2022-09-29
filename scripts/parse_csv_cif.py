@@ -173,7 +173,6 @@ def get_sparse_defect(structure, unit_cell, supercell_size,
     return res, defect_energy_correction, structure_with_was
 
 
-
 def main():
     parser = argparse.ArgumentParser("Parses csv/cif into pickle and targets.csv.gz")
     group = parser.add_mutually_exclusive_group(required=True)
@@ -197,10 +196,15 @@ def main():
     materials = defects.base.unique()
     unit_cells = {}
     for material in materials:
-        unit_cells[material] = CifParser(Path(
-            "defects_generation",
-            "molecules",
-            f"{material}.cif")).get_structures(primitive=False)[0]        
+        try:
+            unit_cells[material] = CifParser(
+                input_folder/"unit_cells"/f"{material}.cif").get_structures(primitive=False)[0]
+        except FileNotFoundError:
+            logging.warning(f"Unit cell for {material} not found in the dataset folder, using the global one")
+            unit_cells[material] = CifParser(Path(
+                "defects_generation",
+                "molecules",
+                f"{material}.cif")).get_structures(primitive=False)[0]
         unit_cells[material] = eos.get_augmented_struct(unit_cells[material])
 
     data_path = Path(input_folder)
@@ -244,9 +248,12 @@ def main():
         defects.loc[row[COLUMNS["structure"]["descriptor_id"]], "defects"]), axis=1).all()
     
     if args.normalize_homo_lumo:
-        for kind in ("", "majority", "minority"):
+        for kind in (None, "majority", "minority"):
             for property in ("homo", "lumo"):
-                column = "_".join((property, kind))
+                if kind is None:
+                    column = property
+                else:
+                    column = f"{property}_{kind}"
                 if column not in structures.columns:
                     continue
                 defects_per_structure = defects.loc[structures[COLUMNS["structure"]["descriptor_id"]]]
@@ -256,7 +263,7 @@ def main():
                 defects_key = (defects_key[0][0], defects_key[1][0])
                 normalization_constant = initial_structure_properties.at[defects_key, "E_VBM"] - initial_structure_properties.at[defects_key, "E_1"]
                 structures[f"normalized_{column}"] = \
-                    structures[column] - structures["_".join(("E_1", kind))] - normalization_constant
+                    structures[column] - structures["_".join(filter(None, ("E_1", kind)))] - normalization_constant
                 
 
     if args.fill_missing_band_properties:
@@ -268,7 +275,7 @@ def main():
                         structures[spin_column] = structures[property]
                         logging.info("Filling {}", spin_column)
                     else:
-                        logging.warning("{} is missing in data, can't fill {}", property, spin_column)
+                        logging.warning(r"%s is missing in data, can't fill %s", property, spin_column)
         if "total_mag" not in structures.columns:
             structures["total_mag"] = 0.
             logging.info("Setting total_mag = 0")
