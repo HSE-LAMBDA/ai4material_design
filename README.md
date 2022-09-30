@@ -66,7 +66,7 @@ dvc pull datasets/processed/high_density_defects/{BP_spin,GaSe_spin,hBN_spin,InS
 ### Reproducing the pipeline
 VASP -> csv_cif -> processed for high-density dataset has been implemented a [DVC pipeilne](https://dvc.org/doc/start/data-management/data-pipelines)
 ```
-parallel --delay 3 -j6 dvc repro processed-high-density@{} ::: hBN_spin GaSe_spin hBN_spin InSe_spin MoS2 WSe2
+parallel --delay 3 -j6 dvc repro processed-high-density@{} ::: hBN_spin GaSe_spin BP_spin InSe_spin MoS2 WSe2
 ```
 Note that unlike GNU Make DVC [currently](https://github.com/iterative/dvc/issues/755) doesn't internally parallelize execution, so we use GNU parallel. We also use `--delay 3` to avoid [DVC lock race](https://github.com/iterative/dvc/issues/755).
 ## Running expeiments with GNU parallel
