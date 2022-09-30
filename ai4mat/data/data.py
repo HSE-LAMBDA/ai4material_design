@@ -44,14 +44,16 @@ class StorageResolver:
 class Is_Intensive:
     def __init__(self):
         self.attr = {
+            "energy": False,
             "homo": True,
+            "normalized_homo": True,
             "homo_1": True,
             "homo_2": True,
             "lumo": True,
+            "normalized_luom": True,
             "lumo_1": True,
             "lumo_2": True,
             "formation_energy": False,
-            "energy": False,
             "energy_per_atom": True,
             "band_gap": True,
             "band_gap_1": True,
@@ -62,6 +64,10 @@ class Is_Intensive:
             "homo_minority": True,
             "lumo_majority": True,
             "lumo_minority": True,
+            "normalized_homo_majority": True,
+            "normalized_homo_minority": True,
+            "normalized_lumo_majority": True,
+            "normalized_lumo_minority": True,
             "formation_energy_per_site": True,
             "band_gap_from_eigenvalue_band_properties": True,
             "band_gap_from_get_band_structure": True,
