@@ -82,7 +82,7 @@ def main():
     else:
         relative_dir_path = Path(args.model_name).joinpath(args.warm_start)
         res_dir_path = storage_resolver['trials'].joinpath(relative_dir_path)
-        if res_dir_path not in os.listdir(res_dir_path.parent):
+        if res_dir_path.name not in os.listdir(res_dir_path.parent):
             raise "Wrong timestamp for warm start"
 
     for exp in args.experiments:
