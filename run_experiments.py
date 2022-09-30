@@ -31,10 +31,11 @@ def main():
     hardware.add_argument("--cpu", action="store_true")
     parser.add_argument("--wandb-entity", type=str)
     parser.add_argument("--processes-per-unit", type=int, default=1,
-                        help="Number of processes to use per GPU or CPU")
+                        help="Number of training processes to use per GPU or CPU")
     parser.add_argument("--targets", type=str, nargs="+",
                         help="Only run on these targets")
-    parser.add_argument("--n_jobs", type=int, default=-1)
+    parser.add_argument("--n-jobs", type=int, default=1,
+                        help="Number of jobs for a training process to run. Not all models support this parameter.")
 
     args = parser.parse_args()
 
@@ -187,7 +188,8 @@ def cross_val_predict(
                             target_is_intensive=target_is_intensive,
                             model_params=model_params,
                             wandb_config=wandb_config,
-                            checkpoint_path=checkpoint_path),
+                            checkpoint_path=checkpoint_path,
+                            n_jobs=n_jobs),
                     zip(test_fold_generator, cycle(gpus)),
                 )
         else:
