@@ -183,16 +183,26 @@ def copy_indexed_structures(structures, input_folder, output_folder):
     for file_name in ("descriptors.csv", "elements.csv", "initial_structures.csv"):
         shutil.copy2(Path(input_folder, file_name),
                      save_path.joinpath(file_name))
-    structures_folder = save_path.joinpath("initial")
-    structures_folder.mkdir()
-    input_structures_folder = Path(input_folder, "initial")
-    for structure_id in structures.index:
-        file_name = f"{structure_id}.cif"
-        shutil.copy2(input_structures_folder.joinpath(file_name),
-                     structures_folder.joinpath(file_name))
-    structures.to_csv(save_path.joinpath("defects.csv"),
+    output_structures = save_path.joinpath("initial.tar.gz")
+    input_path = Path(input_folder)
+    input_structures = input_path / "initial.tar.gz"
+    copied = pd.Series(data=False, index=structures.index, dtype=bool)
+    with tarfile.open(input_structures, "r:gz") as input_tar, \
+        tarfile.open(output_structures, "w:gz") as output_tar:
+        for member in tqdm(input_tar.getmembers()):
+            assert member.name.endswith(".cif")
+            structure_id = member.name[:-4]
+            if structure_id in structures.index:
+                output_tar.addfile(member, input_tar.extractfile(member))
+                copied[structure_id] = True
+    if not copied.all():
+        raise ValueError("Not all structures were copied")
+    structures.to_csv(save_path.joinpath("defects.csv.gz"),
                       index_label="_id")
-
+    try:
+        shutil.copytree(input_path / 'unit_cells', save_path / 'unit_cells')
+    except FileNotFoundError:
+        logging.warning("unit_cells not found in %s", input_path / 'unit_cells')
 
 
 def get_gpaw_trajectories(defect_db_path:str):

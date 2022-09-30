@@ -31,6 +31,29 @@ stages:
         - scripts/vasp_to_csv_cif.py
       outs:
         - datasets/csv_cif/high_density_defects/${item}_spin_500
+  csv-cif-low-density-8x8:
+    foreach:
+      - WSe2
+    do:
+      cmd: python scripts/separate_csv_cif.py --input-folder datasets/csv_cif/dichalcogenides_x1s6_202109
+        --output-folder datasets/csv_cif/low_density_defects/${item} --base-material ${item}
+        --supercell-size 8
+      deps:
+        - datasets/csv_cif/dichalcogenides_x1s6_202109
+        - scripts/separate_csv_cif.py
+      outs:
+        - datasets/csv_cif/low_density_defects/${item}
+  processed-low-density:
+    foreach:
+      - WSe2
+      - MoS2
+    do:
+      cmd: python scripts/parse_csv_cif.py --input-name=low_density_defects/${item} --fill-missing-band-properties
+      deps:
+        - datasets/csv_cif/low_density_defects/${item}
+        - scripts/parse_csv_cif.py
+      outs:
+        - datasets/processed/low_density_defects/${item}
   processed-high-density:
     foreach: 
       - BP_spin
@@ -46,11 +69,14 @@ stages:
         - datasets/csv_cif/high_density_defects/${item}_500
       outs:
         - datasets/processed/high_density_defects/${item}_500
-  rolos-high-density:
+  rolos-2d-materials-point-defects:
     cmd:
       ./scripts/pack_for_rolos.sh
     deps:
       - scripts/pack_for_rolos.sh
       - datasets/processed/high_density_defects
+      - datasets/csv_cif/high_density_defects
+      - datasets/processed/low_density_defects
+      - datasets/csv_cif/low_density_defects
     outs:
       - datasets/others/rolos/2d-materials-point-defects
