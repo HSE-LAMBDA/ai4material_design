@@ -91,7 +91,9 @@ def main():
 
         with open(cur_outfile_name, 'a+') as outfile:
             print(f'trials stored to {cur_outfile_name}')
+            outfile.seek(0)
             already_run = set(outfile.read().split())
+            outfile.seek(0, 2)
 
             for trial in tqdm(os.listdir(res_dir_path)):
                 if trial.endswith(".yaml"):
