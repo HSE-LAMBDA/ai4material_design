@@ -294,3 +294,18 @@ stages:
       md5: 7fbab1180f53a815722cf8f0b8169860.dir
       size: 401190
       nfiles: 2
+  rolos-high-density:
+    cmd: ./scripts/pack_for_rolos.sh
+    deps:
+    - path: datasets/processed/high_density_defects
+      md5: 3fed3433a7cfec65e8dceef7344ee823.dir
+      size: 3372810
+      nfiles: 19
+    - path: scripts/pack_for_rolos.sh
+      md5: 3139fbcd2c6d4ab294836970fcce1002
+      size: 572
+    outs:
+    - path: datasets/others/rolos/2d-materials-point-defects
+      md5: ec789ae5e51e7aea381631c127103b09.dir
+      size: 3088532
+      nfiles: 7

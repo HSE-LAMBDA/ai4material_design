@@ -46,3 +46,11 @@ stages:
         - datasets/csv_cif/high_density_defects/${item}_500
       outs:
         - datasets/processed/high_density_defects/${item}_500
+  rolos-high-density:
+    cmd:
+      ./scripts/pack_for_rolos.sh
+    deps:
+      - scripts/pack_for_rolos.sh
+      - datasets/processed/high_density_defects
+    outs:
+      - datasets/others/rolos/2d-materials-point-defects
