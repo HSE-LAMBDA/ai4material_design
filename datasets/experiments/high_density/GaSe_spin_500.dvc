@@ -1,0 +1,5 @@
+outs:
+- md5: 37ba98e623e51f3bd370acbeb757208d.dir
+  size: 13081
+  nfiles: 2
+  path: GaSe_spin_500
