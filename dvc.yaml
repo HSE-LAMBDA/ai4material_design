@@ -40,7 +40,7 @@ stages:
       - MoS2
       - WSe2
     do:
-      cmd: python scripts/parse_csv_cif.py --input-name=high_density_defects/${item}_500 --normalize-homo-lumo --fill-missing-band-properties --skip-eos
+      cmd: python scripts/parse_csv_cif.py --input-name=high_density_defects/${item}_500 --normalize-homo-lumo --fill-missing-band-properties
       deps:
         - scripts/parse_csv_cif.py
         - datasets/csv_cif/high_density_defects/${item}_500
