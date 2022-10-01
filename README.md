@@ -56,17 +56,24 @@ Modify `slurm-job.sh` with the desired argument and export the required envirome
 python scripts/plot.py --experiments pilot-plain-cv --trials megnet_pytorch-sparse-pilot
 ```
 This produces plots in `datasets/plots/pilot-plain-cv`
-## High-density dataset: DVC pipline
+## Data transformation: DVC pipline
 ### Getting the data
 The `.dvc` files are no longer there - but the data are!
 ```
 dvc pull datasets/csv_cif/high_density_defects/{BP_spin,GaSe_spin,hBN_spin,InSe_spin,MoS2,WSe2}_500
 dvc pull datasets/processed/high_density_defects/{BP_spin,GaSe_spin,hBN_spin,InSe_spin,MoS2,WSe2}_500
+dvc pull datasets/csv_cif/low_density_defects/{MoS2,WSe2}
+dvc pull datasets/processed/low_density_defects/{MoS2,WSe2}
 ```
 ### Reproducing the pipeline
-VASP -> csv_cif -> processed for high-density dataset has been implemented a [DVC pipeilne](https://dvc.org/doc/start/data-management/data-pipelines)
+VASP -> csv_cif -> processed -> Rolos for high-density dataset has been implemented a [DVC pipeline](https://dvc.org/doc/start/data-management/data-pipelines). Processed datasets:
 ```
 parallel --delay 3 -j6 dvc repro processed-high-density@{} ::: hBN_spin GaSe_spin BP_spin InSe_spin MoS2 WSe2
+parallel --delay 3 -j2 dvc repro processed-high-density@{} ::: MoS2 WSe2
+```
+Archives for Rolos with structutres and targets:
+```
+dvc repro rolos-2d-materials-point-defects
 ```
 Note that unlike GNU Make DVC [currently](https://github.com/iterative/dvc/issues/755) doesn't internally parallelize execution, so we use GNU parallel. We also use `--delay 3` to avoid [DVC lock race](https://github.com/iterative/dvc/issues/755).
 ## Running expeiments with GNU parallel
