@@ -1,3 +1,4 @@
+
 import torch
 import torch.nn as nn
 from torch_geometric.nn import MessagePassing, global_mean_pool
@@ -20,6 +21,7 @@ class MegnetModule(MessagePassing):
                  state_input_shape,
                  inner_skip=False,
                  embed_size=32,
+                 soft_cutoff = 9.0
                  ):
         """
         Parameters
@@ -80,6 +82,14 @@ class MegnetModule(MessagePassing):
             ShiftedSoftplus(),
         )
 
+        self.sigma = 0.5
+        self.steepness = 5
+        self.soft_cutoff = nn.Parameter(torch.Tensor(soft_cutoff),
+                                        requires_grad=True)
+        self.centers = nn.Parameter(torch.from_numpy(np.linspace(0, 50, embed_size)),
+                                    requires_grad=True)
+        
+
     def forward(self, x, edge_index, edge_attr, state, batch, bond_batch):
         if not self.inner_skip:
             x_skip = x
@@ -89,7 +99,17 @@ class MegnetModule(MessagePassing):
             x = self.preprocess_v(x)
             edge_attr = self.preprocess_e(edge_attr)
             state = self.preprocess_u(state)
-        else:
+        else:            
+            temp = torch.full(edge_index[0].shape, 0).to(self.soft_cutoff.device) + self.soft_cutoff
+            
+            # gaussian
+            edge_attr = torch.exp(
+                -((edge_attr.reshape((-1, 1)) - self.centers.reshape((1, -1)))
+                / self.sigma) ** 2
+            ).float()
+            t = 1 - 1/(1+torch.exp(-self.steepness*(self.centers[None, :] - temp[:, None])))
+            edge_attr = edge_attr * t.float()
+
             x = self.preprocess_v(x)
             edge_attr = self.preprocess_e(edge_attr)
             state = self.preprocess_u(state)

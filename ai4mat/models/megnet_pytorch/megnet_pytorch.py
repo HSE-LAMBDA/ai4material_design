@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from .layers import MegnetModule, ShiftedSoftplus
 from torch_geometric.nn import Set2Set
 
 
@@ -15,7 +14,8 @@ class MEGNet(nn.Module):
                  state_input_shape,
                  node_embedding_size=16,
                  embedding_size=32,
-                 n_blocks=3,
+                 n_blocks=1,
+                 soft_cutoff = 9.0
                  ):
         """
         Parameters
@@ -34,11 +34,11 @@ class MEGNet(nn.Module):
             self.emb = nn.Embedding(ATOMIC_NUMBERS, node_embedding_size)
 
         self.m1 = MegnetModule(
-            edge_input_shape, node_input_shape, state_input_shape, inner_skip=True, embed_size=embedding_size
+            edge_input_shape, node_input_shape, state_input_shape, inner_skip=True, embed_size=embedding_size, soft_cutoff=soft_cutoff
         )
         self.blocks = nn.ModuleList()
         for i in range(n_blocks - 1):
-            self.blocks.append(MegnetModule(embedding_size, embedding_size, embedding_size))
+            self.blocks.append(MegnetModule(embedding_size, embedding_size, embedding_size, soft_cutoff=soft_cutoff))
 
         self.se = Set2Set(embedding_size, 1)
         self.sv = Set2Set(embedding_size, 1)

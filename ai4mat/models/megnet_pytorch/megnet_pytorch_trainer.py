@@ -5,13 +5,8 @@ import pathlib
 import wandb
 
 from tqdm import trange, tqdm
-from ai4mat.common.base_trainer import Trainer
-from ai4mat.models.megnet_pytorch.megnet_pytorch import MEGNet
-from ai4mat.models.megnet_pytorch.struct2graph import SimpleCrystalConverter, GaussianDistanceConverter
-from ai4mat.models.megnet_pytorch.struct2graph import FlattenGaussianDistanceConverter, AtomFeaturesExtractor
 from torch_geometric.loader import DataLoader
-from ai4mat.models.megnet_pytorch.utils import Scaler
-from joblib import Parallel, delayed
+
 
 class MEGNetPyTorchTrainer(Trainer):
     def __init__(
@@ -22,37 +17,33 @@ class MEGNetPyTorchTrainer(Trainer):
             configs: dict,
             gpu_id: int,
             save_checkpoint: bool,
-            n_jobs: int = -1,
     ):
         self.config = configs
 
-        if self.config["model"]["add_z_bond_coord"]:
-            bond_converter = FlattenGaussianDistanceConverter(
-                centers=np.linspace(0, self.config['model']['cutoff'], self.config['model']['edge_embed_size'])
-            )
-        else:
-            bond_converter = GaussianDistanceConverter(
-                centers=np.linspace(0, self.config['model']['cutoff'], self.config['model']['edge_embed_size'])
-            )
+        self.train_loss = []
+
+        #TODO add FlattenGaussianDistanceConverter compatability
+        bond_converter = DummyConverter(self.config['model']['edge_embed_size'])
         atom_converter = AtomFeaturesExtractor(self.config["model"]["atom_features"])
+
+        self.model = MEGNet(
+            edge_input_shape=bond_converter.get_shape(),
+            node_input_shape=atom_converter.get_shape(),
+            state_input_shape=self.config["model"]["state_input_shape"],
+            soft_cutoff = model_config['model']['soft_cutoff'],
+            embedding_size=self.config['model']['edge_embed_size']
+        )
+        self.Scaler = Scaler()
+
         self.converter = SimpleCrystalConverter(
             bond_converter=bond_converter,
             atom_converter=atom_converter,
             cutoff=self.config["model"]["cutoff"],
-            add_z_bond_coord=self.config["model"]["add_z_bond_coord"],
-            add_eos_features=(use_eos := self.config["model"].get("add_eos_features", False)),
+            add_z_bond_coord=self.config["model"]["add_z_bond_coord"]
         )
-        self.model = MEGNet(
-            edge_input_shape=bond_converter.get_shape(eos=use_eos),
-            node_input_shape=atom_converter.get_shape(),
-            state_input_shape=self.config["model"]["state_input_shape"]
-        )
-        self.Scaler = Scaler()
-
-        
         print("converting data")
-        self.train_structures = Parallel(n_jobs=n_jobs, backend='threading')(delayed(self.converter.convert)(s) for s in tqdm(train_data))
-        self.test_structures = Parallel(n_jobs=n_jobs, backend='threading')(delayed(self.converter.convert)(s) for s in tqdm(test_data))
+        self.train_structures = [self.converter.convert(s) for s in tqdm(train_data)]
+        self.test_structures = [self.converter.convert(s) for s in tqdm(test_data)]
         self.Scaler.fit(self.train_structures)
         self.target_name = target_name
 
@@ -76,7 +67,8 @@ class MEGNetPyTorchTrainer(Trainer):
             dataset=self.trainloader,
             run_dir=pathlib.Path().resolve(),
             optimizers=torch.optim.Adam(
-                self.model.parameters(),
+                [{'params': [j[1] for j in self.model.named_parameters() if not j[0] == 'm1.soft_cutoff']},
+                 {'params': self.model.m1.soft_cutoff, 'lr': self.config['model']['soft_cutoff_lr']}],
                 lr=self.config["optim"]["lr_initial"],
             ),
             use_gpus=gpu_id,  # must be changed ol local notebook !!!
@@ -102,7 +94,6 @@ class MEGNetPyTorchTrainer(Trainer):
         for epoch in trange(self.config["model"]["epochs"]):
             print(f'=========== {epoch} ==============')
             print(len(self.trainloader), self.device)
-            print(self.target_name)
 
             batch_loss = []
             total_train = []
@@ -123,37 +114,17 @@ class MEGNetPyTorchTrainer(Trainer):
                     F.l1_loss(self.Scaler.inverse_transform(preds), batch.y, reduction='sum').to('cpu').data.numpy()
                 )
 
-            total = []
-            self.model.train(False)
-            with torch.no_grad():
-                for batch in self.testloader:
-                    batch = batch.to(self.device)
-
-                    preds = self.model(
-                        batch.x, batch.edge_index, batch.edge_attr, batch.state, batch.batch, batch.bond_batch
-                    ).squeeze()
-
-                    total.append(
-                        F.l1_loss(self.Scaler.inverse_transform(preds), batch.y, reduction='sum').to('cpu').data.numpy()
-                    )
-
-            cur_test_loss = sum(total) / len(self.test_structures)
             cur_train_loss = sum(total_train) / len(self.train_structures)
             self.scheduler.step(cur_train_loss)
+            self.train_loss.append(cur_train_loss)
 
             if self.save_checkpoint:
                 self.save()
 
             torch.cuda.empty_cache()
 
-            wandb.log({
-                    f'{self.target_name} test_loss_per_epoch': cur_test_loss,
-                    f'{self.target_name} train_loss_per_epoch': cur_train_loss,
-                    'epoch': epoch,
-                })
-
-            print(
-                f"{self.target_name} Epoch: {epoch}, train loss: {cur_train_loss}, test loss: {cur_test_loss}"
+            wandb.log(
+                {f'{self.target_name} train_loss_per_epoch': cur_train_loss, 'epoch': epoch}
             )
 
     def predict_test_structures(self):

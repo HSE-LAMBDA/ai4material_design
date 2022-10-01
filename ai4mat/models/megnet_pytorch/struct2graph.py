@@ -4,7 +4,7 @@ from torch_geometric.data import Data
 from pymatgen.core import Structure
 from pymatgen.core.periodic_table import DummySpecies
 from pymatgen.optimization.neighbors import find_points_in_spheres
-import logging
+
 
 class MyTensor(torch.Tensor):
     """
@@ -23,9 +23,7 @@ class SimpleCrystalConverter:
             atom_converter=None,
             bond_converter=None,
             add_z_bond_coord=False,
-            add_eos_features=False,
-            cutoff=5.0,
-            ignore_state=False,
+            cutoff=5.0
     ):
         """
         Parameters
@@ -34,15 +32,12 @@ class SimpleCrystalConverter:
         bond_converter: converter that converts distances to edge features
         add_z_bond_coord: use z-coordinate feature or no
         cutoff: cutoff radius
-        ignore_state: ignore global state. State is normally used to
-            contain information about the pristine material
         """
         self.cutoff = cutoff
         self.atom_converter = atom_converter if atom_converter else DummyConverter()
         self.bond_converter = bond_converter if bond_converter else DummyConverter()
         self.add_z_bond_coord = add_z_bond_coord
-        self.add_eos_features = add_eos_features
-        self.ignore_state = ignore_state
+
 
     def convert(self, d):
         lattice_matrix = np.ascontiguousarray(np.array(d.lattice.matrix), dtype=float)
@@ -67,20 +62,7 @@ class SimpleCrystalConverter:
             )
 
         edge_attr = torch.Tensor(self.bond_converter.convert(distances_preprocessed))
-        
-        if self.add_eos_features:
-            eos = EOS(defect_rep=d, bond_converter=self.bond_converter)
-            edge_attr = torch.tensor(eos.add_eos_features(edge_attr, center_indices, neighbor_indices, distances), dtype=torch.float)
-
-        if self.ignore_state:
-            state = [[0.0, 0.0]]
-        else:
-            state = getattr(d, "state", None) or [[0.0, 0.0]]
-        if len(state[0]) > 2:
-            raise NotImplementedError("We currently only support state length of 1 and 2")
-        if len(state[0]) == 1:
-            state[0].append(state[0][0])
-            logging.warning("Tiling state from length 1 to length 2")
+        state = getattr(d, "state", None) or [[0.0, 0.0]]
         y = d.y if hasattr(d, "y") else 0
         bond_batch = MyTensor(np.zeros(edge_index.shape[1])).long()
 
@@ -89,39 +71,24 @@ class SimpleCrystalConverter:
         )
 
     def __call__(self, d):
-        return self.convert(d)
+        return self.convert(d) 
 
 
 class DummyConverter:
+    def __init__(self, edge_embed_size=30):
+        self.edge_embed_size = edge_embed_size
+        
     def convert(self, d):
         return d.reshape((-1, 1))
 
-class EOS:
-    def __init__(self, defect_rep, bond_converter):
-        self.defect_rep = defect_rep
-        
-    def add_eos_features(self, edge_attr, center_indices, neighbor_indices, distances):
-        edges_eos = []
-        edges_eos_parity = []
-        for center_index, neighbor_index, distance in zip(center_indices, neighbor_indices, distances):
-            if center_index == neighbor_index:
-                continue
-            center_atom = self.defect_rep[center_index]
-            neighbor_atom = self.defect_rep[neighbor_index]
-            # Get the distance between the center atom and the nearest neighbor atom
-            if center_atom.properties['was'] == neighbor_atom.properties['was']:
-                edges_eos.append(np.searchsorted(center_atom.properties['shells'], distance))
-            else:
-                edges_eos.append(np.isclose(center_atom.properties['shells'], distance, rtol=1, atol=1e-01).argmin())
-            edges_eos_parity.append(edges_eos[-1] % 2)
-
-        edges_eos = np.vstack([edges_eos, edges_eos_parity]).T
-        return np.hstack([edge_attr, edges_eos])
+    def get_shape(self):
+        return self.edge_embed_size
 
 
 class GaussianDistanceConverter:
     def __init__(self, centers=np.linspace(0, 5, 100), sigma=0.5):
         self.centers = centers
+
         self.sigma = sigma
 
     def convert(self, d):
@@ -129,11 +96,8 @@ class GaussianDistanceConverter:
             -((d.reshape((-1, 1)) - self.centers.reshape((1, -1))) / self.sigma) ** 2
         )
 
-    def get_shape(self, eos=False):
-        shape = len(self.centers)
-        if eos:
-            shape += 2
-        return shape
+    def get_shape(self):
+        return len(self.centers)
 
 
 class FlattenGaussianDistanceConverter(GaussianDistanceConverter):
@@ -146,12 +110,8 @@ class FlattenGaussianDistanceConverter(GaussianDistanceConverter):
             res.append(super().convert(arr))
         return np.hstack(res)
 
-    def get_shape(self, eos=False):
-        shape = 2 * len(self.centers)
-        if eos:
-            shape += 2
-        return shape
-
+    def get_shape(self):
+        return 2 * len(self.centers)
 
 class AtomFeaturesExtractor:
     def __init__(self, atom_features):
