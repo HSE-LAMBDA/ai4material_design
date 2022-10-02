@@ -38,7 +38,7 @@ class MEGNet(nn.Module):
         )
         self.blocks = nn.ModuleList()
         for i in range(n_blocks - 1):
-            self.blocks.append(MegnetModule(embedding_size, embedding_size, embedding_size, soft_cutoff=soft_cutoff))
+            self.blocks.append(MegnetModule(embedding_size, embedding_size, embedding_size, embed_size=embedding_size, soft_cutoff=soft_cutoff))
 
         self.se = Set2Set(embedding_size, 1)
         self.sv = Set2Set(embedding_size, 1)
