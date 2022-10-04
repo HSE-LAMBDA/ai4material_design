@@ -349,10 +349,12 @@ stages:
       md5: 90711548e8c1453a9fe6f6b2f1b61442
       size: 13012
     outs:
-    - path: datasets/processed/low_density_defects/WSe2
-      md5: 69f18a187a3514897149c367292c3259.dir
-      size: 4526058
-      nfiles: 2
+    - path: datasets/processed/low_density_defects/WSe2/data.pickle.gz
+      md5: 0cdcac6c0a2d516f87aab6dbcc17c912
+      size: 4209873
+    - path: datasets/processed/low_density_defects/WSe2/targets.csv.gz
+      md5: 80b66e69667d39743a3f4914bad00167
+      size: 316185
   processed-low-density@MoS2:
     cmd: python scripts/parse_csv_cif.py --input-name=low_density_defects/MoS2 --fill-missing-band-properties
     deps:
@@ -364,10 +366,12 @@ stages:
       md5: 90711548e8c1453a9fe6f6b2f1b61442
       size: 13012
     outs:
-    - path: datasets/processed/low_density_defects/MoS2
-      md5: 1f6ce695be2c0d8c4202c20fdaf2cfa3.dir
-      size: 4744065
-      nfiles: 2
+    - path: datasets/processed/low_density_defects/MoS2/data.pickle.gz
+      md5: fa00985deb8b64b839b5ccfc83dac465
+      size: 4326311
+    - path: datasets/processed/low_density_defects/MoS2/targets.csv.gz
+      md5: 07a043fb84b8c3206e66275e227d0871
+      size: 417754
   rolos-2d-materials-point-defects:
     cmd: ./scripts/pack_for_rolos.sh
     deps:
