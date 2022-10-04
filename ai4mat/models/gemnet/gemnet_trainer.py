@@ -23,6 +23,7 @@ class GemNetTrainer(Trainer):
         test_targets=None,
         configs=None,
         gpu_id=0,
+        checkpoint_path=None,
         **kwargs
         ):
         if configs:
@@ -72,6 +73,7 @@ class GemNetTrainer(Trainer):
             # TODO: this need to be managed by the configs
             use_gpus=gpu_id,
             # run_dir=os.environ["WANDB_RUN_GROUP"]
+            checkpoint_path=checkpoint_path
         )
         self.save_checkpoint = kwargs['save_checkpoint']
         
@@ -100,7 +102,6 @@ class GemNetTrainer(Trainer):
         
         for epoch in trange(self.config["optim"]["max_epochs"]):
             print(f'=========== {epoch} ==============')
-            print(self.trainloader.__len__(), self.device)
             batch_loss = []
             for i, item in enumerate(self.trainloader):
                 _loss = []
