@@ -84,7 +84,7 @@ class MegnetModule(MessagePassing):
 
         self.sigma = 0.5
         self.steepness = 5
-        self.soft_cutoff = nn.Parameter(torch.Tensor(soft_cutoff),
+        self.soft_cutoff = nn.Parameter(torch.Tensor([soft_cutoff]),
                                         requires_grad=True)
         self.centers = nn.Parameter(torch.from_numpy(np.linspace(0, 50, embed_size)),
                                     requires_grad=True)
