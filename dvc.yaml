@@ -53,7 +53,8 @@ stages:
         - datasets/csv_cif/low_density_defects/${item}
         - scripts/parse_csv_cif.py
       outs:
-        - datasets/processed/low_density_defects/${item}
+        - datasets/processed/low_density_defects/${item}/data.pickle.gz
+        - datasets/processed/low_density_defects/${item}/targets.csv.gz
   processed-high-density:
     foreach: 
       - BP_spin
@@ -68,7 +69,8 @@ stages:
         - scripts/parse_csv_cif.py
         - datasets/csv_cif/high_density_defects/${item}_500
       outs:
-        - datasets/processed/high_density_defects/${item}_500
+        - datasets/processed/high_density_defects/${item}_500/targets.csv.gz
+        - datasets/processed/high_density_defects/${item}_500/data.pickle.gz
   rolos-2d-materials-point-defects:
     cmd:
       ./scripts/pack_for_rolos.sh
