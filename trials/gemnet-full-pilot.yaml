@@ -10,12 +10,12 @@ model: gemnet
 model_params:
   model:
     num_targets: 1
-    num_spherical: 7
-    num_radial: 128
+    num_spherical: 5
+    num_radial: 64
     num_blocks: 3
-    emb_size_atom: 512
-    emb_size_edge: 512
-    emb_size_trip: 64
+    emb_size_atom: 256
+    emb_size_edge: 256
+    emb_size_trip: 43
     emb_size_rbf: 16
     emb_size_cbf: 16
     emb_size_bil_trip: 64
@@ -23,7 +23,7 @@ model_params:
     num_after_skip: 2
     num_concat: 1
     num_atom: 3
-    cutoff: 5
+    cutoff: 6.0
     max_neighbors: 50
     rbf:
       name: gaussian
@@ -40,7 +40,7 @@ model_params:
     direct_forces: False
 
   optim:
-    max_epochs: 50
+    max_epochs: 1
     batch_size: 32
     eval_batch_size: 32
     eval_every: 5000
