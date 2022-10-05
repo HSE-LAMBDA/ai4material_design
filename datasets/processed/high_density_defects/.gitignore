@@ -1,13 +1,2 @@
-/BN
-/BN_5e-2
-/BN_5e-2_ss
-/WSe2
-/BP_spin_500
-/GaSe
-/GaSe_500
-/hBN_spin_500
-/WSe2_500
-/MoS2_500
-/InSe_500
-/InSe_spin_500
-/GaSe_spin_500
+*/targets.csv.gz
+*/data.pickle.gz
