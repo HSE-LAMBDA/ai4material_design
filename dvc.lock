@@ -331,47 +331,47 @@ stages:
       size: 248080886
       nfiles: 24795
     - path: scripts/separate_csv_cif.py
-      md5: 9910d187d76c8270941bb39b555e42e5
-      size: 2039
+      md5: 574f8e8cf2a88cb418af0f7d644ad2af
+      size: 2937
     outs:
     - path: datasets/csv_cif/low_density_defects/WSe2
-      md5: b2f310c20dc31024cd0e35f4cb748f6b.dir
-      size: 2135374
+      md5: f446f04469a11faa5ee5b9499c000087.dir
+      size: 2124254
       nfiles: 7
   processed-low-density@WSe2:
     cmd: python scripts/parse_csv_cif.py --input-name=low_density_defects/WSe2 --fill-missing-band-properties
     deps:
     - path: datasets/csv_cif/low_density_defects/WSe2
-      md5: b2f310c20dc31024cd0e35f4cb748f6b.dir
-      size: 2135374
+      md5: f446f04469a11faa5ee5b9499c000087.dir
+      size: 2124254
       nfiles: 7
     - path: scripts/parse_csv_cif.py
       md5: 90711548e8c1453a9fe6f6b2f1b61442
       size: 13012
     outs:
     - path: datasets/processed/low_density_defects/WSe2/data.pickle.gz
-      md5: 0cdcac6c0a2d516f87aab6dbcc17c912
+      md5: 71e038cf54f83e3afde1d5798227ee5b
       size: 4209873
     - path: datasets/processed/low_density_defects/WSe2/targets.csv.gz
-      md5: 80b66e69667d39743a3f4914bad00167
+      md5: aa9f95e601ef143edf1889b25c46ccef
       size: 316185
   processed-low-density@MoS2:
     cmd: python scripts/parse_csv_cif.py --input-name=low_density_defects/MoS2 --fill-missing-band-properties
     deps:
     - path: datasets/csv_cif/low_density_defects/MoS2
-      md5: 6b917eb1ab1718469f85acda13c2c451.dir
-      size: 3385591
+      md5: 0df118db501002d73a94926e01fbbae9.dir
+      size: 3354219
       nfiles: 7
     - path: scripts/parse_csv_cif.py
       md5: 90711548e8c1453a9fe6f6b2f1b61442
       size: 13012
     outs:
     - path: datasets/processed/low_density_defects/MoS2/data.pickle.gz
-      md5: fa00985deb8b64b839b5ccfc83dac465
-      size: 4326311
+      md5: 15bdb110f4fa62b73a773390f1a168b2
+      size: 4316732
     - path: datasets/processed/low_density_defects/MoS2/targets.csv.gz
-      md5: 07a043fb84b8c3206e66275e227d0871
-      size: 417754
+      md5: f87655780dc586b1fb4ccd707a605a74
+      size: 401661
   rolos-2d-materials-point-defects:
     cmd: ./scripts/pack_for_rolos.sh
     deps:

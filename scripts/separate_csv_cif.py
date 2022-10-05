@@ -2,6 +2,9 @@ import argparse
 import numpy as np
 import pandas as pd
 import sys
+import logging
+from pathlib import Path
+import shutil
 sys.path.append('.')
 from ai4mat.data.data import (
     read_structures_descriptions,
@@ -42,7 +45,24 @@ def main():
         selection = selection & (defects.defects.apply(lambda defect: all((this_defect['type'] == 'vacancy' for this_defect in defect))))
     selected_defects = defects[selection]
     structures = structures.loc[structures.descriptor_id.isin(selected_defects.index)]
-    copy_indexed_structures(structures, args.input_folder, args.output_folder)
+
+    save_path = Path(args.output_folder)
+    save_path.mkdir(parents=True)
+    # since we don't clean, raise if output exists
+    for file_name in ("elements.csv", "initial_structures.csv"):
+        shutil.copy2(Path(args.input_folder, file_name),
+                     save_path.joinpath(file_name))
+    output_structures = save_path.joinpath("initial.tar.gz")
+    input_path = Path(args.input_folder)
+    input_structures = input_path / "initial.tar.gz"
+    copy_indexed_structures(structures.index, input_structures, output_structures)
+    structures.to_csv(save_path.joinpath("defects.csv.gz"),
+                      index_label="_id")
+    selected_defects.to_csv(save_path.joinpath("descriptors.csv"), index_label="_id")
+    try:
+        shutil.copytree(input_path / 'unit_cells', save_path / 'unit_cells')
+    except FileNotFoundError:
+        logging.warning("unit_cells not found in %s", input_path / 'unit_cells')
 
 
 if __name__ == "__main__":
