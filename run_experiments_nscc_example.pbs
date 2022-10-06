@@ -1,12 +1,8 @@
 #!/bin/bash
 #PBS -l select=1:ncpus=8:ngpus=1
-## Run for 1 hour, modify as required
-#PBS -l walltime=2:00:00
-## Submit to correct queue for DGX access
+#PBS -l walltime=3:00:00
 #PBS -q dgx
-## Specify project ID
 #PBS -P 11001786
-## Job name
 #PBS -N ai4material_design
 ## Merge standard output and error from PBS script
 #PBS -j oe
