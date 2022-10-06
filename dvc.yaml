@@ -39,6 +39,8 @@ stages:
       cmd: python scripts/separate_csv_cif.py --input-folder datasets/csv_cif/dichalcogenides_x1s6_202109
         --output-folder datasets/csv_cif/low_density_defects/${item} --base-material ${item}
         --supercell-size 8 --additional-columns-csv datasets/others/dichalcogenides8x8_vasp_nus_202110_E1/${item}.csv.gz
+      # E_1 files are produced manually, see README
+      # https://github.com/HSE-LAMBDA/ai4material_design/blob/main/datasets/others/dichalcogenides8x8_vasp_nus_202110_E1/README.md
       deps:
         - datasets/csv_cif/dichalcogenides_x1s6_202109
         - scripts/separate_csv_cif.py
