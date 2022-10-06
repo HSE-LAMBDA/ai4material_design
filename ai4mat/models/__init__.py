@@ -1,7 +1,7 @@
 #from ai4mat.models.megnet_wrapper import get_megnet_predictions
 #from ai4mat.models.gemnet_wrapper import get_gemnet_predictions
 #from ai4mat.models.schnet_wrapper import get_schnet_predictions
-from ai4mat.models.catboost_wrapper import get_catboost_predictions
+#from ai4mat.models.catboost_wrapper import get_catboost_predictions
 from ai4mat.models.megnet_pytorch_wrapper import get_megnet_pytorch_predictions
 
 
