@@ -1,5 +1,3 @@
-
-
 def get_predictor_by_name(name):
     if name == "megnet":
         #from ai4mat.models.megnet_wrapper import get_megnet_predictions
