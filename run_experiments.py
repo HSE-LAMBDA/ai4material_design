@@ -119,7 +119,7 @@ def run_experiment(experiment_name: str,
             gpus,
             processes_per_gpu,
             wandb_config,
-            checkpoint_path=storage_resolver["checkpoints"].joinpath(experiment_name, str(target_name), this_trial_name),
+           # checkpoint_path=storage_resolver["checkpoints"].joinpath(experiment_name, str(target_name), this_trial_name),
             strategy=experiment['strategy'],
         )
         predictions.rename(lambda target_name: f"predicted_{target_name}_test", axis=1, inplace=True)
@@ -144,7 +144,7 @@ def cross_val_predict(
     gpus: List[int],
     processes_per_gpu: int,
     wandb_config,
-    checkpoint_path,
+  #  checkpoint_path,
     strategy="cv",
 ):
     assert data.index.equals(targets.index)
@@ -170,7 +170,8 @@ def cross_val_predict(
                         target_is_intensive=target_is_intensive,
                         model_params=model_params,
                         wandb_config=wandb_config,
-                        checkpoint_path=checkpoint_path),
+                      #  checkpoint_path=checkpoint_path
+                       ),
                 zip(test_fold_generator, cycle(gpus)),
             )
     # TODO(kazeevn)
@@ -187,7 +188,7 @@ def cross_val_predict(
             target_is_intensive=target_is_intensive,
             model_params=model_params,
             wandb_config=wandb_config,
-            checkpoint_path=checkpoint_path,
+        #    checkpoint_path=checkpoint_path,
         )
     # TODO(kazeevn)
     # Should we add explicit Structure -> graph preprocessing with results shared?
@@ -225,7 +226,7 @@ def predict_on_fold(
     target_is_intensive,
     model_params,
     wandb_config,
-    checkpoint_path,
+    #checkpoint_path,
 ):
     train_folds = set(range(n_folds)) - set((test_fold,))
     train_ids = folds[folds.isin(train_folds)]
@@ -248,7 +249,7 @@ def predict_on_fold(
             target_is_intensive,
             model_params,
             gpu,
-            checkpoint_path=checkpoint_path.joinpath('_'.join(map(str, train_folds))),
+           # checkpoint_path=checkpoint_path.joinpath('_'.join(map(str, train_folds))),
         )
 
 
