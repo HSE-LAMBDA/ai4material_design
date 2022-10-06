@@ -9,7 +9,8 @@ sys.path.append('.')
 from ai4mat.data.data import (
     read_structures_descriptions,
     read_defects_descriptions,
-    copy_indexed_structures)
+    copy_indexed_structures,
+    Columns)
 
 
 def main():
@@ -26,6 +27,8 @@ def main():
     parser.add_argument("--supercell-size", type=int,
                         help="Component 0 of the supercell shape.")
     parser.add_argument("--vacancy-only", action="store_true")
+    parser.add_argument("--additional-columns-csv", type=Path,
+                        help="Path to csv file with additional columns to add to the dataset")
 
     args = parser.parse_args()
     
@@ -56,9 +59,12 @@ def main():
     input_path = Path(args.input_folder)
     input_structures = input_path / "initial.tar.gz"
     copy_indexed_structures(structures.index, input_structures, output_structures)
+    if args.additional_columns_csv:
+        additional_columns = pd.read_csv(args.additional_columns_csv, index_col=Columns()["structure"]["id"])
+        structures = structures.join(additional_columns, validate="one_to_one")
     structures.to_csv(save_path.joinpath("defects.csv.gz"),
-                      index_label="_id")
-    selected_defects.to_csv(save_path.joinpath("descriptors.csv"), index_label="_id")
+                      index_label=Columns()["structure"]["id"])
+    selected_defects.to_csv(save_path.joinpath("descriptors.csv"), index_label=Columns()["defect"]["id"])
     try:
         shutil.copytree(input_path / 'unit_cells', save_path / 'unit_cells')
     except FileNotFoundError:

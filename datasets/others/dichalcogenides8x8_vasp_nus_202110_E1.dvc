@@ -1,0 +1,5 @@
+outs:
+- md5: a859014a7586a8dbd563e07c5cbfcfe6.dir
+  size: 100601
+  nfiles: 3
+  path: dichalcogenides8x8_vasp_nus_202110_E1
