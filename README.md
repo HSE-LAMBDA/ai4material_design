@@ -131,6 +131,21 @@ For data computed without spin interaction, you might want to add `--fill-missin
 python scripts/parse_csv_cif.py --input-name high_density_defects/GaSe --fill-missing-band-properties
 ```
 
+## Running sparse experiments for the paper
+Get the data
+```
+dvc pull datasets/csv_cif/high_density_defects/{BP_spin,GaSe_spin,hBN_spin,InSe_spin,MoS2,WSe2}_500
+dvc pull datasets/csv_cif/low_density_defects/{MoS2,WSe2}
+dvc pull datasets/processed/high_density_defects/{BP_spin,GaSe_spin,hBN_spin,InSe_spin,MoS2,WSe2}_500/{data.pickle.gz,targets.csv.gz}
+dvc pull datasets/processed/low_density_defects/{MoS2,WSe2}/{data.pickle.gz,targets.csv.gz}
+dvc pull datasets/experiments/{high,low}_density/*.dvc
+dvc pull datasets/experiments/low_high_combined
+```
+Launch on ASPIRE
+```
+./run_experiments_nscc_paper.sh
+```
+
 ## Running on HSE HPC [obsolete]
 0. ssh to the cluster head node if you gonna run on a slurm cluster
 1. Load the module `module load Python/Anaconda_v11.2020`
