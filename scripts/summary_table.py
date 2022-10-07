@@ -51,6 +51,18 @@ def read_results(folds_experiment_name: str,
     return results
 
 
+def find_in_dict(key, src):
+    for k, value in src.items():
+        if key == k:
+            return value
+        elif type(value) == dict:
+            res = find_in_dict(key, value)
+            if res is not None:
+                return res
+    return
+
+
+
 def main():
     parser = argparse.ArgumentParser("Makes a text table with MAEs")
     parser.add_argument("--experiments", type=str, nargs="+", required=True)
@@ -70,7 +82,20 @@ def main():
                              " values from the non-spin-specific versions")
     parser.add_argument("--skip-missing-data", action="store_true",
                         help="Skip experiments that don't have data for all targets")
+    parser.add_argument("--trial-parameters-names", type=str, nargs="+")
     args = parser.parse_args()
+
+    sr = StorageResolver()
+    trials_short_names = {}
+    for trial in args.trials:
+        trial_path = trial + '.yaml'
+        with open(sr['trials'] / trial_path, 'r') as trial_file:
+            cur_trial = yaml.safe_load(trial_file)
+            cur_name = ""
+            for param_name in args.trial_parameters_names:
+                param_value = find_in_dict(param_name, cur_trial)
+                cur_name += param_name + ': ' + str(param_value) + '\n'
+        trials_short_names[trial] = cur_name
 
     results = []
     for experiment in args.experiments:
@@ -87,8 +112,11 @@ def main():
                     raise
             these_results['experiment'] = experiment
             these_results['trial'] = trial
+
+            these_results['trial_short_name'] = trials_short_names[trial]
+
             these_results.index.name = "target"
-            these_results.set_index(["experiment", "trial"], inplace=True, append=True)
+            these_results.set_index(["experiment", "trial_short_name"], inplace=True, append=True)
             results.append(these_results)
 
     if args.combined_experiment:
@@ -119,7 +147,7 @@ def main():
         columns = "target"
     elif args.separate_by == "target":
         rows = "experiment"
-        columns = "trial"
+        columns = "trial_short_name"
     else:
         raise ValueError("Must separate by one of experiment, trial, target")
     all_separators = results_pd.index.get_level_values(args.separate_by).unique()
