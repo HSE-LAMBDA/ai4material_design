@@ -93,6 +93,7 @@ def main():
                 these_results.set_index(["experiment", "trial"], inplace=True, append=True)
                 results.append(these_results)
     results_pd = pd.concat(results, axis=0)
+    print(results_pd)
 
     if args.presentation_config:
         with open(args.presentation_config) as config_file:
