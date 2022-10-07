@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 import logging
 from prettytable import PrettyTable as pt
+import re
 import sys
 sys.path.append('.')
 from ai4mat.data.data import StorageResolver, get_prediction_path
@@ -46,7 +47,10 @@ def main():
     parser = argparse.ArgumentParser("Makes a text table with MAEs")
     parser.add_argument("--experiments", type=str, nargs="+", required=True)
     parser.add_argument("--trials", type=str, nargs="+", required=True)
+    parser.add_argument("--combined-experiment", type=str)
     parser.add_argument("--targets", type=str, nargs="+")
+    parser.add_argument("--column-format-re", type=str,
+                        help="Regular expression to be matched against the column names for formating purposes")
     parser.add_argument("--separate-by", choices=["experiment", "target", "trial"],
         help="Tables are 2D, but we have 3 dimensions: target, trial, experiment. "
         "One of them must be used to separate the tables.")
@@ -113,7 +117,10 @@ def main():
         new_index = pd.MultiIndex.from_product(table_data.index.remove_unused_levels().levels)
         table_data = table_data.reindex(new_index)
         mae_table = pt()
-        mae_table.field_names = [rows] + list(table_data.index.get_level_values(columns).unique())
+        column_names = list(table_data.index.get_level_values(columns).unique())
+        if args.column_format_re:
+            column_names = [re.match(args.column_format_re, name).group("name") for name in column_names]
+        mae_table.field_names = [rows] + column_names
         for row_name in table_data.index.get_level_values(rows).unique():
             table_row = [row_name]
             for column_name, cell_value in table_data.xs(row_name, level=rows).items():
