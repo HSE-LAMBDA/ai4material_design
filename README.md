@@ -145,6 +145,12 @@ Launch on ASPIRE
 ```
 ./run_experiments_nscc_paper.sh
 ```
+Print the tables
+```
+python scripts/summary_table_lean.py --experiments high_density/{BP,hBN,InSe,GaSe}_spin_500 high_density/{MoS2,WSe2}_500 high_density/combined --combined-experiment high_density/combined --trials megnet_pytorch_paper/sparse{,-z,-z-were,-z-were-eos} --skip-missing --separate-by target --column-format-re megnet_pytorch_paper/\(?P\<name\>.+\) --row-format-re high_density/\(?P\<name\>.\*\)
+python scripts/summary_table_lean.py --experiments low_density/{MoS2,WSe2,combined} --combined-experiment low_density/combined --trials megnet_pytorch_paper/sparse{,-z,-z-were,-z-were-eos} --skip-missing --separate-by target --column-format-re megnet_pytorch_paper/\(?P\<name\>.+\) --row-format-re low_density/\(?P\<name\>.\*\)
+python scripts/summary_table_lean.py --experiments low_density/{MoS2,WSe2,combined} high_density/{BP,hBN,InSe,GaSe}_spin_500 high_density/{MoS2,WSe2}_500 high_density/combined low_high_combined --trials megnet_pytorch_paper/sparse{,-z,-z-were,-z-were-eos} --skip-missing --separate-by target --save-pandas datasets/others/megnet_sparse_analysis.pkl.gz
+```
 
 ## Running on HSE HPC [obsolete]
 0. ssh to the cluster head node if you gonna run on a slurm cluster
