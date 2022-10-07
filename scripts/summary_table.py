@@ -5,6 +5,7 @@ from pathlib import Path
 import yaml
 import pandas as pd
 import numpy as np
+import logging
 from prettytable import PrettyTable as pt
 import sys
 
@@ -19,7 +20,7 @@ def name_to_train_WSe2_count(name):
 
 def read_results(folds_experiment_name: str,
                  predictions_experiment_name: str,
-                 trial: str):
+                 trial: str) -> dict[str, tuple[float]]:
     storage_resolver = StorageResolver()
     folds = pd.read_csv(storage_resolver["experiments"].joinpath(
         folds_experiment_name).joinpath("folds.csv.gz"),
@@ -52,9 +53,9 @@ def read_results(folds_experiment_name: str,
 
 def main():
     parser = argparse.ArgumentParser("Makes a text table with MAEs")
-    parser.add_argument("--experiments", type=str, nargs="+")
+    parser.add_argument("--experiments", type=str, nargs="+", required=True)
     parser.add_argument("--combined-experiment", type=str)
-    parser.add_argument("--trials", type=str, nargs="+")
+    parser.add_argument("--trials", type=str, nargs="+", required=True)
     parser.add_argument("--targets", type=str, nargs="+")
     parser.add_argument("--separate-by", choices=["experiment", "target", "trial"],
                         help="Tables are 2D, but we have 3 dimensions: target, trial, experiment. "
@@ -67,13 +68,23 @@ def main():
     parser.add_argument("--populate-per-spin-target", action="store_true",
                         help="Populate {band_gap,homo,lumo}_{majority,minority} columns with"
                              " values from the non-spin-specific versions")
+    parser.add_argument("--skip-missing-data", action="store_true",
+                        help="Skip experiments that don't have data for all targets")
     args = parser.parse_args()
 
     results = []
     for experiment in args.experiments:
         for trial in args.trials:
-            these_results = pd.DataFrame.from_dict(read_results(experiment, experiment, trial),
-                                                   orient="index", columns=["MAE", "MAE_CV_std", "error_std"])
+            try:
+                these_results = pd.DataFrame.from_dict(read_results(experiment, experiment, trial),
+                                                       orient="index", columns=["MAE", "MAE_CV_std", "error_std"])
+            except FileNotFoundError:
+                if args.skip_missing_data:
+                    logging.warning("Skipping expriment %s; trial %s because it doesn't have data for all targets",
+                                    experiment, trial)
+                    continue
+                else:
+                    raise
             these_results['experiment'] = experiment
             these_results['trial'] = trial
             these_results.index.name = "target"
@@ -93,7 +104,6 @@ def main():
                 these_results.set_index(["experiment", "trial"], inplace=True, append=True)
                 results.append(these_results)
     results_pd = pd.concat(results, axis=0)
-    print(results_pd)
 
     if args.presentation_config:
         with open(args.presentation_config) as config_file:
@@ -101,46 +111,33 @@ def main():
     else:
         presentatation_config = None
 
-    all_per_spin_targets = ("homo", "lumo", "band_gap")
     if args.separate_by == "trial":
-        for trial in args.trials:
-            table_data = results_pd.loc[:, :, trial]
-            present_targets = table_data.index.get_level_values("target").unique()
-            per_spin_targets = present_targets.intersection(all_per_spin_targets)
-            # Add None for missing values
-            new_index = pd.MultiIndex.from_product(table_data.index.remove_unused_levels().levels)
-            table_data = table_data.reindex(new_index)
-            if args.populate_per_spin_target:
-                for spin in ("majority", "minority"):
-                    for target in per_spin_targets:
-                        if target not in present_targets:
-                            continue
-                        table_data.loc[f"{target}_{spin}"].update(
-                            table_data.xs(f"{target}_{spin}").fillna(table_data.xs(target)))
-                table_data.drop(list(per_spin_targets), level="target", inplace=True)
-                table_data.index = table_data.index.remove_unused_levels()
-                present_targets = table_data.index.get_level_values("target").unique()
-            if args.targets:
-                table_data = table_data.loc[args.targets]
-                present_targets = table_data.index.get_level_values("target").unique()
-            mae_table = pt()
-            mae_table.field_names = [args.experiment_column] + list(present_targets)
-            experiment_order = table_data.index.get_level_values("experiment").unique()
-            if args.combined_experiment and args.combined_experiment in experiment_order:
-                experiment_order = [args.combined_experiment] + list(experiment_order.drop(args.combined_experiment))
-            for experiment in experiment_order:
-                table_row = [experiment.split("/")[-1].replace("_500", "")]
-                for _, row in table_data.loc[(slice(None), experiment), :].iterrows():
-                    target = row.name[0]
-                    if (presentatation_config is not None and
-                            target in presentatation_config and
-                            "presentation_multiplier" in presentatation_config[target]):
-                        unit_multiplier = presentatation_config[target]["presentation_multiplier"]
-                    else:
-                        unit_multiplier = 1
-                    table_row.append(f"{row['MAE'] * unit_multiplier:.3f} ± "
-                                     f"{row['MAE_CV_std'] * unit_multiplier:.3f}")
-                mae_table.add_row(table_row)
+        rows = "experiment"
+        columns = "target"
+    elif args.separate_by == "experiment":
+        rows = "trial"
+        columns = "target"
+    elif args.separate_by == "target":
+        rows = "experiment"
+        columns = "trial"
+    else:
+        raise ValueError("Must separate by one of experiment, trial, target")
+    all_separators = results_pd.index.get_level_values(args.separate_by).unique()
+
+    for table_index in all_separators:
+        table_data = results_pd.xs(table_index, level=args.separate_by)
+        # Add None for missing values
+        new_index = pd.MultiIndex.from_product(table_data.index.remove_unused_levels().levels)
+        table_data = table_data.reindex(new_index)
+        mae_table = pt()
+        mae_table.field_names = [rows] + list(table_data.index.get_level_values(columns).unique())
+        for row_name in table_data.index.get_level_values(rows).unique():
+            table_row = [row_name]
+            for column_name, cell_value in table_data.xs(row_name, level=rows).iterrows():
+                table_row.append(f"{cell_value['MAE']:.3f} ± "
+                                 f"{cell_value['MAE_CV_std']:.3f}")
+            mae_table.add_row(table_row)
+        print(table_index)
         print(mae_table)
 
 
