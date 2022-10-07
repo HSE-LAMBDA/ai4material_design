@@ -1,0 +1,4 @@
+outs:
+- md5: d66ee40b1d5be7cc9aefad2d9b421945
+  size: 22048
+  path: catboost-test.pdf
