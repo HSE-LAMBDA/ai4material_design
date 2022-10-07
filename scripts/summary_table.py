@@ -162,8 +162,8 @@ def main():
         for row_name in table_data.index.get_level_values(rows).unique():
             table_row = [row_name]
             for column_name, cell_value in table_data.xs(row_name, level=rows).iterrows():
-                table_row.append(f"{cell_value['MAE']:.3f} ± "
-                                 f"{cell_value['MAE_CV_std']:.3f}")
+                table_row.append(f"{cell_value['MAE']:.3f}") #± "
+                                 #f"{cell_value['MAE_CV_std']:.3f}")
             mae_table.add_row(table_row)
         print(table_index)
         print(mae_table)
