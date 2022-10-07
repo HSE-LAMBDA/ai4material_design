@@ -20,7 +20,7 @@ def name_to_train_WSe2_count(name):
 
 def read_results(folds_experiment_name: str,
                  predictions_experiment_name: str,
-                 trial: str) -> dict[str, tuple[float]]:
+                 trial: str):
     storage_resolver = StorageResolver()
     folds = pd.read_csv(storage_resolver["experiments"].joinpath(
         folds_experiment_name).joinpath("folds.csv.gz"),
