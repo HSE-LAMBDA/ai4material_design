@@ -225,6 +225,7 @@ def cross_val_predict(
             model_params=model_params,
             wandb_config=wandb_config,
             checkpoint_path=checkpoint_path,
+            n_jobs=n_jobs,
         )
     # TODO(kazeevn)
     # Should we add explicit Structure -> graph preprocessing with results shared?
