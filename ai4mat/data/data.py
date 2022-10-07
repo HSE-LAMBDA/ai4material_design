@@ -50,7 +50,7 @@ class Is_Intensive:
             "homo_1": True,
             "homo_2": True,
             "lumo": True,
-            "normalized_luom": True,
+            "normalized_lumo": True,
             "lumo_1": True,
             "lumo_2": True,
             "formation_energy": False,
