@@ -94,8 +94,8 @@ def main():
             cur_name = ""
             for param_name in args.trial_parameters_names:
                 param_value = find_in_dict(param_name, cur_trial)
-                cur_name += str(param_value) + ' '
-        trials_short_names[trial] = cur_name
+                cur_name += str(param_value) + '/'
+        trials_short_names[trial] = cur_name[:-1]
 
     results = []
     for experiment in args.experiments:
