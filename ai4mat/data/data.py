@@ -44,14 +44,16 @@ class StorageResolver:
 class Is_Intensive:
     def __init__(self):
         self.attr = {
+            "energy": False,
             "homo": True,
+            "normalized_homo": True,
             "homo_1": True,
             "homo_2": True,
             "lumo": True,
+            "normalized_luom": True,
             "lumo_1": True,
             "lumo_2": True,
             "formation_energy": False,
-            "energy": False,
             "energy_per_atom": True,
             "band_gap": True,
             "band_gap_1": True,
@@ -62,6 +64,10 @@ class Is_Intensive:
             "homo_minority": True,
             "lumo_majority": True,
             "lumo_minority": True,
+            "normalized_homo_majority": True,
+            "normalized_homo_minority": True,
+            "normalized_lumo_majority": True,
+            "normalized_lumo_minority": True,
             "formation_energy_per_site": True,
             "band_gap_from_eigenvalue_band_properties": True,
             "band_gap_from_get_band_structure": True,
@@ -176,23 +182,18 @@ def get_column_from_data_type(data_type):
         raise ValueError("Unknown data_type")
 
 
-def copy_indexed_structures(structures, input_folder, output_folder):
-    save_path = Path(output_folder)
-    save_path.mkdir(parents=True)
-    # since we don't clean, raise if output exists
-    for file_name in ("descriptors.csv", "elements.csv", "initial_structures.csv"):
-        shutil.copy2(Path(input_folder, file_name),
-                     save_path.joinpath(file_name))
-    structures_folder = save_path.joinpath("initial")
-    structures_folder.mkdir()
-    input_structures_folder = Path(input_folder, "initial")
-    for structure_id in structures.index:
-        file_name = f"{structure_id}.cif"
-        shutil.copy2(input_structures_folder.joinpath(file_name),
-                     structures_folder.joinpath(file_name))
-    structures.to_csv(save_path.joinpath("defects.csv"),
-                      index_label="_id")
-
+def copy_indexed_structures(index, input_tar, output_tar):
+    copied = pd.Series(data=False, index=index, dtype=bool)
+    with tarfile.open(input_tar, "r:gz") as input_tar, \
+        tarfile.open(output_tar, "w:gz") as output_tar:
+        for member in tqdm(input_tar.getmembers()):
+            assert member.name.endswith(".cif")
+            structure_id = member.name[:-4]
+            if structure_id in index:
+                output_tar.addfile(member, input_tar.extractfile(member))
+                copied[structure_id] = True
+    if not copied.all():
+        raise ValueError("Not all structures were copied")
 
 
 def get_gpaw_trajectories(defect_db_path:str):

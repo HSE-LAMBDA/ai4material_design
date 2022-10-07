@@ -1,0 +1,4 @@
+outs:
+- md5: b7e919eaf77a1f5455514319b83de628
+  size: 405845
+  path: megnet_pytorch-sparse-z-were.png
