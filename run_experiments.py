@@ -191,6 +191,7 @@ def cross_val_predict(
                             checkpoint_path=checkpoint_path,
                             n_jobs=n_jobs),
                     zip(test_fold_generator, cycle(gpus)),
+                    chunksize=1,
                 )
         else:
             predictions = starmap(
