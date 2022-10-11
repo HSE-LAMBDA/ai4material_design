@@ -31,6 +31,43 @@ stages:
         - scripts/vasp_to_csv_cif.py
       outs:
         - datasets/csv_cif/high_density_defects/${item}_spin_500
+  csv-cif-spin-500-data-occu-tol-investigation:
+    foreach:
+      - material: BP
+        occu_tol: 1e-8
+      - material: GaSe
+        occu_tol: 1e-8
+      - material: hBN
+        occu_tol: 1e-8
+      - material: InSe
+        occu_tol: 1e-8
+      - material: BP
+        occu_tol: 0.05
+      - material: GaSe
+        occu_tol: 0.05
+      - material: hBN
+        occu_tol: 0.05
+      - material: InSe
+        occu_tol: 0.05
+      - material: BP
+        occu_tol: 0.1
+      - material: GaSe
+        occu_tol: 0.1
+      - material: hBN
+        occu_tol: 0.1
+      - material: InSe
+        occu_tol: 0.1
+    do:
+      cmd: python scripts/vasp_to_csv_cif.py --input-vasp "datasets/raw_vasp/high_density_defects/${item.material}_spin_500"
+        --input-structures "datasets/POSCARs/${item.material}" --output-csv-cif "datasets/csv_cif/high_density_defects/${item.material}_spin_500_occu_tol_${item.occu_tol}"
+        --pristine-folder datasets/others/pristine_high_density --separate-spins --band-occupancy-tolerence ${item.occu_tol}
+      deps:
+        - datasets/POSCARs/${item.material}
+        - datasets/others/pristine_high_density
+        - datasets/raw_vasp/high_density_defects/${item.material}_spin_500
+        - scripts/vasp_to_csv_cif.py
+      outs:
+        - datasets/csv_cif/high_density_defects/${item.material}_spin_500_occu_tol_${item.occu_tol}
   csv-cif-low-density-8x8:
     foreach:
       - WSe2
