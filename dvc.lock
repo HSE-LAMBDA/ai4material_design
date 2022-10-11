@@ -424,3 +424,315 @@ stages:
       md5: 6ce06f4b1426403d86cf5fdd13f0a297.dir
       size: 2355760
       nfiles: 7
+  csv-cif-spin-500-data-occu-tol-investigation@8:
+    cmd: python scripts/vasp_to_csv_cif.py --input-vasp "datasets/raw_vasp/high_density_defects/BP_spin_500"
+      --input-structures "datasets/POSCARs/BP" --output-csv-cif "datasets/csv_cif/high_density_defects/BP_spin_500_occu_tol_0.1"
+      --pristine-folder datasets/others/pristine_high_density --separate-spins --band-occupancy-tolerence
+      0.1
+    deps:
+    - path: datasets/POSCARs/BP
+      md5: 0e3fd0895c52a95c66d7d9820ee12f56.dir
+      size: 2124251
+      nfiles: 502
+    - path: datasets/others/pristine_high_density
+      md5: 2d5e8d944914ac80b59959fde18d7fec.dir
+      size: 568
+      nfiles: 2
+    - path: datasets/raw_vasp/high_density_defects/BP_spin_500
+      md5: b44725fcbf29927f34a3e759b0388b56.dir
+      size: 888270821
+      nfiles: 7063
+    - path: scripts/vasp_to_csv_cif.py
+      md5: 2b7cca94ab95076f0aaa27aa3d8a794f
+      size: 6770
+    outs:
+    - path: datasets/csv_cif/high_density_defects/BP_spin_500_occu_tol_0.1
+      md5: afc428a0451db96ea08a9e3622e711f3.dir
+      size: 201162
+      nfiles: 5
+  csv-cif-spin-500-data-occu-tol-investigation@7:
+    cmd: python scripts/vasp_to_csv_cif.py --input-vasp "datasets/raw_vasp/high_density_defects/InSe_spin_500"
+      --input-structures "datasets/POSCARs/InSe" --output-csv-cif "datasets/csv_cif/high_density_defects/InSe_spin_500_occu_tol_0.05"
+      --pristine-folder datasets/others/pristine_high_density --separate-spins --band-occupancy-tolerence
+      0.05
+    deps:
+    - path: datasets/POSCARs/InSe
+      md5: ac5bac54260a9774c0590f15fe835a03.dir
+      size: 2290862
+      nfiles: 502
+    - path: datasets/others/pristine_high_density
+      md5: 2d5e8d944914ac80b59959fde18d7fec.dir
+      size: 568
+      nfiles: 2
+    - path: datasets/raw_vasp/high_density_defects/InSe_spin_500
+      md5: 53416fed7e9dda3c4442a9b0ffa090f0.dir
+      size: 471477275
+      nfiles: 7000
+    - path: scripts/vasp_to_csv_cif.py
+      md5: 2b7cca94ab95076f0aaa27aa3d8a794f
+      size: 6770
+    outs:
+    - path: datasets/csv_cif/high_density_defects/InSe_spin_500_occu_tol_0.05
+      md5: 91c94de542683fd98b29f6dfcf05eebb.dir
+      size: 302247
+      nfiles: 5
+  csv-cif-spin-500-data-occu-tol-investigation@1:
+    cmd: python scripts/vasp_to_csv_cif.py --input-vasp "datasets/raw_vasp/high_density_defects/GaSe_spin_500"
+      --input-structures "datasets/POSCARs/GaSe" --output-csv-cif "datasets/csv_cif/high_density_defects/GaSe_spin_500_occu_tol_1e-08"
+      --pristine-folder datasets/others/pristine_high_density --separate-spins --band-occupancy-tolerence
+      1e-08
+    deps:
+    - path: datasets/POSCARs/GaSe
+      md5: 81de7a0852048113329d9b7a20ec396b.dir
+      size: 2297962
+      nfiles: 502
+    - path: datasets/others/pristine_high_density
+      md5: 2d5e8d944914ac80b59959fde18d7fec.dir
+      size: 568
+      nfiles: 2
+    - path: datasets/raw_vasp/high_density_defects/GaSe_spin_500
+      md5: e788c7d02a8c5a08948e723878595a10.dir
+      size: 527285871
+      nfiles: 7000
+    - path: scripts/vasp_to_csv_cif.py
+      md5: 2b7cca94ab95076f0aaa27aa3d8a794f
+      size: 6770
+    outs:
+    - path: datasets/csv_cif/high_density_defects/GaSe_spin_500_occu_tol_1e-08
+      md5: 591aa1e2331583aa1c37139177283c87.dir
+      size: 311907
+      nfiles: 5
+  csv-cif-spin-500-data-occu-tol-investigation@5:
+    cmd: python scripts/vasp_to_csv_cif.py --input-vasp "datasets/raw_vasp/high_density_defects/GaSe_spin_500"
+      --input-structures "datasets/POSCARs/GaSe" --output-csv-cif "datasets/csv_cif/high_density_defects/GaSe_spin_500_occu_tol_0.05"
+      --pristine-folder datasets/others/pristine_high_density --separate-spins --band-occupancy-tolerence
+      0.05
+    deps:
+    - path: datasets/POSCARs/GaSe
+      md5: 81de7a0852048113329d9b7a20ec396b.dir
+      size: 2297962
+      nfiles: 502
+    - path: datasets/others/pristine_high_density
+      md5: 2d5e8d944914ac80b59959fde18d7fec.dir
+      size: 568
+      nfiles: 2
+    - path: datasets/raw_vasp/high_density_defects/GaSe_spin_500
+      md5: e788c7d02a8c5a08948e723878595a10.dir
+      size: 527285871
+      nfiles: 7000
+    - path: scripts/vasp_to_csv_cif.py
+      md5: 2b7cca94ab95076f0aaa27aa3d8a794f
+      size: 6770
+    outs:
+    - path: datasets/csv_cif/high_density_defects/GaSe_spin_500_occu_tol_0.05
+      md5: 40e84562e487a207868d4d2077acc8e0.dir
+      size: 311880
+      nfiles: 5
+  csv-cif-spin-500-data-occu-tol-investigation@4:
+    cmd: python scripts/vasp_to_csv_cif.py --input-vasp "datasets/raw_vasp/high_density_defects/BP_spin_500"
+      --input-structures "datasets/POSCARs/BP" --output-csv-cif "datasets/csv_cif/high_density_defects/BP_spin_500_occu_tol_0.05"
+      --pristine-folder datasets/others/pristine_high_density --separate-spins --band-occupancy-tolerence
+      0.05
+    deps:
+    - path: datasets/POSCARs/BP
+      md5: 0e3fd0895c52a95c66d7d9820ee12f56.dir
+      size: 2124251
+      nfiles: 502
+    - path: datasets/others/pristine_high_density
+      md5: 2d5e8d944914ac80b59959fde18d7fec.dir
+      size: 568
+      nfiles: 2
+    - path: datasets/raw_vasp/high_density_defects/BP_spin_500
+      md5: b44725fcbf29927f34a3e759b0388b56.dir
+      size: 888270821
+      nfiles: 7063
+    - path: scripts/vasp_to_csv_cif.py
+      md5: 2b7cca94ab95076f0aaa27aa3d8a794f
+      size: 6770
+    outs:
+    - path: datasets/csv_cif/high_density_defects/BP_spin_500_occu_tol_0.05
+      md5: e0e1071c2bbc92b158cf8e75cb78e23c.dir
+      size: 201222
+      nfiles: 5
+  csv-cif-spin-500-data-occu-tol-investigation@2:
+    cmd: python scripts/vasp_to_csv_cif.py --input-vasp "datasets/raw_vasp/high_density_defects/hBN_spin_500"
+      --input-structures "datasets/POSCARs/hBN" --output-csv-cif "datasets/csv_cif/high_density_defects/hBN_spin_500_occu_tol_1e-08"
+      --pristine-folder datasets/others/pristine_high_density --separate-spins --band-occupancy-tolerence
+      1e-08
+    deps:
+    - path: datasets/POSCARs/hBN
+      md5: e6fa484d7456798925b84e26bbcdd115.dir
+      size: 4781835
+      nfiles: 502
+    - path: datasets/others/pristine_high_density
+      md5: 2d5e8d944914ac80b59959fde18d7fec.dir
+      size: 568
+      nfiles: 2
+    - path: datasets/raw_vasp/high_density_defects/hBN_spin_500
+      md5: a053ff47a5f8f997ef331cfdc9981697.dir
+      size: 1101009839
+      nfiles: 7000
+    - path: scripts/vasp_to_csv_cif.py
+      md5: 2b7cca94ab95076f0aaa27aa3d8a794f
+      size: 6770
+    outs:
+    - path: datasets/csv_cif/high_density_defects/hBN_spin_500_occu_tol_1e-08
+      md5: 12f4c4908e68fe0b7978b7d9b2b24101.dir
+      size: 211364
+      nfiles: 5
+  csv-cif-spin-500-data-occu-tol-investigation@6:
+    cmd: python scripts/vasp_to_csv_cif.py --input-vasp "datasets/raw_vasp/high_density_defects/hBN_spin_500"
+      --input-structures "datasets/POSCARs/hBN" --output-csv-cif "datasets/csv_cif/high_density_defects/hBN_spin_500_occu_tol_0.05"
+      --pristine-folder datasets/others/pristine_high_density --separate-spins --band-occupancy-tolerence
+      0.05
+    deps:
+    - path: datasets/POSCARs/hBN
+      md5: e6fa484d7456798925b84e26bbcdd115.dir
+      size: 4781835
+      nfiles: 502
+    - path: datasets/others/pristine_high_density
+      md5: 2d5e8d944914ac80b59959fde18d7fec.dir
+      size: 568
+      nfiles: 2
+    - path: datasets/raw_vasp/high_density_defects/hBN_spin_500
+      md5: a053ff47a5f8f997ef331cfdc9981697.dir
+      size: 1101009839
+      nfiles: 7000
+    - path: scripts/vasp_to_csv_cif.py
+      md5: 2b7cca94ab95076f0aaa27aa3d8a794f
+      size: 6770
+    outs:
+    - path: datasets/csv_cif/high_density_defects/hBN_spin_500_occu_tol_0.05
+      md5: a25de5fde7d4357e32ca8c56a2b87082.dir
+      size: 211420
+      nfiles: 5
+  csv-cif-spin-500-data-occu-tol-investigation@10:
+    cmd: python scripts/vasp_to_csv_cif.py --input-vasp "datasets/raw_vasp/high_density_defects/hBN_spin_500"
+      --input-structures "datasets/POSCARs/hBN" --output-csv-cif "datasets/csv_cif/high_density_defects/hBN_spin_500_occu_tol_0.1"
+      --pristine-folder datasets/others/pristine_high_density --separate-spins --band-occupancy-tolerence
+      0.1
+    deps:
+    - path: datasets/POSCARs/hBN
+      md5: e6fa484d7456798925b84e26bbcdd115.dir
+      size: 4781835
+      nfiles: 502
+    - path: datasets/others/pristine_high_density
+      md5: 2d5e8d944914ac80b59959fde18d7fec.dir
+      size: 568
+      nfiles: 2
+    - path: datasets/raw_vasp/high_density_defects/hBN_spin_500
+      md5: a053ff47a5f8f997ef331cfdc9981697.dir
+      size: 1101009839
+      nfiles: 7000
+    - path: scripts/vasp_to_csv_cif.py
+      md5: 2b7cca94ab95076f0aaa27aa3d8a794f
+      size: 6770
+    outs:
+    - path: datasets/csv_cif/high_density_defects/hBN_spin_500_occu_tol_0.1
+      md5: 4cfcac44fa3a5bbd60a418dc1954443e.dir
+      size: 211445
+      nfiles: 5
+  csv-cif-spin-500-data-occu-tol-investigation@9:
+    cmd: python scripts/vasp_to_csv_cif.py --input-vasp "datasets/raw_vasp/high_density_defects/GaSe_spin_500"
+      --input-structures "datasets/POSCARs/GaSe" --output-csv-cif "datasets/csv_cif/high_density_defects/GaSe_spin_500_occu_tol_0.1"
+      --pristine-folder datasets/others/pristine_high_density --separate-spins --band-occupancy-tolerence
+      0.1
+    deps:
+    - path: datasets/POSCARs/GaSe
+      md5: 81de7a0852048113329d9b7a20ec396b.dir
+      size: 2297962
+      nfiles: 502
+    - path: datasets/others/pristine_high_density
+      md5: 2d5e8d944914ac80b59959fde18d7fec.dir
+      size: 568
+      nfiles: 2
+    - path: datasets/raw_vasp/high_density_defects/GaSe_spin_500
+      md5: e788c7d02a8c5a08948e723878595a10.dir
+      size: 527285871
+      nfiles: 7000
+    - path: scripts/vasp_to_csv_cif.py
+      md5: 2b7cca94ab95076f0aaa27aa3d8a794f
+      size: 6770
+    outs:
+    - path: datasets/csv_cif/high_density_defects/GaSe_spin_500_occu_tol_0.1
+      md5: 9e6fc559905872ed849fcf679b84080b.dir
+      size: 311907
+      nfiles: 5
+  csv-cif-spin-500-data-occu-tol-investigation@0:
+    cmd: python scripts/vasp_to_csv_cif.py --input-vasp "datasets/raw_vasp/high_density_defects/BP_spin_500"
+      --input-structures "datasets/POSCARs/BP" --output-csv-cif "datasets/csv_cif/high_density_defects/BP_spin_500_occu_tol_1e-08"
+      --pristine-folder datasets/others/pristine_high_density --separate-spins --band-occupancy-tolerence
+      1e-08
+    deps:
+    - path: datasets/POSCARs/BP
+      md5: 0e3fd0895c52a95c66d7d9820ee12f56.dir
+      size: 2124251
+      nfiles: 502
+    - path: datasets/others/pristine_high_density
+      md5: 2d5e8d944914ac80b59959fde18d7fec.dir
+      size: 568
+      nfiles: 2
+    - path: datasets/raw_vasp/high_density_defects/BP_spin_500
+      md5: b44725fcbf29927f34a3e759b0388b56.dir
+      size: 888270821
+      nfiles: 7063
+    - path: scripts/vasp_to_csv_cif.py
+      md5: 2b7cca94ab95076f0aaa27aa3d8a794f
+      size: 6770
+    outs:
+    - path: datasets/csv_cif/high_density_defects/BP_spin_500_occu_tol_1e-08
+      md5: f246f7673fb520a268a9f595aceb55e3.dir
+      size: 200978
+      nfiles: 5
+  csv-cif-spin-500-data-occu-tol-investigation@11:
+    cmd: python scripts/vasp_to_csv_cif.py --input-vasp "datasets/raw_vasp/high_density_defects/InSe_spin_500"
+      --input-structures "datasets/POSCARs/InSe" --output-csv-cif "datasets/csv_cif/high_density_defects/InSe_spin_500_occu_tol_0.1"
+      --pristine-folder datasets/others/pristine_high_density --separate-spins --band-occupancy-tolerence
+      0.1
+    deps:
+    - path: datasets/POSCARs/InSe
+      md5: ac5bac54260a9774c0590f15fe835a03.dir
+      size: 2290862
+      nfiles: 502
+    - path: datasets/others/pristine_high_density
+      md5: 2d5e8d944914ac80b59959fde18d7fec.dir
+      size: 568
+      nfiles: 2
+    - path: datasets/raw_vasp/high_density_defects/InSe_spin_500
+      md5: 53416fed7e9dda3c4442a9b0ffa090f0.dir
+      size: 471477275
+      nfiles: 7000
+    - path: scripts/vasp_to_csv_cif.py
+      md5: 2b7cca94ab95076f0aaa27aa3d8a794f
+      size: 6770
+    outs:
+    - path: datasets/csv_cif/high_density_defects/InSe_spin_500_occu_tol_0.1
+      md5: afa345564e9d432638e330ab4625d60a.dir
+      size: 302264
+      nfiles: 5
+  csv-cif-spin-500-data-occu-tol-investigation@3:
+    cmd: python scripts/vasp_to_csv_cif.py --input-vasp "datasets/raw_vasp/high_density_defects/InSe_spin_500"
+      --input-structures "datasets/POSCARs/InSe" --output-csv-cif "datasets/csv_cif/high_density_defects/InSe_spin_500_occu_tol_1e-08"
+      --pristine-folder datasets/others/pristine_high_density --separate-spins --band-occupancy-tolerence
+      1e-08
+    deps:
+    - path: datasets/POSCARs/InSe
+      md5: ac5bac54260a9774c0590f15fe835a03.dir
+      size: 2290862
+      nfiles: 502
+    - path: datasets/others/pristine_high_density
+      md5: 2d5e8d944914ac80b59959fde18d7fec.dir
+      size: 568
+      nfiles: 2
+    - path: datasets/raw_vasp/high_density_defects/InSe_spin_500
+      md5: 53416fed7e9dda3c4442a9b0ffa090f0.dir
+      size: 471477275
+      nfiles: 7000
+    - path: scripts/vasp_to_csv_cif.py
+      md5: 2b7cca94ab95076f0aaa27aa3d8a794f
+      size: 6770
+    outs:
+    - path: datasets/csv_cif/high_density_defects/InSe_spin_500_occu_tol_1e-08
+      md5: a103e0f3b96eaf4854208fd054cfd186.dir
+      size: 302286
+      nfiles: 5
