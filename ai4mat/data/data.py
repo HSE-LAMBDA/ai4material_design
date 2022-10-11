@@ -50,7 +50,7 @@ class Is_Intensive:
             "homo_1": True,
             "homo_2": True,
             "lumo": True,
-            "normalized_luom": True,
+            "normalized_lumo": True,
             "lumo_1": True,
             "lumo_2": True,
             "formation_energy": False,
@@ -208,29 +208,6 @@ def get_gpaw_trajectories(defect_db_path:str):
             except ase.io.formats.UnknownFileTypeError:
                 pass
     return res
-
-
-
-def read_structures_descriptions(data_path: str):
-    return pd.read_csv(os.path.join(data_path, "defects.csv"),
-                       index_col="_id",
-                       # An explicit list of columns is due to the fact that
-                       # dichalcogenides8x8_innopolis_202108/defects.csv
-                       # contains an unnamed index column, and
-                       # datasets/dichalcogenides_innopolis_202105/defects.csv
-                       # doesn't
-                       # TODO(RomanovI) killed normalization
-                       # usecols=["_id",
-                       #          "descriptor_id",
-                       #          "energy",
-                       #          "energy_per_atom",
-                       #          "fermi_level",
-                       #          "homo",
-                       #          "lumo",
-                       #          # "normalized_homo",
-                       #          # "normalized_lumo"
-                       #          ]
-                       )
 
 
 def read_structures_descriptions(data_path:str) -> pd.DataFrame:

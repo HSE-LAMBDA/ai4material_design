@@ -1,5 +1,5 @@
 [core]
-    remote = yandex
+    remote = virtuozzo
     autostage = true
 ['remote "ai4materialdesign"']
     url = azure://ai4materialdesign
@@ -9,3 +9,8 @@
     endpointurl = https://storage.yandexcloud.net
     access_key_id = 9sZsZ6w7dJ5-7kMA2v07
     secret_access_key = uSaC0oqrUjNlZMJ10sN0t5god1g2nd7PFRKcn0TQ
+['remote "virtuozzo"']
+    url = s3://ai4materialdesign/dvc
+    endpointurl = https://eu1-s3.virtuozzo.com
+    access_key_id = 924edec3206ca933W8NW
+    secret_access_key = BmqPBOHbWP1ErzFoepW5Tjyr2MZKDLHLCBW3mGQE
