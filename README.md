@@ -69,7 +69,7 @@ dvc pull datasets/processed/low_density_defects/{MoS2,WSe2}
 VASP -> csv_cif -> processed -> Rolos for high-density dataset has been implemented a [DVC pipeline](https://dvc.org/doc/start/data-management/data-pipelines). Processed datasets:
 ```
 parallel --delay 3 -j6 dvc repro processed-high-density@{} ::: hBN_spin GaSe_spin BP_spin InSe_spin MoS2 WSe2
-parallel --delay 3 -j2 dvc repro processed-high-density@{} ::: MoS2 WSe2
+parallel --delay 3 -j2 dvc repro processed-low-density@{} ::: MoS2 WSe2
 ```
 Archives for Rolos with structutres and targets:
 ```

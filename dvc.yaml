@@ -5,7 +5,8 @@ stages:
       - MoS2
     do:
       cmd: python scripts/vasp_to_csv_cif.py --input-vasp "datasets/raw_vasp/high_density_defects/${item}_500"
-        --input-structures "datasets/POSCARs/${item}" --output-csv-cif "datasets/csv_cif/high_density_defects/${item}_500"
+        --input-structures-list "datasets/POSCARs/${item}" --POSCARs-in-input-list
+        --output-csv-cif "datasets/csv_cif/high_density_defects/${item}_500"
         --pristine-folder datasets/others/pristine_high_density
       deps:
         - datasets/POSCARs/${item}
@@ -22,7 +23,8 @@ stages:
       - InSe
     do:
       cmd: python scripts/vasp_to_csv_cif.py --input-vasp "datasets/raw_vasp/high_density_defects/${item}_spin_500"
-        --input-structures "datasets/POSCARs/${item}" --output-csv-cif "datasets/csv_cif/high_density_defects/${item}_spin_500"
+        --input-structures-list "datasets/POSCARs/${item}" --POSCARs-in-input-list
+        --output-csv-cif "datasets/csv_cif/high_density_defects/${item}_spin_500"
         --pristine-folder datasets/others/pristine_high_density --separate-spins
       deps:
         - datasets/POSCARs/${item}
@@ -68,22 +70,63 @@ stages:
         - scripts/vasp_to_csv_cif.py
       outs:
         - datasets/csv_cif/high_density_defects/${item.material}_spin_500_occu_tol_${item.occu_tol}
-  csv-cif-low-density-8x8:
+  csv-cif-low-density-8x8-Innopolis-v1:
     foreach:
       - WSe2
       - MoS2
     do:
       cmd: python scripts/separate_csv_cif.py --input-folder datasets/csv_cif/dichalcogenides_x1s6_202109
-        --output-folder datasets/csv_cif/low_density_defects/${item} --base-material ${item}
-        --supercell-size 8 --additional-columns-csv datasets/others/dichalcogenides8x8_vasp_nus_202110_E1/${item}.csv.gz
-      # E_1 files are produced manually, see README
-      # https://github.com/HSE-LAMBDA/ai4material_design/blob/main/datasets/others/dichalcogenides8x8_vasp_nus_202110_E1/README.md
+        --output-folder datasets/csv_cif/low_density_defects_Innopolis-v1/${item} --base-material ${item}
+        --supercell-size 8
       deps:
         - datasets/csv_cif/dichalcogenides_x1s6_202109
         - scripts/separate_csv_cif.py
-        - datasets/others/dichalcogenides8x8_vasp_nus_202110_E1/${item}.csv.gz
       outs:
-        - datasets/csv_cif/low_density_defects/${item}
+        - datasets/csv_cif/low_density_defects_Innopolis-v1/${item}
+  tar-index-low-density-8x8:
+    foreach:
+      - material: WSe2
+        tar_folder: wse2
+      - material: MoS2
+        tar_folder: mos2
+    do:
+      cmd:
+        ratarmount -o modules=subdir,subdir=${item.tar_folder}_8x8_5933
+            datasets/raw_vasp/dichalcogenides8x8_vasp_nus_202110/${item.tar_folder}_8x8_5933.tar.gz
+            datasets/raw_vasp/dichalcogenides8x8_vasp_nus_202110/${item.material}_8x8_5933/ &&
+        sleep 5 &&
+        ratarmount -u datasets/raw_vasp/dichalcogenides8x8_vasp_nus_202110/${item.material}_8x8_5933/
+      deps:
+        - datasets/raw_vasp/dichalcogenides8x8_vasp_nus_202110/${item.tar_folder}_8x8_5933.tar.gz
+      outs:
+        - datasets/raw_vasp/dichalcogenides8x8_vasp_nus_202110/${item.tar_folder}_8x8_5933.tar.gz.index.sqlite
+  csv-cif-low-density-8x8:
+    foreach:
+      - material: WSe2
+        tar_folder: wse2
+      - material: MoS2
+        tar_folder: mos2
+    do:
+      cmd:
+        ratarmount -o modules=subdir,subdir=${item.tar_folder}_8x8_5933
+          datasets/raw_vasp/dichalcogenides8x8_vasp_nus_202110/${item.tar_folder}_8x8_5933.tar.gz
+          datasets/raw_vasp/dichalcogenides8x8_vasp_nus_202110/${item.material}_8x8_5933/ &&
+        python scripts/vasp_to_csv_cif.py --input-vasp "datasets/raw_vasp/dichalcogenides8x8_vasp_nus_202110/${item.material}_8x8_5933"
+        --input-structures-list datasets/csv_cif/low_density_defects_Innopolis-v1/${item.material}
+        --input-structures-csv-cif datasets/csv_cif/low_density_defects_Innopolis-v1/${item.material}
+        --output-csv-cif "datasets/csv_cif/low_density_defects/${item.material}"
+        --pristine-folder datasets/others/pristine_high_density
+        --vasprun-glob-prefix poscar_??;
+        sleep 5 &&
+        ratarmount -u datasets/raw_vasp/dichalcogenides8x8_vasp_nus_202110/${item.material}_8x8_5933/
+      deps:
+        - scripts/vasp_to_csv_cif.py
+        - datasets/raw_vasp/dichalcogenides8x8_vasp_nus_202110/${item.tar_folder}_8x8_5933.tar.gz
+        - datasets/csv_cif/low_density_defects_Innopolis-v1/${item.material}
+        - datasets/others/pristine_high_density
+        - datasets/raw_vasp/dichalcogenides8x8_vasp_nus_202110/${item.tar_folder}_8x8_5933.tar.gz.index.sqlite
+      outs:
+        - datasets/csv_cif/low_density_defects/${item.material}
   processed-low-density:
     foreach:
       - WSe2
