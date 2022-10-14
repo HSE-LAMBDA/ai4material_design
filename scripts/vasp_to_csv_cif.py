@@ -81,11 +81,12 @@ def extract_data_from_vasp(
                 data[f'homo_{kind}'], _ = eigenvalue_band_properties[index]
             data[f'E_1_{kind}'] = E_1[index]
     else:
-        data['band_gap'],\
+        data['band_gap_from_eigenvalue_band_properties'],\
             data['lumo'],\
             data['homo'], _ = \
             vasprun_file.eigenvalue_band_properties
         assert len(E_1) == 1
+        data["band_gap_from_get_band_structure"] = vasprun_file.get_band_structure().get_band_gap()['energy']
         data["E_1"] = E_1[0]
     return data
 

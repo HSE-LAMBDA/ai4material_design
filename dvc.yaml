@@ -100,7 +100,7 @@ stages:
         - datasets/raw_vasp/dichalcogenides8x8_vasp_nus_202110/${item.tar_folder}_8x8_5933.tar.gz
       outs:
         - datasets/raw_vasp/dichalcogenides8x8_vasp_nus_202110/${item.tar_folder}_8x8_5933.tar.gz.index.sqlite
-  csv-cif-low-density-8x8:
+  csv-cif-low-density-8x8-duplicated-ids:
     foreach:
       - material: WSe2
         tar_folder: wse2
