@@ -55,7 +55,7 @@ def find_in_dict(key, src):
     for k, value in src.items():
         if key == k:
             return value
-        elif type(value) == dict:
+        elif isinstance(value, dict):
             res = find_in_dict(key, value)
             if res is not None:
                 return res

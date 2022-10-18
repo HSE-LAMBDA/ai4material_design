@@ -16,7 +16,7 @@ class MEGNet(nn.Module):
                  node_embedding_size=16,
                  embedding_size=32,
                  n_blocks=3,
-                 aggregation="mean",
+                 vertex_aggregation="mean",
                  global_aggregation="mean",
                  ):
         """
@@ -41,7 +41,7 @@ class MEGNet(nn.Module):
             state_input_shape,
             inner_skip=True,
             embed_size=embedding_size,
-            aggregation=aggregation,
+            vertex_aggregation=vertex_aggregation,
             global_aggregation=global_aggregation,
         )
         self.blocks = nn.ModuleList()
@@ -50,7 +50,7 @@ class MEGNet(nn.Module):
                 embedding_size,
                 embedding_size,
                 embedding_size,
-                aggregation=aggregation,
+                vertex_aggregation=vertex_aggregation,
                 global_aggregation=global_aggregation,
             ))
 

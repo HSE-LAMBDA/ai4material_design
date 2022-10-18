@@ -26,7 +26,7 @@ class MegnetModule(MessagePassing):
                  state_input_shape,
                  inner_skip=False,
                  embed_size=32,
-                 aggregation="mean",
+                 vertex_aggregation="mean",
                  global_aggregation="mean",
                  ):
         """
@@ -38,8 +38,8 @@ class MegnetModule(MessagePassing):
         inner_skip: use inner or outer skip connection
         embed_size: embedding and output size
         """
-        if aggregation == "lin":
-            aggregation = aggr.MultiAggregation(
+        if vertex_aggregation == "lin":
+            vertex_aggregation = aggr.MultiAggregation(
                 ['mean', 'sum', 'max'],
                 mode='proj',
                 mode_kwargs={
@@ -47,7 +47,7 @@ class MegnetModule(MessagePassing):
                     'out_channels': embed_size,
                 },
             )
-        super().__init__(aggr=aggregation)
+        super().__init__(aggr=vertex_aggregation)
 
         if global_aggregation == "mean":
             self.global_aggregation = global_mean_pool
@@ -56,7 +56,7 @@ class MegnetModule(MessagePassing):
         elif global_aggregation == "max":
             self.global_aggregation = global_max_pool
         else:
-            raise "Unknown global aggregation type"
+            raise ValueError("Unknown global aggregation type")
 
         self.inner_skip = inner_skip
         self.phi_e = nn.Sequential(

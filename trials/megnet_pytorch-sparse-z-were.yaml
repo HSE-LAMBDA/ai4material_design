@@ -10,7 +10,7 @@ model_params:
     state_input_shape: 2
     cutoff: 10
     edge_embed_size: 10
-    aggregation: 'mean'
+    vertex_aggregation: 'mean'
     global_aggregation: 'mean'
   optim:
     factor: 0.5

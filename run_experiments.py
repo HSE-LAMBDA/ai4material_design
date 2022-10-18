@@ -83,7 +83,7 @@ def run_experiment(experiment_name: str,
     with open(Path(experiment_path, "config.yaml")) as experiment_file:
         experiment = yaml.safe_load(experiment_file)
     folds = pd.read_csv(
-        Path(experiment_path, "folds.csv"), index_col="_id").squeeze("columns")
+        Path(experiment_path, "folds.csv.gz"), index_col="_id").squeeze("columns")
 
     loader = DataLoader(experiment["datasets"], folds.index)
 
