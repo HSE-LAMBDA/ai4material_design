@@ -194,10 +194,10 @@ def main():
 
     structures, defects = get_dichalcogenides_innopolis(input_folder)
     if (args.fill_missing_band_properties and
-        "band_gap" not in structures.columns and
+        "homo_lumo_gap" not in structures.columns and
         "homo" in structures.columns and
         "lumo" in structures.columns):
-        structures["band_gap"] = structures["lumo"] - structures["homo"]
+        structures["homo_lumo_gap"] = structures["lumo"] - structures["homo"]
     materials = defects.base.unique()
     unit_cells = {}
     for material in materials:
@@ -274,7 +274,7 @@ def main():
 
     if args.fill_missing_band_properties:
         for kind in ("majority", "minority"):
-            for property in ("band_gap", "homo", "lumo", "normalized_homo", "normalized_lumo"):
+            for property in ("homo_lumo_gap", "homo", "lumo", "normalized_homo", "normalized_lumo"):
                 spin_column = f"{property}_{kind}"
                 if spin_column not in structures.columns:
                     if property in structures.columns:
