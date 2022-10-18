@@ -43,7 +43,7 @@ def get_E1(eigenvalues: dict[str, npt.NDArray], separate_spins: bool) -> list[fl
 
 def extract_data_from_vasp(
     vasprun_directory: Path,
-    band_occupancy_tolerence: float = None,
+    band_occupancy_tolerence: float | None = None,
     separate_spins: bool = False) -> dict[str, float]:
     """
     Extracts relevant fields from VASP output.
@@ -76,17 +76,16 @@ def extract_data_from_vasp(
             "majority": int(outcar.total_mag < 0),
             "minority": int(outcar.total_mag >= 0)}
         for kind, index in indices.items():
-            data[f'band_gap_{kind}'], \
+            data[f'homo_lumo_gap_{kind}'], \
                 data[f'lumo_{kind}'], \
                 data[f'homo_{kind}'], _ = eigenvalue_band_properties[index]
             data[f'E_1_{kind}'] = E_1[index]
     else:
-        data['band_gap_from_eigenvalue_band_properties'],\
+        assert len(E_1) == 1
+        data['homo_lumo_gap'],\
             data['lumo'],\
             data['homo'], _ = \
             vasprun_file.eigenvalue_band_properties
-        assert len(E_1) == 1
-        data["band_gap_from_get_band_structure"] = vasprun_file.get_band_structure().get_band_gap()['energy']
         data["E_1"] = E_1[0]
     return data
 
@@ -151,7 +150,7 @@ def main():
                 tar.addfile(tar_info, BytesIO(cif_string))
     if args.input_structures_csv_cif:
         copy_indexed_structures(structures_description.index,
-                                args.intial_structures_source.input_structures_csv_cif / 'initial.tar.gz',
+                                args.input_structures_csv_cif / 'initial.tar.gz',
                                 output_csv_cif_dir / 'initial.tar.gz')
     structures_description.to_csv(output_csv_cif_dir / 'defects.csv.gz')
     shutil.copyfile(structures_list_path / 'descriptors.csv', output_csv_cif_dir / 'descriptors.csv')

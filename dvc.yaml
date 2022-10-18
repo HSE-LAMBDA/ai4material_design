@@ -100,7 +100,7 @@ stages:
         - datasets/raw_vasp/dichalcogenides8x8_vasp_nus_202110/${item.tar_folder}_8x8_5933.tar.gz
       outs:
         - datasets/raw_vasp/dichalcogenides8x8_vasp_nus_202110/${item.tar_folder}_8x8_5933.tar.gz.index.sqlite
-  csv-cif-low-density-8x8-duplicated-ids:
+  csv-cif-low-density-8x8:
     foreach:
       - material: WSe2
         tar_folder: wse2
@@ -116,7 +116,7 @@ stages:
         --input-structures-csv-cif datasets/csv_cif/low_density_defects_Innopolis-v1/${item.material}
         --output-csv-cif "datasets/csv_cif/low_density_defects/${item.material}"
         --pristine-folder datasets/others/pristine_high_density
-        --vasprun-glob-prefix poscar_??;
+        --vasprun-glob-prefix poscar_??- &&
         sleep 5 &&
         ratarmount -u datasets/raw_vasp/dichalcogenides8x8_vasp_nus_202110/${item.material}_8x8_5933/
       deps:

@@ -776,12 +776,12 @@ stages:
       5 && ratarmount -u datasets/raw_vasp/dichalcogenides8x8_vasp_nus_202110/WSe2_8x8_5933/
     deps:
     - path: datasets/raw_vasp/dichalcogenides8x8_vasp_nus_202110/wse2_8x8_5933.tar.gz
-      md5: 057b599f16dd349329d23c0a62483d0b
-      size: 6336157989
+      md5: bc9cec8a2bcc17a0544b3c41b1c87aca
+      size: 6336068467
     outs:
     - path: datasets/raw_vasp/dichalcogenides8x8_vasp_nus_202110/wse2_8x8_5933.tar.gz.index.sqlite
-      md5: 5f6eb19bff77f42aacbf71dec0087e71
-      size: 69033984
+      md5: eacbd355ce1ce6b04861bcacf725b2af
+      size: 69005312
   csv-cif-low-density-8x8@0:
     cmd: ratarmount -o modules=subdir,subdir=wse2_8x8_5933 datasets/raw_vasp/dichalcogenides8x8_vasp_nus_202110/wse2_8x8_5933.tar.gz
       datasets/raw_vasp/dichalcogenides8x8_vasp_nus_202110/WSe2_8x8_5933/ && python
@@ -789,11 +789,11 @@ stages:
       --input-structures-list datasets/csv_cif/low_density_defects_Innopolis-v1/WSe2
       --input-structures-csv-cif datasets/csv_cif/low_density_defects_Innopolis-v1/WSe2
       --output-csv-cif "datasets/csv_cif/low_density_defects/WSe2" --pristine-folder
-      datasets/others/pristine_high_density --vasprun-glob-prefix poscar_??; sleep
+      datasets/others/pristine_high_density --vasprun-glob-prefix poscar_??- && sleep
       5 && ratarmount -u datasets/raw_vasp/dichalcogenides8x8_vasp_nus_202110/WSe2_8x8_5933/
     deps:
     - path: datasets/csv_cif/low_density_defects_Innopolis-v1/WSe2
-      md5: a58baced25750ab6f7ae7e8c80a5a903.dir
+      md5: 836590d3944b0acfd6431cc2362cec34.dir
       size: 2124328
       nfiles: 7
     - path: datasets/others/pristine_high_density
@@ -801,19 +801,19 @@ stages:
       size: 568
       nfiles: 2
     - path: datasets/raw_vasp/dichalcogenides8x8_vasp_nus_202110/wse2_8x8_5933.tar.gz
-      md5: 057b599f16dd349329d23c0a62483d0b
-      size: 6336157989
+      md5: bc9cec8a2bcc17a0544b3c41b1c87aca
+      size: 6336068467
     - path: datasets/raw_vasp/dichalcogenides8x8_vasp_nus_202110/wse2_8x8_5933.tar.gz.index.sqlite
-      md5: 5f6eb19bff77f42aacbf71dec0087e71
-      size: 69033984
+      md5: eacbd355ce1ce6b04861bcacf725b2af
+      size: 69005312
     - path: scripts/vasp_to_csv_cif.py
-      md5: dd14f8e1cdc3011e073b590d593ea1c7
-      size: 8211
+      md5: afe30fb9804d0fe98b516bab29cfd3e0
+      size: 8203
     outs:
     - path: datasets/csv_cif/low_density_defects/WSe2
-      md5: a58ba96b755f02419f1521abd857c827.dir
-      size: 32
-      nfiles: 1
+      md5: 1ec2db571d69850769ab2fa44eb4548f.dir
+      size: 2157751
+      nfiles: 7
   tar-index-low-density-8x8@1:
     cmd: ratarmount -o modules=subdir,subdir=mos2_8x8_5933 datasets/raw_vasp/dichalcogenides8x8_vasp_nus_202110/mos2_8x8_5933.tar.gz
       datasets/raw_vasp/dichalcogenides8x8_vasp_nus_202110/MoS2_8x8_5933/ && sleep
@@ -833,7 +833,7 @@ stages:
       --input-structures-list datasets/csv_cif/low_density_defects_Innopolis-v1/MoS2
       --input-structures-csv-cif datasets/csv_cif/low_density_defects_Innopolis-v1/MoS2
       --output-csv-cif "datasets/csv_cif/low_density_defects/MoS2" --pristine-folder
-      datasets/others/pristine_high_density --vasprun-glob-prefix poscar_??; sleep
+      datasets/others/pristine_high_density --vasprun-glob-prefix poscar_??- && sleep
       5 && ratarmount -u datasets/raw_vasp/dichalcogenides8x8_vasp_nus_202110/MoS2_8x8_5933/
     deps:
     - path: datasets/csv_cif/low_density_defects_Innopolis-v1/MoS2
@@ -851,13 +851,13 @@ stages:
       md5: a45a22188f11b69bed4bd8bb10a2c15e
       size: 61038592
     - path: scripts/vasp_to_csv_cif.py
-      md5: dd14f8e1cdc3011e073b590d593ea1c7
-      size: 8211
+      md5: afe30fb9804d0fe98b516bab29cfd3e0
+      size: 8203
     outs:
     - path: datasets/csv_cif/low_density_defects/MoS2
-      md5: e01c707e272c0a0be8b7abc8cc1e36fd.dir
-      size: 32
-      nfiles: 1
+      md5: aed2687937cf76f490ff628e4898bde1.dir
+      size: 2370927
+      nfiles: 7
   csv-cif-low-density-8x8-duplicated-ids@0:
     cmd: ratarmount -o modules=subdir,subdir=wse2_8x8_5933 datasets/raw_vasp/dichalcogenides8x8_vasp_nus_202110/wse2_8x8_5933.tar.gz
       datasets/raw_vasp/dichalcogenides8x8_vasp_nus_202110/WSe2_8x8_5933/ && python
