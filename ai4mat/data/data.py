@@ -182,15 +182,18 @@ def get_column_from_data_type(data_type):
         raise ValueError("Unknown data_type")
 
 
-def copy_indexed_structures(index, input_tar, output_tar):
+def copy_indexed_structures(
+    index: pd.Index,
+    input_tar: Path,
+    output_tar: Path) -> None:
     copied = pd.Series(data=False, index=index, dtype=bool)
-    with tarfile.open(input_tar, "r:gz") as input_tar, \
-        tarfile.open(output_tar, "w:gz") as output_tar:
-        for member in tqdm(input_tar.getmembers()):
+    with tarfile.open(input_tar, "r:gz") as input_tar_file, \
+        tarfile.open(output_tar, "w:gz") as output_tar_file:
+        for member in tqdm(input_tar_file.getmembers()):
             assert member.name.endswith(".cif")
             structure_id = member.name[:-4]
             if structure_id in index:
-                output_tar.addfile(member, input_tar.extractfile(member))
+                output_tar_file.addfile(member, input_tar_file.extractfile(member))
                 copied[structure_id] = True
     if not copied.all():
         raise ValueError("Not all structures were copied")
