@@ -192,6 +192,7 @@ def cross_val_predict(
                             checkpoint_path=checkpoint_path,
                             n_jobs=n_jobs),
                     zip(test_fold_generator, cycle(gpus)),
+                    chunksize=1,
                 )
         else:
             predictions = starmap(
@@ -276,12 +277,14 @@ def predict_on_fold(
     test = data.reindex(index=test_ids.index)
     this_wandb_config = wandb_config.copy()
     this_wandb_config["test_fold"] = test_fold
-
     with wandb.init(
-            project="ai4material_design",
-            entity=os.environ["WANDB_ENTITY"],
-            config=this_wandb_config,
+        project="ai4material_design",
+        entity=os.environ["WANDB_ENTITY"],
+        config=this_wandb_config,
+        group=f'{targets.name}',
     ) as run:
+        # change wandb run name
+        run.name = checkpoint_path.joinpath('_'.join(map(str, train_folds))).name
         return predict_func(
             train,
             targets.reindex(index=train_ids.index),

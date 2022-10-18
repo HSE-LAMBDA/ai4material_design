@@ -1,7 +1,7 @@
 import argparse
 from functools import cached_property
 from pathlib import Path
-import struct
+import logging
 import numpy as np
 import pandas as pd
 
@@ -90,7 +90,7 @@ class EOS:
             # get shells finder object
             self.shells_obj = Shells(structure)
             # get the shells
-            shells_sites = self.get_shell(structure, self.find_center_index(structure, center_idx), self.num_shells)
+            shells_sites = self.get_shell(structure, self.find_center_index(structure, center_idx), self.num_shells) + [site]
             # remove all other species
             _struct = self.remove_other_species(Structure.from_sites(shells_sites), site)
             # add shells to the site
@@ -173,13 +173,15 @@ def get_sparse_defect(structure, unit_cell, supercell_size,
     return res, defect_energy_correction, structure_with_was
 
 
-
 def main():
     parser = argparse.ArgumentParser("Parses csv/cif into pickle and targets.csv.gz")
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--input-folder", type=str)
     group.add_argument("--input-name", type=str)
     parser.add_argument("--fill-missing-band-properties", action="store_true")
+    parser.add_argument("--normalize-homo-lumo", action="store_true")
+    parser.add_argument("--skip-eos", action="store_true",
+                        help="Don't add EOS indices")
     args = parser.parse_args()
 
     storage_resolver = StorageResolver()
@@ -189,18 +191,27 @@ def main():
     else:
         dataset_name = args.input_name
         input_folder = storage_resolver["csv_cif"].joinpath(dataset_name)
-    eos = EOS()
+
     structures, defects = get_dichalcogenides_innopolis(input_folder)
-    if args.fill_missing_band_properties and "band_gap" not in structures.columns:
+    if (args.fill_missing_band_properties and
+        "band_gap" not in structures.columns and
+        "homo" in structures.columns and
+        "lumo" in structures.columns):
         structures["band_gap"] = structures["lumo"] - structures["homo"]
     materials = defects.base.unique()
     unit_cells = {}
     for material in materials:
-        unit_cells[material] = CifParser(Path(
-            "defects_generation",
-            "molecules",
-            f"{material}.cif")).get_structures(primitive=False)[0]        
-        unit_cells[material] = eos.get_augmented_struct(unit_cells[material])
+        try:
+            unit_cells[material] = CifParser(
+                input_folder/"unit_cells"/f"{material}.cif").get_structures(primitive=False)[0]
+        except FileNotFoundError:
+            logging.warning(f"Unit cell for {material} not found in the dataset folder, using the global one")
+            unit_cells[material] = CifParser(Path(
+                "defects_generation",
+                "molecules",
+                f"{material}.cif")).get_structures(primitive=False)[0]
+        if not args.skip_eos:
+            unit_cells[material] = EOS().get_augmented_struct(unit_cells[material])
 
     data_path = Path(input_folder)
     initial_structure_properties = pd.read_csv(
@@ -242,13 +253,35 @@ def main():
     assert structures.apply(lambda row: len(row[COLUMNS["structure"]["sparse_unrelaxed"]]) == len(
         defects.loc[row[COLUMNS["structure"]["descriptor_id"]], "defects"]), axis=1).all()
     
+    if args.normalize_homo_lumo:
+        for kind in (None, "majority", "minority"):
+            for property in ("homo", "lumo"):
+                if kind is None:
+                    column = property
+                else:
+                    column = f"{property}_{kind}"
+                if column not in structures.columns:
+                    continue
+                defects_per_structure = defects.loc[structures[COLUMNS["structure"]["descriptor_id"]]]
+                defects_key = (defects_per_structure.base.unique(), defects_per_structure.cell.unique())
+                if len(defects_key[0]) != 1 or len(defects_key[1]) != 1:
+                    raise NotImplementedError("Handling different pristine materials in same dataset not implemented")
+                defects_key = (defects_key[0][0], defects_key[1][0])
+                normalization_constant = initial_structure_properties.at[defects_key, "E_VBM"] - initial_structure_properties.at[defects_key, "E_1"]
+                structures[f"normalized_{column}"] = \
+                    structures[column] - structures["_".join(filter(None, ("E_1", kind)))] - normalization_constant
+                
+
     if args.fill_missing_band_properties:
         for kind in ("majority", "minority"):
-            for property in ("band_gap", "homo", "lumo"):
+            for property in ("band_gap", "homo", "lumo", "normalized_homo", "normalized_lumo"):
                 spin_column = f"{property}_{kind}"
                 if spin_column not in structures.columns:
-                    structures[spin_column] = structures[property]
-                    logging.info("Filling {}", spin_column)
+                    if property in structures.columns:
+                        structures[spin_column] = structures[property]
+                        logging.info("Filling {}", spin_column)
+                    else:
+                        logging.warning(r"%s is missing in data, can't fill %s", property, spin_column)
         if "total_mag" not in structures.columns:
             structures["total_mag"] = 0.
             logging.info("Setting total_mag = 0")

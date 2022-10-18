@@ -28,7 +28,7 @@ Below we descrbie a lightweight test run.
 
 0. Pull the inputs from DVC
 ```
-dvc pull datasets/csv_cif/pilot.dvc datasets/experiments/pilot-plain-cv.dvc datasets/processed/pilot.dvc
+dvc pull datasets/csv_cif/pilot datasets/experiments/pilot-plain-cv datasets/processed/pilot
 ```
 
 1. Preprocess the data to get targets, pickled full and sparse structures
@@ -56,8 +56,27 @@ Modify `slurm-job.sh` with the desired argument and export the required envirome
 python scripts/plot.py --experiments pilot-plain-cv --trials megnet_pytorch-sparse-pilot
 ```
 This produces plots in `datasets/plots/pilot-plain-cv`
-
-## Running with GNU parallel
+## Data transformation: DVC pipline
+### Getting the data
+The `.dvc` files are no longer there - but the data are!
+```
+dvc pull datasets/csv_cif/high_density_defects/{BP_spin,GaSe_spin,hBN_spin,InSe_spin,MoS2,WSe2}_500
+dvc pull datasets/processed/high_density_defects/{BP_spin,GaSe_spin,hBN_spin,InSe_spin,MoS2,WSe2}_500
+dvc pull datasets/csv_cif/low_density_defects/{MoS2,WSe2}
+dvc pull datasets/processed/low_density_defects/{MoS2,WSe2}
+```
+### Reproducing the pipeline
+VASP -> csv_cif -> processed -> Rolos for high-density dataset has been implemented a [DVC pipeline](https://dvc.org/doc/start/data-management/data-pipelines). Processed datasets:
+```
+parallel --delay 3 -j6 dvc repro processed-high-density@{} ::: hBN_spin GaSe_spin BP_spin InSe_spin MoS2 WSe2
+parallel --delay 3 -j2 dvc repro processed-low-density@{} ::: MoS2 WSe2
+```
+Archives for Rolos with structutres and targets:
+```
+dvc repro rolos-2d-materials-point-defects
+```
+Note that unlike GNU Make DVC [currently](https://github.com/iterative/dvc/issues/755) doesn't internally parallelize execution, so we use GNU parallel. We also use `--delay 3` to avoid [DVC lock race](https://github.com/iterative/dvc/issues/755).
+## Running experiments with GNU parallel
 Single experiment family:
 ```bash
 parallel -a datasets/experiments/MoS2_to_WSe2/family.txt -j4 python run_experiments.py --experiments {1} --trials megnet_pytorch-sparse-10 --gpus 0 --wandb-entity hse_lambda
@@ -66,11 +85,10 @@ Multiple families:
 ```bash
 awk 1 datasets/experiments/MoS2_to_WSe2_4?/family.txt | WANDB_RUN_GROUP="MoS2_to_WSe2 $(date --rfc-3339=seconds)" parallel -j4 python run_experiments.py --experiments {} --trials megnet_pytorch-sparse-10 --gpus 0 --wandb-entity hse_lambda :::: -
 ```
-
 ## Running CatBoost
 0. Pull the inputs from DVC
 ```
-dvc pull datasets/csv_cif/pilot.dvc datasets/experiments/matminer-test.dvc
+dvc pull datasets/csv_cif/pilot datasets/experiments/matminer-test
 ```
 
 1. Prepare the targets and matminer features  
@@ -81,7 +99,7 @@ python scripts/compute_matminer_features.py --input-name=pilot --n-proc 8
 ```
 OR load existing features
 ```
-dvc pull datasets/processed/pilot.dvc
+dvc pull datasets/processed/pilot
 ```
 Both scenarios produce `datasets/processed/pilot/matminer.csv.gz`
 
@@ -108,9 +126,30 @@ This creates the experiment definition in `datasets/experiments/pilot-plain-cv`
 It supports generating cross-validation and train/test splits.
 
 ### `parse_csv_cif.py`
-For data computed without spin interaction, you might want to add `--fill-missing-band-properties` flag that would fill `{band_gap,homo,lumo}_{majority,minority}` from `{band_gap,homo,lumo}`. For old data you might also want to use the flag to fill `band_gap = lumo-homo` Example:
+For data computed without spin interaction, you might want to add `--fill-missing-band-properties` flag that would fill `{band_gap,homo,lumo}_{majority,minority}` from `{band_gap,homo,lumo}`. For old data you might also want to use the flag to fill `band_gap = lumo - homo` Example:
 ```
 python scripts/parse_csv_cif.py --input-name high_density_defects/GaSe --fill-missing-band-properties
+```
+
+## Running sparse experiments for the paper
+Get the data
+```
+dvc pull datasets/csv_cif/high_density_defects/{BP_spin,GaSe_spin,hBN_spin,InSe_spin,MoS2,WSe2}_500
+dvc pull datasets/csv_cif/low_density_defects/{MoS2,WSe2}
+dvc pull datasets/processed/high_density_defects/{BP_spin,GaSe_spin,hBN_spin,InSe_spin,MoS2,WSe2}_500/{data.pickle.gz,targets.csv.gz}
+dvc pull datasets/processed/low_density_defects/{MoS2,WSe2}/{data.pickle.gz,targets.csv.gz}
+dvc pull datasets/experiments/{high,low}_density/*.dvc
+dvc pull datasets/experiments/low_high_combined
+```
+Launch on ASPIRE
+```
+./run_experiments_nscc_paper.sh
+```
+Print the tables
+```
+python scripts/summary_table_lean.py --experiments high_density/{BP,hBN,InSe,GaSe}_spin_500 high_density/{MoS2,WSe2}_500 high_density/combined --combined-experiment high_density/combined --trials megnet_pytorch_paper/sparse{,-z,-z-were,-z-were-eos} --skip-missing --separate-by target --column-format-re megnet_pytorch_paper/\(?P\<name\>.+\) --row-format-re high_density/\(?P\<name\>.\*\)
+python scripts/summary_table_lean.py --experiments low_density/{MoS2,WSe2,combined} --combined-experiment low_density/combined --trials megnet_pytorch_paper/sparse{,-z,-z-were,-z-were-eos} --skip-missing --separate-by target --column-format-re megnet_pytorch_paper/\(?P\<name\>.+\) --row-format-re low_density/\(?P\<name\>.\*\)
+python scripts/summary_table_lean.py --experiments low_density/{MoS2,WSe2,combined} high_density/{BP,hBN,InSe,GaSe}_spin_500 high_density/{MoS2,WSe2}_500 high_density/combined low_high_combined --trials megnet_pytorch_paper/sparse{,-z,-z-were,-z-were-eos} --skip-missing --separate-by target --save-pandas datasets/others/megnet_sparse_analysis.pkl.gz
 ```
 
 ## Running on HSE HPC [obsolete]

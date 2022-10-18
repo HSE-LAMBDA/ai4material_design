@@ -1,6 +1,6 @@
-dataset_dir: datasets/processed/dichalcogenides_x1s6_202109/all_structures_defects.pickle.gzip
+# dataset_dir: datasets/processed/dichalcogenides_x1s6_202109/all_structures_defects.pickle.gzip
 
-trainer: formation_energy
+# trainer: formation_energy
 
 model: 'gemnet'
 representation: 'full'
@@ -23,7 +23,7 @@ model_params:
     num_after_skip: 2
     num_concat: 1
     num_atom: 3
-    cutoff: 6.0
+    cutoff: 5
     max_neighbors: 50
     rbf:
       name: gaussian

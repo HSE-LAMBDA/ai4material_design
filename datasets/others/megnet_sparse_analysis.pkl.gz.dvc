@@ -1,0 +1,4 @@
+outs:
+- md5: 3266b6e2e1a27da1f04e31fb1ed77a29
+  size: 4222
+  path: megnet_sparse_analysis.pkl.gz

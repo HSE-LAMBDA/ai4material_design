@@ -2,4 +2,4 @@ outs:
 - md5: 53416fed7e9dda3c4442a9b0ffa090f0.dir
   size: 471477275
   nfiles: 7000
-  path: InSe_spin
+  path: InSe_spin_500
