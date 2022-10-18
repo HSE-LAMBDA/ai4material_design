@@ -22,6 +22,7 @@ from ai4mat.models import get_predictor_by_name
 
 IS_INTENSIVE = Is_Intensive()
 
+
 def main():
     parser = argparse.ArgumentParser("Runs experiments")
     parser.add_argument("--experiments", type=str, nargs="+")
@@ -62,11 +63,10 @@ def run_experiment(experiment_name: str,
                    trials_names: List[str],
                    gpus: List[int],
                    processes_per_unit: int,
-                   requested_targets: List[str]=None,
+                   requested_targets: List[str] = None,
                    n_jobs=1) -> None:
     """
     Runs an experiment.
-
     Args:
         experiment_name: Name of the experiment.
         trials_names: Names of the trials.
@@ -77,7 +77,7 @@ def run_experiment(experiment_name: str,
         experiment - config file, path to the dataset, cv strategy, n folds and targets
         trial - config with model name, representation and model params
     """
-    
+
     storage_resolver = StorageResolver()
     experiment_path = storage_resolver["experiments"].joinpath(experiment_name)
     with open(Path(experiment_path, "config.yaml")) as experiment_file:
@@ -86,7 +86,7 @@ def run_experiment(experiment_name: str,
         Path(experiment_path, "folds.csv.gz"), index_col="_id").squeeze("columns")
 
     loader = DataLoader(experiment["datasets"], folds.index)
-    
+
     if requested_targets is None:
         used_targets = experiment["targets"]
     else:
@@ -94,7 +94,7 @@ def run_experiment(experiment_name: str,
 
     for target_name, this_trial_name in product(used_targets, trials_names):
         with open(
-            storage_resolver["trials"].joinpath(f"{this_trial_name}.yaml")
+                storage_resolver["trials"].joinpath(f"{this_trial_name}.yaml")
         ) as this_trial_file:
             this_trial = yaml.safe_load(this_trial_file)
 
@@ -110,11 +110,11 @@ def run_experiment(experiment_name: str,
 
         if this_trial["representation"] == "matminer":
             assert (
-                this_trial["model"] == "catboost"
+                    this_trial["model"] == "catboost"
             ), "Expected model 'catboost' for representation 'matminer'"
         if this_trial["model"] == "catboost":
             assert (
-                this_trial["representation"] == "matminer"
+                    this_trial["representation"] == "matminer"
             ), "Expected representation 'matminer' for model 'catboost'"
         wandb_config = {
             "trial": this_trial,
@@ -132,7 +132,8 @@ def run_experiment(experiment_name: str,
             gpus,
             processes_per_unit,
             wandb_config,
-            checkpoint_path=storage_resolver["checkpoints"].joinpath(experiment_name, str(target_name), this_trial_name),
+            checkpoint_path=storage_resolver["checkpoints"].joinpath(experiment_name, str(target_name),
+                                                                     this_trial_name),
             n_jobs=n_jobs,
             strategy=experiment['strategy'],
         )
@@ -146,32 +147,32 @@ def run_experiment(experiment_name: str,
 
 
 def cross_val_predict(
-    data: pd.Series,
-    targets: Union[pd.Series, List[pd.Series]],
-    folds: pd.Series,
-    predict_func: Callable,
-    # predict_func(train, train_targets, test, test_targets, model_params, gpu)
-    # returns predictions on test
-    # test_targets are used for monitoring
-    target_is_intensive: bool,
-    model_params: Dict,
-    gpus: List[int],
-    processes_per_unit: int,
-    wandb_config,
-    checkpoint_path,
-    n_jobs,
-    strategy="cv",
+        data: pd.Series,
+        targets: Union[pd.Series, List[pd.Series]],
+        folds: pd.Series,
+        predict_func: Callable,
+        # predict_func(train, train_targets, test, test_targets, model_params, gpu)
+        # returns predictions on test
+        # test_targets are used for monitoring
+        target_is_intensive: bool,
+        model_params: Dict,
+        gpus: List[int],
+        processes_per_unit: int,
+        wandb_config,
+        checkpoint_path,
+        n_jobs,
+        strategy="cv",
 ):
     assert data.index.equals(targets.index)
     assert data.index.equals(folds.index)
-    
+
     n_folds = folds.max() + 1
     if strategy == "cv":
         test_fold_generator = range(n_folds)
     elif strategy == "train_test":
-        test_fold_generator = (TEST_FOLD, )
+        test_fold_generator = (TEST_FOLD,)
     else:
-        raise ValueError('Unknown split strategy')    
+        raise ValueError('Unknown split strategy')
     assert set(folds.unique()) == set(range(n_folds))
     if strategy == "cv":
         # Not necessary, but makes debug easier
@@ -208,8 +209,8 @@ def cross_val_predict(
                         n_jobs=n_jobs),
                 zip(test_fold_generator, cycle(gpus)),
             )
-            
-                
+
+
     # TODO(kazeevn)
     # Should we add explicit Structure -> graph preprocessing with results shared?
     elif strategy == "train_test":
@@ -225,46 +226,49 @@ def cross_val_predict(
             model_params=model_params,
             wandb_config=wandb_config,
             checkpoint_path=checkpoint_path,
-            n_jobs=n_jobs
+            n_jobs=n_jobs,
         )
     # TODO(kazeevn)
     # Should we add explicit Structure -> graph preprocessing with results shared?
 
     if isinstance(targets, pd.DataFrame):
-        predictions_pd = pd.DataFrame(index=targets.index, columns=targets.columns, data=np.zeros_like(targets.to_numpy()))
+        predictions_pd = pd.DataFrame(index=targets.index, columns=targets.columns,
+                                      data=np.zeros_like(targets.to_numpy()))
     elif isinstance(targets, pd.Series):
-        predictions_pd = pd.DataFrame(index=targets.index, columns=[targets.name], data=np.zeros_like(targets.to_numpy()))
-
+        predictions_pd = pd.DataFrame(index=targets.index, columns=[targets.name],
+                                      data=np.zeros_like(targets.to_numpy()))
 
     if strategy == "cv":
         if isinstance(targets, pd.DataFrame):
-            predictions_pd = pd.DataFrame(index=targets.index, columns=targets.columns, data=np.zeros_like(targets.to_numpy()))
+            predictions_pd = pd.DataFrame(index=targets.index, columns=targets.columns,
+                                          data=np.zeros_like(targets.to_numpy()))
         elif isinstance(targets, pd.Series):
-            predictions_pd = pd.DataFrame(index=targets.index, columns=[targets.name], data=np.zeros_like(targets.to_numpy()))
+            predictions_pd = pd.DataFrame(index=targets.index, columns=[targets.name],
+                                          data=np.zeros_like(targets.to_numpy()))
 
         for this_predictions, test_fold in zip(predictions, range(n_folds)):
             test_mask = folds == test_fold
             predictions_pd[test_mask] = this_predictions
     elif strategy == "train_test":
-        predictions_pd = pd.DataFrame(index=folds[folds==TEST_FOLD].index,
-        columns=[targets.name], data=predictions)
+        predictions_pd = pd.DataFrame(index=folds[folds == TEST_FOLD].index,
+                                      columns=[targets.name], data=predictions)
 
     return predictions_pd
 
 
 def predict_on_fold(
-    test_fold,
-    gpu,
-    n_folds,
-    folds,
-    data,
-    targets,
-    predict_func,
-    target_is_intensive,
-    model_params,
-    wandb_config,
-    checkpoint_path,
-    n_jobs,
+        test_fold,
+        gpu,
+        n_folds,
+        folds,
+        data,
+        targets,
+        predict_func,
+        target_is_intensive,
+        model_params,
+        wandb_config,
+        checkpoint_path,
+        n_jobs,
 ):
     train_folds = set(range(n_folds)) - set((test_fold,))
     train_ids = folds[folds.isin(train_folds)]

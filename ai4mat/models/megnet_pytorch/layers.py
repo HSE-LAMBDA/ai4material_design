@@ -1,6 +1,12 @@
 import torch
 import torch.nn as nn
-from torch_geometric.nn import MessagePassing, global_mean_pool
+from torch_geometric.nn import (
+    MessagePassing,
+    global_mean_pool,
+    global_add_pool,
+    global_max_pool,
+    aggr
+)
 
 
 class ShiftedSoftplus(nn.Module):
@@ -20,6 +26,8 @@ class MegnetModule(MessagePassing):
                  state_input_shape,
                  inner_skip=False,
                  embed_size=32,
+                 vertex_aggregation="mean",
+                 global_aggregation="mean",
                  ):
         """
         Parameters
@@ -30,7 +38,26 @@ class MegnetModule(MessagePassing):
         inner_skip: use inner or outer skip connection
         embed_size: embedding and output size
         """
-        super().__init__(aggr="mean")
+        if vertex_aggregation == "lin":
+            vertex_aggregation = aggr.MultiAggregation(
+                ['mean', 'sum', 'max'],
+                mode='proj',
+                mode_kwargs={
+                    'in_channels': embed_size,
+                    'out_channels': embed_size,
+                },
+            )
+        super().__init__(aggr=vertex_aggregation)
+
+        if global_aggregation == "mean":
+            self.global_aggregation = global_mean_pool
+        elif global_aggregation == "sum":
+            self.global_aggregation = global_add_pool
+        elif global_aggregation == "max":
+            self.global_aggregation = global_max_pool
+        else:
+            raise ValueError("Unknown global aggregation type")
+
         self.inner_skip = inner_skip
         self.phi_e = nn.Sequential(
             nn.Linear(4 * embed_size, 2 * embed_size),
@@ -105,8 +132,8 @@ class MegnetModule(MessagePassing):
         x = self.propagate(
             edge_index=edge_index, x=x, edge_attr=edge_attr, state=state, batch=batch
         )
-        u_v = global_mean_pool(x, batch)
-        u_e = global_mean_pool(edge_attr, bond_batch, batch.max().item() + 1)
+        u_v = self.global_aggregation(x, batch)
+        u_e = self.global_aggregation(edge_attr, bond_batch, batch.max().item() + 1)
         state = self.phi_u(torch.cat((u_e, u_v, state), 1))
         return x + x_skip, edge_attr + edge_attr_skip, state + state_skip
 
