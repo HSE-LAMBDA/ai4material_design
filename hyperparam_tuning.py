@@ -50,13 +50,18 @@ def generate_trials(template, param_config):
         yield cur_template
 
 
-def main():
+def parse_args():
     parser = argparse.ArgumentParser("Runs experiments")
     parser.add_argument("--model-name", required=True)
     parser.add_argument("--experiments", nargs="+", required=True)
     parser.add_argument("--warm-start", type=str)
     parser.add_argument("--wandb-entity", required=True)
-    args = parser.parse_args()
+    parser.add_argument("--mode", choices=['grid, random'], required=True)
+    return parser.parse_args()
+
+
+def main():
+    args = parse_args()
 
     storage_resolver = StorageResolver()
 
