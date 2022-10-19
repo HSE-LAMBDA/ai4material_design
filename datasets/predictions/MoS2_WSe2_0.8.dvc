@@ -1,0 +1,5 @@
+outs:
+- md5: 42142853398849863e67ea8a55c77189.dir
+  size: 57931
+  nfiles: 2
+  path: MoS2_WSe2_0.8

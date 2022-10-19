@@ -2,11 +2,15 @@ import argparse
 import numpy as np
 import pandas as pd
 import sys
+import logging
+from pathlib import Path
+import shutil
 sys.path.append('.')
 from ai4mat.data.data import (
     read_structures_descriptions,
     read_defects_descriptions,
-    copy_indexed_structures)
+    copy_indexed_structures,
+    Columns)
 
 
 def main():
@@ -23,6 +27,8 @@ def main():
     parser.add_argument("--supercell-size", type=int,
                         help="Component 0 of the supercell shape.")
     parser.add_argument("--vacancy-only", action="store_true")
+    parser.add_argument("--additional-columns-csv", type=Path,
+                        help="Path to csv file with additional columns to add to the dataset")
 
     args = parser.parse_args()
     
@@ -42,7 +48,27 @@ def main():
         selection = selection & (defects.defects.apply(lambda defect: all((this_defect['type'] == 'vacancy' for this_defect in defect))))
     selected_defects = defects[selection]
     structures = structures.loc[structures.descriptor_id.isin(selected_defects.index)]
-    copy_indexed_structures(structures, args.input_folder, args.output_folder)
+
+    save_path = Path(args.output_folder)
+    save_path.mkdir(parents=True)
+    # since we don't clean, raise if output exists
+    for file_name in ("elements.csv", "initial_structures.csv"):
+        shutil.copy2(Path(args.input_folder, file_name),
+                     save_path.joinpath(file_name))
+    output_structures = save_path.joinpath("initial.tar.gz")
+    input_path = Path(args.input_folder)
+    input_structures = input_path / "initial.tar.gz"
+    copy_indexed_structures(structures.index, input_structures, output_structures)
+    if args.additional_columns_csv:
+        additional_columns = pd.read_csv(args.additional_columns_csv, index_col=Columns()["structure"]["id"])
+        structures = structures.join(additional_columns, validate="one_to_one")
+    structures.to_csv(save_path.joinpath("defects.csv.gz"),
+                      index_label=Columns()["structure"]["id"])
+    selected_defects.to_csv(save_path.joinpath("descriptors.csv"), index_label=Columns()["defect"]["id"])
+    try:
+        shutil.copytree(input_path / 'unit_cells', save_path / 'unit_cells')
+    except FileNotFoundError:
+        logging.warning("unit_cells not found in %s", input_path / 'unit_cells')
 
 
 if __name__ == "__main__":

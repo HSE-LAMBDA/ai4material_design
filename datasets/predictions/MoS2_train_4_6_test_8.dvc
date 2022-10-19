@@ -1,0 +1,5 @@
+outs:
+- md5: 291f784c6fced07a672376e199f76543.dir
+  size: 490495
+  nfiles: 10
+  path: MoS2_train_4_6_test_8

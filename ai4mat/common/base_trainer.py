@@ -20,6 +20,7 @@ class Trainer(ABC):
         # scheduler: Optional[Dict[scheduler, kwargs]] = None,
         log_freq=10,
         checkpointing_freq=10,
+        checkpoint_path=None,
         logger='wandb',
         rng_seed: int =666,
         use_gpus: Union[int, None] = None,
@@ -40,6 +41,7 @@ class Trainer(ABC):
         self.slurm = slurm
         self._step = 0
         self.epoch = 0
+        self.checkpoint_path = checkpoint_path
         
     
         if use_gpus is not None:
@@ -47,14 +49,16 @@ class Trainer(ABC):
         else:
             self.device = 'cpu'
 
-  
-
-        if self.run_dir and not Path(self.run_dir).exists:
-            self.run_dir = Path(self.run_dir).joinpath('checkpoints')
-            self.run_dir.mkdir(parents=True, exist_ok=True)
-        elif not self.run_dir:
-            self.run_dir = Path(str(datetime.datetime.now())).joinpath('checkpoints')
-            self.run_dir.mkdir(parents=True, exist_ok=True)
+        if self.checkpoint_path is not None:
+            if not (checkpoint_path := Path(self.checkpoint_path).parent).exists():
+                checkpoint_path.mkdir(parents=True)
+        else:
+            if self.run_dir and not Path(self.run_dir).exists:
+                self.run_dir = Path(self.run_dir).joinpath('checkpoints')
+                self.run_dir.mkdir(parents=True, exist_ok=True)
+            elif not self.run_dir:
+                self.run_dir = Path(str(datetime.datetime.now())).joinpath('checkpoints')
+                self.run_dir.mkdir(parents=True, exist_ok=True)
 
 
         self.move_to_device()
@@ -79,8 +83,10 @@ class Trainer(ABC):
         }
         if self.ema:
             state_dict['ema'] = self.ema.state_dict()
-
-        torch.save(state_dict, self.run_dir.joinpath(f'{self.run_id}_{self.name}_{step}.pth'))
+        if self.checkpoint_path is not None:
+            torch.save(state_dict, f'{self.checkpoint_path}.pth')
+        else:
+            torch.save(state_dict, self.run_dir.joinpath(f'{self.run_id}_{self.name}_{step}.pth'))
     
     def save(self):
         if self.epoch % self.checkpointing_freq == 0:

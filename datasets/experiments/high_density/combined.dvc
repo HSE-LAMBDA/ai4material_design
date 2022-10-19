@@ -1,0 +1,5 @@
+outs:
+- md5: cc9a5668ba0c08dcd5b571abb00dd9d3.dir
+  size: 76408
+  nfiles: 2
+  path: combined

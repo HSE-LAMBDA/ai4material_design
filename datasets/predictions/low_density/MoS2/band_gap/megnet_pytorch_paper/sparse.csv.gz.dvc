@@ -1,0 +1,4 @@
+outs:
+- md5: 7c19bfee1c6ff8b947ab42351c2caf82
+  size: 89216
+  path: sparse.csv.gz

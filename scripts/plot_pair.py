@@ -6,8 +6,10 @@ import pandas as pd
 import numpy as np
 import getpass
 import matplotlib.pyplot as plt
+import sys
+sys.path.append('.')
 
-from data import (
+from ai4mat.data.data import (
     StorageResolver,
     get_prediction_path,
     get_targets_path,
@@ -20,6 +22,7 @@ def main():
     parser.add_argument("--experiments", type=str, nargs="+")
     parser.add_argument("--trials", type=str, nargs="+")
     parser.add_argument("--file-type", type=str, default="pdf")
+    parser.add_argument("--dpi", type=int)
     args = parser.parse_args()
     
     storage_resolver = StorageResolver()
@@ -74,18 +77,22 @@ def main():
                 experiment_name,
                 target_name)
             plots_folder.mkdir(exist_ok=True, parents=True)
-            metadata = {
-                "Title": f"Predictions for {target_name} "
-                         f"for experiment {experiment_name}",
-                "Keywords": "2D materials, machine learning, graph neural network, MEGNet"}
-            try:
-                metadata["Author"] = getpass.getuser()
-            except:
-                pass
+            if args.file_type == 'pdf':
+                metadata = {
+                    "Title": f"Predictions for {target_name} "
+                            f"for experiment {experiment_name}",
+                    "Keywords": "2D materials, machine learning, graph neural network, MEGNet"}
+                try:
+                    metadata["Author"] = getpass.getuser()
+                except:
+                    pass
+            else:
+                metadata = None
             fig.tight_layout()
+            
             fig.savefig(Path(plots_folder,
                              f"combined_{'_'.join(args.trials)}.{args.file_type}"),
-                        metadata=metadata, bbox_inches="tight")
+                        metadata=metadata, bbox_inches="tight", dpi=args.dpi)
 
 if __name__ == "__main__":
     main()

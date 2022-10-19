@@ -1,3 +1,5 @@
+from enum import Enum
+import logging
 import os
 import shutil
 from pathlib import Path
@@ -7,7 +9,27 @@ import ase.io
 import pymatgen.io.cif
 from tqdm.auto import tqdm
 from collections import defaultdict
-import gzip
+import tarfile
+
+
+TRAIN_FOLD = 0
+TEST_FOLD = 1
+
+NICE_TARGET_NAMES = {
+    "homo": "HOMO, eV",
+    "lumo": "LUMO, eV",
+    "band_gap": "Band gap, eV",
+    "formation_energy_per_site": "Formation energy per site, eV"
+}
+
+class Columns(dict):
+    def __init__(self,
+                 config_name=Path(__file__).parent.parent.parent.joinpath("data_format.yaml")):
+        with open(config_name) as config_file:
+            config = yaml.safe_load(config_file)
+        super().__init__(config)
+
+
 class StorageResolver:
     def __init__(self,
                  config_name=Path(__file__).parent.parent.parent.joinpath("storage.yaml")):
@@ -18,19 +40,46 @@ class StorageResolver:
     def __getitem__(self, key):
         return Path(self.root_folder, self.config[key])
 
+
 class Is_Intensive:
     def __init__(self):
         self.attr = {
+            "energy": False,
             "homo": True,
+            "normalized_homo": True,
+            "homo_1": True,
+            "homo_2": True,
             "lumo": True,
+            "normalized_lumo": True,
+            "lumo_1": True,
+            "lumo_2": True,
             "formation_energy": False,
+            "energy_per_atom": True,
             "band_gap": True,
-            "formation_energy_per_site": True
+            "band_gap_1": True,
+            "band_gap_2": True,
+            "band_gap_majority": True,
+            "band_gap_minority": True,
+            "homo_majority": True,
+            "homo_minority": True,
+            "lumo_majority": True,
+            "lumo_minority": True,
+            "normalized_homo_majority": True,
+            "normalized_homo_minority": True,
+            "normalized_lumo_majority": True,
+            "normalized_lumo_minority": True,
+            "formation_energy_per_site": True,
+            "band_gap_from_eigenvalue_band_properties": True,
+            "band_gap_from_get_band_structure": True,
+            "total_mag": True
         }
+
     def __getitem__(self, item):
         if isinstance(item, list):
             return True
         return self.attr[item]
+
+
 class DataLoader:
     def __init__(self, dataset_paths, folds_index):
         self.dataset_paths = dataset_paths
@@ -51,7 +100,7 @@ class DataLoader:
             [
                 read_func(
                     storage_resolver["processed"].joinpath(
-                        get_experiment_name(path), filename
+                        path, filename
                     )
                 )
                 for path in self.dataset_paths
@@ -59,17 +108,20 @@ class DataLoader:
             axis=0,
         )
         return data
-    
-    def _load_matminer(self,):
+
+    def _load_matminer(self):
         return self._load_data("matminer.csv.gz").set_index("_id").reindex(self.folds_index)
+
+    def _load_sparse(self):
+        data = self._load_data("data.pickle.gz")
+        return data[get_column_from_data_type("sparse")].reindex(self.folds_index)
+
+            
     
-    def _load_sparse(self,):
-        return self._load_data("data.pickle.gz")[get_column_from_data_type("sparse")].reindex(self.folds_index)
-        
-    def _load_full(self,):
+    def _load_full(self):
         return self._load_data("data.pickle.gz")[get_column_from_data_type("full")].reindex(self.folds_index)
 
-    def _load_targets(self,):
+    def _load_targets(self):
         return self._load_data("targets.csv.gz").set_index("_id").reindex(self.folds_index)
 
     def get_structures(self, representation):
@@ -95,14 +147,6 @@ class DataLoader:
         return self.targets[target_name]
 
 
-NICE_TARGET_NAMES = {
-    "homo": "HOMO, eV",
-    "lumo": "LUMO, eV",
-    "band_gap": "Band gap, eV",
-    "formation_energy_per_site": "Formation energy per site, eV"
-}
-
-
 def get_experiment_name(experiment_path):
     return Path(experiment_path).name
 
@@ -122,8 +166,10 @@ def get_prediction_path(experiment_name,
 def get_targets_path(csv_cif_path):
     return Path(csv_cif_path.replace("csv_cif", "processed"), "targets.csv.gz")
 
+
 def get_matminer_path(csv_cif_path):
     return Path(csv_cif_path.replace("csv_cif", "processed"), "matminer.csv.gz")
+
 
 def get_column_from_data_type(data_type):
     if data_type == 'sparse':
@@ -136,25 +182,21 @@ def get_column_from_data_type(data_type):
         raise ValueError("Unknown data_type")
 
 
-def copy_indexed_structures(structures, input_folder, output_folder):
-    save_path = Path(output_folder)
-    save_path.mkdir(parents=True)
-    # since we don't clean, raise if output exists
-    for file_name in ("descriptors.csv", "elements.csv", "initial_structures.csv"):
-        shutil.copy2(Path(input_folder, file_name),
-                     save_path.joinpath(file_name))
-    structures_folder = save_path.joinpath("initial")
-    structures_folder.mkdir()
-    input_structures_folder = Path(input_folder, "initial")
-    for structure_id in structures.index:
-        file_name = f"{structure_id}.cif"
-        shutil.copy2(input_structures_folder.joinpath(file_name),
-                     structures_folder.joinpath(file_name))
-    structures.to_csv(save_path.joinpath("defects.csv"),
-                      index_label="_id")
-
-
-
+def copy_indexed_structures(
+    index: pd.Index,
+    input_tar: Path,
+    output_tar: Path) -> None:
+    copied = pd.Series(data=False, index=index, dtype=bool)
+    with tarfile.open(input_tar, "r:gz") as input_tar_file, \
+        tarfile.open(output_tar, "w:gz") as output_tar_file:
+        for member in tqdm(input_tar_file.getmembers()):
+            assert member.name.endswith(".cif")
+            structure_id = member.name[:-4]
+            if structure_id in index:
+                output_tar_file.addfile(member, input_tar_file.extractfile(member))
+                copied[structure_id] = True
+    if not copied.all():
+        raise ValueError("Not all structures were copied")
 
 
 def get_gpaw_trajectories(defect_db_path:str):
@@ -171,38 +213,50 @@ def get_gpaw_trajectories(defect_db_path:str):
     return res
 
 
-def read_structures_descriptions(data_path:str):
-    return pd.read_csv(os.path.join(data_path, "defects.csv"),
-                       index_col="_id",
-                       # An explicit list of columns is due to the fact that
-                       # dichalcogenides8x8_innopolis_202108/defects.csv
-                       # contains an unnamed index column, and
-                       # datasets/dichalcogenides_innopolis_202105/defects.csv
-                       # doesn't
-                       usecols=["_id",
-                                "descriptor_id",
-                                "energy",
-                                "energy_per_atom",
-                                "fermi_level",
-                                "homo",
-                                "lumo",
-                                "normalized_homo",
-                                "normalized_lumo"])
+def read_structures_descriptions(data_path:str) -> pd.DataFrame:
+    """
+    Reads the description of the structures in the folder.
+    We assume that all columns not in Column enum are targets.
+    Args:
+        data_path: path to the folder with the data
+    Returns:
+        pandas DataFrame with the description of the structures
+    """
+    try:
+        return pd.read_csv(os.path.join(data_path, "defects.csv.gz"),
+                           index_col=Columns()["structure"]["id"])
+    except FileNotFoundError:
+        logging.warn(f"Deprecation warning: defects.csv {data_path} should be defects.csv.gz")
+        return pd.read_csv(os.path.join(data_path, "defects.csv"),
+                           index_col=Columns()["structure"]["id"])
 
 
 def read_defects_descriptions(data_path:str):
     return pd.read_csv(
         os.path.join(data_path, "descriptors.csv"), index_col="_id",
-        converters={"cell": eval, "defects": eval})    
+        converters={"cell": lambda x: tuple(eval(x)), "defects": eval})
 
 
-def get_dichalcogenides_innopolis(data_path:str):
+def get_dichalcogenides_innopolis(data_path: str):
     structures = read_structures_descriptions(data_path)
     initial_structures = dict()
-    structures_folder = os.path.join(data_path, "initial")
-    for structure_file in tqdm(os.listdir(structures_folder)):
-        this_file = pymatgen.io.cif.CifParser(os.path.join(structures_folder, structure_file))
-        initial_structures[os.path.splitext(structure_file)[0]] = \
+    structures_tar = Path(data_path) / "initial.tar.gz"
+    try:
+        with tarfile.open(structures_tar, "r:gz") as tar:
+            for member in tqdm(tar.getmembers()):
+                assert member.name.endswith(".cif")
+                structure_id = os.path.splitext(member.name)[0]
+                this_structure_file = pymatgen.io.cif.CifParser.from_string(tar.extractfile(member).read().decode("ascii"))
+                initial_structures[structure_id] = this_structure_file.get_structures(primitive=False)[0]
+    except FileNotFoundError as e:
+        logging.warning(e)
+        logging.warning('Trying obsolete format (folder without .tar.gz)')
+        structures_folder = os.path.join(data_path, "initial")
+        for structure_file in tqdm(os.listdir(structures_folder)):
+            this_file = pymatgen.io.cif.CifParser(os.path.join(structures_folder, structure_file))
+            initial_structures[os.path.splitext(structure_file)[0]] = \
             this_file.get_structures(primitive=False)[0]
-    structures["initial_structure"] = structures.apply(lambda row: initial_structures[row.name], axis=1)
+        logging.warn(f"Data in {data_path} is in obsolete format")
+    structures[Columns()["structure"]["unrelaxed"]] =  structures.apply(
+        lambda row: initial_structures[row.name], axis=1)
     return structures, read_defects_descriptions(data_path)

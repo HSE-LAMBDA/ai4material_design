@@ -1,0 +1,7 @@
+base_material: "P"
+supercell: [6, 6, 1]
+total_concentrations: [0.025, 0.05 , 0.075, 0.1, 0.125]
+max_concentration_per_type: 0.062501
+defects:
+  P: ["N", "Vacancy"]
+structures_per_concentration: 100

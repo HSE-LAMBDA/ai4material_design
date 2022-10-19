@@ -1,0 +1,4 @@
+outs:
+- md5: 939685e97369bf614acf3d160669f2ac
+  size: 17435
+  path: catboost-test.csv.gz

@@ -5,3 +5,5 @@ predictions: datasets/predictions
 checkpoints: datasets/checkpoints
 plots: datasets/plots
 trials: trials
+templates: templates
+materials: defects_generation/molecules

@@ -13,3 +13,4 @@ catboost_info
 **/*.cache
 **/*.sqlite3
 .idea
+ai4material_design*.o*
