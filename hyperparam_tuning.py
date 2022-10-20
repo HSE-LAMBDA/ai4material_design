@@ -50,13 +50,18 @@ def generate_trials(template, param_config):
         yield cur_template
 
 
-def main():
+def parse_args():
     parser = argparse.ArgumentParser("Runs experiments")
     parser.add_argument("--model-name", required=True)
     parser.add_argument("--experiments", nargs="+", required=True)
     parser.add_argument("--warm-start", type=str)
     parser.add_argument("--wandb-entity", required=True)
-    args = parser.parse_args()
+    parser.add_argument("--mode", choices=['grid, random'], required=True)
+    return parser.parse_args()
+
+
+def main():
+    args = parse_args()
 
     storage_resolver = StorageResolver()
 
@@ -82,7 +87,7 @@ def main():
     else:
         relative_dir_path = Path(args.model_name).joinpath(args.warm_start)
         res_dir_path = storage_resolver['trials'].joinpath(relative_dir_path)
-        if res_dir_path not in os.listdir(res_dir_path.parent):
+        if res_dir_path.name not in os.listdir(res_dir_path.parent):
             raise "Wrong timestamp for warm start"
 
     for exp in args.experiments:
@@ -91,12 +96,14 @@ def main():
 
         with open(cur_outfile_name, 'a+') as outfile:
             print(f'trials stored to {cur_outfile_name}')
+            outfile.seek(0)
             already_run = set(outfile.read().split())
+            outfile.seek(0, 2)
 
             for trial in tqdm(os.listdir(res_dir_path)):
                 if trial.endswith(".yaml"):
                     trial = relative_dir_path.joinpath(trial[:-5])
-                    if args.warm_start is None or trial not in already_run:
+                    if args.warm_start is None or str(trial) not in already_run:
                         run_exp = local["python"]["run_experiments.py"]['--experiments'][exp]['--trials'][trial] \
                             ['--gpus']['0']['--wandb-entity'][args.wandb_entity]
                         run_exp & FG
