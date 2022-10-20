@@ -9,7 +9,7 @@ sys.path.append('.')
 from ai4mat.data.data import (
     read_structures_descriptions,
     StorageResolver,
-    TEST_FOLD, read_defects_descriptions,
+    TEST_FOLD,
 )
 
 
@@ -37,7 +37,8 @@ def get_train_test_split(length, test_size, random_state):
 def main():
     parser = argparse.ArgumentParser("Prepares CV data splits")
     parser.add_argument("--datasets", nargs="+", required=True)
-    parser.add_argument("--test_sizes", nargs="+", type=float)
+    parser.add_argument("--test_size", type=float)
+    parser.add_argument("--validation_size", type=float)
     parser.add_argument("--experiment-name", type=str, required=True)
     parser.add_argument("--random-seed", type=int, default=42)
     parser.add_argument("--n-folds", type=int, default=8)
@@ -67,12 +68,6 @@ def main():
 
     if args.drop_na:
         structures.dropna(inplace=True)
-
-    defects = [read_defects_descriptions(storage_resolver["csv_cif"]/dataset_name)
-               for dataset_name in args.datasets]
-    if any(map(indices_intersect, combinations(defects, 2))):
-        raise ValueError("Defects contain duplicate indices")
-    defects = pd.concat(defects, axis=0)
 
     random_state = np.random.RandomState(args.random_seed)
     
