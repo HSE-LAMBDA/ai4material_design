@@ -1,11 +1,12 @@
 import argparse
+from operator import methodcaller
 from functools import cached_property
 from pathlib import Path
 import logging
 import numpy as np
 import pandas as pd
 
-from pymatgen.core import Structure
+from pymatgen.core.structure import Structure
 from pymatgen.core.periodic_table import DummySpecies, Element
 from pymatgen.core.sites import PeriodicSite
 from pymatgen.io.cif import CifParser
@@ -252,7 +253,8 @@ def main():
 
     assert structures.apply(lambda row: len(row[COLUMNS["structure"]["sparse_unrelaxed"]]) == len(
         defects.loc[row[COLUMNS["structure"]["descriptor_id"]], "defects"]), axis=1).all()
-    
+
+
     if args.normalize_homo_lumo:
         for kind in (None, "majority", "minority"):
             for property in ("homo", "lumo"):
@@ -270,10 +272,22 @@ def main():
                 normalization_constant = initial_structure_properties.at[defects_key, "E_VBM"] - initial_structure_properties.at[defects_key, "E_1"]
                 structures[f"normalized_{column}"] = \
                     structures[column] - structures["_".join(filter(None, ("E_1", kind)))] - normalization_constant
-                
+
+
+    for property in ("homo_lumo_gap", "homo", "lumo", "normalized_homo", "normalized_lumo"):
+        for kind in ("min", "max"):
+            column = f"{property}_{kind}"
+            if column in structures.columns:
+                raise ValueError(f"Column {column} already exists, it's not supposed to at this stage")
+            source_columns = [f"{property}_majority", f"{property}_minority"]
+            if not frozenset(source_columns).issubset(structures.columns):
+                logging.info("Skipped filling %s, as %s_{majority,minority} are not available", column, property)
+                continue
+            structures[column] = methodcaller(kind, axis=1)(structures.loc[:, source_columns])
+
 
     if args.fill_missing_band_properties:
-        for kind in ("majority", "minority"):
+        for kind in ("majority", "minority", "max", "min"):
             for property in ("homo_lumo_gap", "homo", "lumo", "normalized_homo", "normalized_lumo"):
                 spin_column = f"{property}_{kind}"
                 if spin_column not in structures.columns:

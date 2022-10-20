@@ -135,15 +135,15 @@ stages:
       size: 211367
       nfiles: 5
     - path: scripts/parse_csv_cif.py
-      md5: 5539564de4f8eabfc5591d7504318a17
-      size: 13027
+      md5: 170a8f8ad3827e1a871f7d4e5f59a374
+      size: 13765
     outs:
     - path: datasets/processed/high_density_defects/hBN_spin_500/data.pickle.gz
-      md5: 5f8cf01cc3670fd717e70dd7ba838185
-      size: 309353
+      md5: 24869a59a4282cd95f2573d8f54e6c81
+      size: 330859
     - path: datasets/processed/high_density_defects/hBN_spin_500/targets.csv.gz
-      md5: 2151592b63e240ccec84b22676a5ade8
-      size: 61928
+      md5: 688ac6877e9c260a991fefabf175db6d
+      size: 73117
   processed-high-density@GaSe_spin:
     cmd: python scripts/parse_csv_cif.py --input-name=high_density_defects/GaSe_spin_500
       --normalize-homo-lumo --fill-missing-band-properties
@@ -153,15 +153,15 @@ stages:
       size: 311908
       nfiles: 5
     - path: scripts/parse_csv_cif.py
-      md5: 5539564de4f8eabfc5591d7504318a17
-      size: 13027
+      md5: 170a8f8ad3827e1a871f7d4e5f59a374
+      size: 13765
     outs:
     - path: datasets/processed/high_density_defects/GaSe_spin_500/data.pickle.gz
-      md5: 841b6d7b97376adac4bdb52552637df7
-      size: 362377
+      md5: 081deba8f48508023a368a0672c29983
+      size: 379227
     - path: datasets/processed/high_density_defects/GaSe_spin_500/targets.csv.gz
-      md5: 613e241e373441b6db5c2f0151b43204
-      size: 60419
+      md5: f7459912d799b2ce79c0661775cab4e2
+      size: 71636
   processed-high-density@InSe_spin:
     cmd: python scripts/parse_csv_cif.py --input-name=high_density_defects/InSe_spin_500
       --normalize-homo-lumo --fill-missing-band-properties
@@ -171,15 +171,15 @@ stages:
       size: 302288
       nfiles: 5
     - path: scripts/parse_csv_cif.py
-      md5: 5539564de4f8eabfc5591d7504318a17
-      size: 13027
+      md5: 170a8f8ad3827e1a871f7d4e5f59a374
+      size: 13765
     outs:
     - path: datasets/processed/high_density_defects/InSe_spin_500/data.pickle.gz
-      md5: afd545f1ec695e05bdff62395acf247e
-      size: 363115
+      md5: 63ad8fbbf8aa39b11073ed5eadcd2071
+      size: 379458
     - path: datasets/processed/high_density_defects/InSe_spin_500/targets.csv.gz
-      md5: f4589f89369df0bfbcfe83bcea93907a
-      size: 59521
+      md5: 3d187cfd964947db0f3cce5759e1fd71
+      size: 70541
   csv-cif-no-spin-500-data@MoS2:
     cmd: python scripts/vasp_to_csv_cif.py --input-vasp "datasets/raw_vasp/high_density_defects/MoS2_500"
       --input-structures-list "datasets/POSCARs/MoS2" --POSCARs-in-input-list --output-csv-cif
@@ -214,15 +214,15 @@ stages:
       size: 400566
       nfiles: 6
     - path: scripts/parse_csv_cif.py
-      md5: 5539564de4f8eabfc5591d7504318a17
-      size: 13027
+      md5: 170a8f8ad3827e1a871f7d4e5f59a374
+      size: 13765
     outs:
     - path: datasets/processed/high_density_defects/MoS2_500/data.pickle.gz
-      md5: 540d4e3c4a561a4ae1385b7bf5109c7e
-      size: 434969
+      md5: 2659204f3ec9afd69dcead8420fca27d
+      size: 435550
     - path: datasets/processed/high_density_defects/MoS2_500/targets.csv.gz
-      md5: c657879887d89dab2932c2a1e93f525c
-      size: 56022
+      md5: 4a474605e694c25ce55f029e4a849aaa
+      size: 57058
   csv-cif-no-spin-500-data@WSe2:
     cmd: python scripts/vasp_to_csv_cif.py --input-vasp "datasets/raw_vasp/high_density_defects/WSe2_500"
       --input-structures-list "datasets/POSCARs/WSe2" --POSCARs-in-input-list --output-csv-cif
@@ -257,15 +257,15 @@ stages:
       size: 390774
       nfiles: 6
     - path: scripts/parse_csv_cif.py
-      md5: 5539564de4f8eabfc5591d7504318a17
-      size: 13027
+      md5: 170a8f8ad3827e1a871f7d4e5f59a374
+      size: 13765
     outs:
     - path: datasets/processed/high_density_defects/WSe2_500/data.pickle.gz
-      md5: 1e7a36a13a0205dea80117a6d21c4a8b
-      size: 434774
+      md5: 7982978854c9ec0f8d64240a7392b22a
+      size: 435358
     - path: datasets/processed/high_density_defects/WSe2_500/targets.csv.gz
-      md5: 8a6eb482c8939be4b2b6f1b991b52b98
-      size: 54311
+      md5: c2f77f5c323c5d6e414741789d34bd5e
+      size: 55091
   csv-cif-spin-500-data@BP:
     cmd: python scripts/vasp_to_csv_cif.py --input-vasp "datasets/raw_vasp/high_density_defects/BP_spin_500"
       --input-structures-list "datasets/POSCARs/BP" --POSCARs-in-input-list --output-csv-cif
@@ -301,15 +301,15 @@ stages:
       size: 200980
       nfiles: 5
     - path: scripts/parse_csv_cif.py
-      md5: 5539564de4f8eabfc5591d7504318a17
-      size: 13027
+      md5: 170a8f8ad3827e1a871f7d4e5f59a374
+      size: 13765
     outs:
     - path: datasets/processed/high_density_defects/BP_spin_500/data.pickle.gz
-      md5: 616aad8b6a779ddd7316668b48cf7e74
-      size: 343747
+      md5: 6a85ba9560255f2aefb5cf7977706b1f
+      size: 363508
     - path: datasets/processed/high_density_defects/BP_spin_500/targets.csv.gz
-      md5: 97051162931ae1051c45dc169fdd24ca
-      size: 57269
+      md5: 31fce404c034b26a3f8225c7062fe430
+      size: 68399
   rolos-high-density:
     cmd: ./scripts/pack_for_rolos.sh
     deps:
@@ -354,15 +354,15 @@ stages:
       size: 2157751
       nfiles: 7
     - path: scripts/parse_csv_cif.py
-      md5: 5539564de4f8eabfc5591d7504318a17
-      size: 13027
+      md5: d6897c72e6113737b0375dd40e10a4a1
+      size: 13775
     outs:
     - path: datasets/processed/low_density_defects/WSe2/data.pickle.gz
-      md5: eb1170e880fd6be9a7408ec4691a2464
-      size: 4345862
+      md5: eeda3a1d50f9f802b1a731c7157a0ee5
+      size: 4507262
     - path: datasets/processed/low_density_defects/WSe2/targets.csv.gz
-      md5: 795872d1e6a1ebe212a8d57d0a97753d
-      size: 410684
+      md5: bcac3f29701347ed1e4ea8a6bb4191f5
+      size: 421204
   processed-low-density@MoS2:
     cmd: python scripts/parse_csv_cif.py --input-name=low_density_defects/MoS2 --fill-missing-band-properties
       --normalize-homo-lumo
@@ -372,15 +372,15 @@ stages:
       size: 2370927
       nfiles: 7
     - path: scripts/parse_csv_cif.py
-      md5: 5539564de4f8eabfc5591d7504318a17
-      size: 13027
+      md5: d6897c72e6113737b0375dd40e10a4a1
+      size: 13775
     outs:
     - path: datasets/processed/low_density_defects/MoS2/data.pickle.gz
-      md5: 354aaa6abc5df480db5ac14f1f867c76
-      size: 4340470
+      md5: d95ecd88de7b4552ea141c39a34b6607
+      size: 4490973
     - path: datasets/processed/low_density_defects/MoS2/targets.csv.gz
-      md5: abdbcc8c7732f18011c0afd7ccf8f2a8
-      size: 432863
+      md5: bdbdc27c945f3f8da243856e3092c850
+      size: 443761
   rolos-2d-materials-point-defects:
     cmd: ./scripts/pack_for_rolos.sh
     deps:
