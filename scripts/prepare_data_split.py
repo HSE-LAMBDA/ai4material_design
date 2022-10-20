@@ -13,6 +13,7 @@ from ai4mat.data.data import (
     StorageResolver,
     TEST_FOLD,
     VALIDATION_FOLD,
+    TRAIN_FOLD,
 )
 
 
@@ -65,8 +66,9 @@ def main():
 
     all_structures = [read_structures_descriptions(storage_resolver["csv_cif"] / dataset_name)
                       for dataset_name in args.datasets]
-    sum_weight = reduce(lambda x, y: x * y, [len(i) for i in all_structures])
-    all_weights = [np.ones(len(i)) * sum_weight / len(i) for i in all_structures]
+    average_len = reduce(lambda x, y: x + y, [i.shape[0] for i in all_structures])
+    part_weight = average_len / len(all_structures)
+    all_weights = [np.ones(len(i)) * part_weight / len(i) for i in all_structures]
 
     if any(map(indices_intersect, combinations(all_structures, 2))):
         raise ValueError("Structures contain duplicate indices")
@@ -83,33 +85,69 @@ def main():
                 range(len(all_structures))
             ], axis=None)
 
-        all_structures = pd.concat(all_structures, axis=0)
-        print(all_structures)
-        return
-        all_weights = pd.concat(all_weights, axis=0)
-        if args.drop_na:
-            all_structures.dropna(inplace=True)
+            all_structures = pd.concat(all_structures, axis=0)
+            all_weights = np.concatenate(all_weights, axis=None)
+            if args.drop_na:
+                all_structures.dropna(inplace=True)
+
+            output_path = StorageResolver()["experiments"].joinpath(args.experiment_name + 'validation')
+            output_path.mkdir(exist_ok=True)
+
+            fold_full = pd.DataFrame(
+                data={
+                    'fold': folds,
+                    'weight': all_weights
+                },
+                index=all_structures.index
+            )
+
+            fold_val = fold_full[fold_full['fold'] != TEST_FOLD].copy()
+            fold_val['fold'] = np.where(fold_val['fold'] == VALIDATION_FOLD, TEST_FOLD, TRAIN_FOLD)
+            fold_val.to_csv(output_path.joinpath('folds.csv.gz'), index_label='_id')
+
+            config = {
+                "datasets": args.datasets,
+                "strategy": args.strategy,
+                "n-folds": args.n_folds,
+                "targets": args.targets
+            }
+            with open(output_path.joinpath("config.yaml"), "wt") as config_file:
+                yaml.dump(config, config_file)
+
+            output_path = StorageResolver()["experiments"].joinpath(args.experiment_name + 'test')
+            output_path.mkdir(exist_ok=True)
+
+            fold_val['fold'] = np.where(fold_val['fold'] == TEST_FOLD, TEST_FOLD, TRAIN_FOLD)
+            fold_val.to_csv(output_path.joinpath('folds.csv.gz'), index_label='_id')
+
+            config = {
+                "datasets": args.datasets,
+                "strategy": args.strategy,
+                "n-folds": args.n_folds,
+                "targets": args.targets
+            }
+            with open(output_path.joinpath("config.yaml"), "wt") as config_file:
+                yaml.dump(config, config_file)
+        else:
+            raise NotImplementedError
+    elif args.strategy == 'cv':
+        random_state = np.random.RandomState(args.random_seed)
 
         output_path = StorageResolver()["experiments"].joinpath(args.experiment_name)
         output_path.mkdir(exist_ok=True)
+        folds = get_folds(len(all_structures), args.n_folds, random_state)
+        fold_full = pd.Series(data=folds,
+                              index=all_structures.index, name="fold")
+        fold_full.to_csv(output_path.joinpath("folds.csv.gz"), index_label="_id")
 
-    random_state = np.random.RandomState(args.random_seed)
-
-    output_path = StorageResolver()["experiments"].joinpath(args.experiment_name)
-    output_path.mkdir(exist_ok=True)
-    folds = folds if folds is not None else get_folds(len(structures), args.n_folds, random_state)
-    fold_full = pd.Series(data=folds,
-                          index=structures.index, name="fold")
-    fold_full.to_csv(output_path.joinpath("folds.csv.gz"), index_label="_id")
-
-    config = {
-        "datasets": args.datasets,
-        "strategy": args.strategy,
-        "n-folds": args.n_folds,
-        "targets": args.targets
-    }
-    with open(output_path.joinpath("config.yaml"), "wt") as config_file:
-        yaml.dump(config, config_file)
+        config = {
+            "datasets": args.datasets,
+            "strategy": args.strategy,
+            "n-folds": args.n_folds,
+            "targets": args.targets
+        }
+        with open(output_path.joinpath("config.yaml"), "wt") as config_file:
+            yaml.dump(config, config_file)
 
 
 if __name__ == "__main__":
