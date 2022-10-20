@@ -6,7 +6,7 @@ import os
 
 
 def set_attr(structure, attr, name):
-    setattr(structure, name, y)
+    setattr(structure, name, attr)
     return structure
 
 
