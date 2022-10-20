@@ -61,9 +61,9 @@ This produces plots in `datasets/plots/pilot-plain-cv`
 The `.dvc` files are no longer there - but the data are!
 ```
 dvc pull datasets/csv_cif/high_density_defects/{BP_spin,GaSe_spin,hBN_spin,InSe_spin,MoS2,WSe2}_500
-dvc pull datasets/processed/high_density_defects/{BP_spin,GaSe_spin,hBN_spin,InSe_spin,MoS2,WSe2}_500
+dvc pull datasets/processed/high_density_defects/{BP_spin,GaSe_spin,hBN_spin,InSe_spin,MoS2,WSe2}_500/{targets.csv,data.pickle}.gz
 dvc pull datasets/csv_cif/low_density_defects/{MoS2,WSe2}
-dvc pull datasets/processed/low_density_defects/{MoS2,WSe2}
+dvc pull datasets/processed/low_density_defects/{MoS2,WSe2}/{targets.csv,data.pickle}.gz
 ```
 ### Reproducing the pipeline
 VASP -> csv_cif -> processed -> Rolos for high-density dataset has been implemented a [DVC pipeline](https://dvc.org/doc/start/data-management/data-pipelines). Processed datasets:
