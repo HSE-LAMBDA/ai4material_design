@@ -13,8 +13,10 @@ def set_y(structure, y):
 def get_megnet_pytorch_predictions(
         train_structures: Union[pd.Series, pd.DataFrame] ,  # series of pymatgen object
         train_targets: Union[pd.Series, pd.DataFrame],  # series of scalars
+        train_weights,
         test_structures: Union[pd.Series, pd.DataFrame],  # series of pymatgen object
         test_targets: Union[pd.Series, pd.DataFrame],  # series of scalars
+        test_weights,
         target_is_intensive: bool,
         model_params: dict,
         gpu: int,
@@ -27,8 +29,12 @@ def get_megnet_pytorch_predictions(
     target_name = train_targets.name
     train_targets = train_targets.tolist()
     test_targets = test_targets.tolist()
-    train_data = [set_y(s, y) for s, y in zip(train_structures, train_targets)]
-    test_data = [set_y(s, y) for s, y in zip(test_structures, test_targets)]
+    train_data = [setattr(s, "y", y) for s, y in zip(train_structures, train_targets)]
+    test_data = [setattr(s, "y", y) for s, y in zip(test_structures, test_targets)]
+    train_weights = train_weights.tolist()
+    test_weights = test_weights.tolist()
+    train_data = [setattr(s, "weight", w) for s, w in zip(train_data, train_weights)]
+    test_data = [setattr(s, "weights", w) for s, w in zip(test_data, test_weights)]
 
     model = MEGNetPyTorchTrainer(
         train_data,

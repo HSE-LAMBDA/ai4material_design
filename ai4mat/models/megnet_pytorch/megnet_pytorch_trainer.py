@@ -11,7 +11,9 @@ from ai4mat.models.megnet_pytorch.struct2graph import SimpleCrystalConverter, Ga
 from ai4mat.models.megnet_pytorch.struct2graph import FlattenGaussianDistanceConverter, AtomFeaturesExtractor
 from torch_geometric.loader import DataLoader
 from ai4mat.models.megnet_pytorch.utils import Scaler
+from ai4mat.models.loss_functions import weightedMSELoss, weightedMAELoss
 from joblib import Parallel, delayed
+
 
 class MEGNetPyTorchTrainer(Trainer):
     def __init__(
@@ -51,10 +53,11 @@ class MEGNetPyTorchTrainer(Trainer):
         )
         self.Scaler = Scaler()
 
-        
         print("converting data")
-        self.train_structures = Parallel(n_jobs=n_jobs, backend='threading')(delayed(self.converter.convert)(s) for s in tqdm(train_data))
-        self.test_structures = Parallel(n_jobs=n_jobs, backend='threading')(delayed(self.converter.convert)(s) for s in tqdm(test_data))
+        self.train_structures = Parallel(n_jobs=n_jobs, backend='threading')(
+            delayed(self.converter.convert)(s) for s in tqdm(train_data))
+        self.test_structures = Parallel(n_jobs=n_jobs, backend='threading')(
+            delayed(self.converter.convert)(s) for s in tqdm(test_data))
         self.Scaler.fit(self.train_structures)
         self.target_name = target_name
 
@@ -114,7 +117,7 @@ class MEGNetPyTorchTrainer(Trainer):
                 preds = self.model(
                     batch.x, batch.edge_index, batch.edge_attr, batch.state, batch.batch, batch.bond_batch
                 ).squeeze()
-                loss = F.mse_loss(self.Scaler.transform(batch.y), preds)
+                loss = weightedMSELoss(self.Scaler.transform(batch.y), preds, batch.weight, 'mean')
                 loss.backward()
 
                 self.optimizers.step()
@@ -122,7 +125,8 @@ class MEGNetPyTorchTrainer(Trainer):
 
                 batch_loss.append(loss.to("cpu").data.numpy())
                 total_train.append(
-                    F.l1_loss(self.Scaler.inverse_transform(preds), batch.y, reduction='sum').to('cpu').data.numpy()
+                    weightedMAELoss(self.Scaler.inverse_transform(preds), batch.y, batch.weight, 'sum').to(
+                        'cpu').data.numpy()
                 )
 
             total = []
@@ -136,7 +140,8 @@ class MEGNetPyTorchTrainer(Trainer):
                     ).squeeze()
 
                     total.append(
-                        F.l1_loss(self.Scaler.inverse_transform(preds), batch.y, reduction='sum').to('cpu').data.numpy()
+                        weightedMAELoss(self.Scaler.inverse_transform(preds), batch.y, batch.weight, reduction='sum') \
+                            .to('cpu').data.numpy()
                     )
 
             cur_test_loss = sum(total) / len(self.test_structures)
@@ -149,10 +154,10 @@ class MEGNetPyTorchTrainer(Trainer):
             torch.cuda.empty_cache()
 
             wandb.log({
-                    f'{self.target_name} test_loss_per_epoch': cur_test_loss,
-                    f'{self.target_name} train_loss_per_epoch': cur_train_loss,
-                    'epoch': epoch,
-                })
+                f'{self.target_name} test_loss_per_epoch': cur_test_loss,
+                f'{self.target_name} train_loss_per_epoch': cur_train_loss,
+                'epoch': epoch,
+            })
 
             print(
                 f"{self.target_name} Epoch: {epoch}, train loss: {cur_train_loss}, test loss: {cur_test_loss}"

@@ -82,8 +82,9 @@ def run_experiment(experiment_name: str,
     experiment_path = storage_resolver["experiments"].joinpath(experiment_name)
     with open(Path(experiment_path, "config.yaml")) as experiment_file:
         experiment = yaml.safe_load(experiment_file)
-    folds = pd.read_csv(
-        Path(experiment_path, "folds.csv.gz"), index_col="_id").squeeze("columns")
+    folds = pd.read_csv(Path(experiment_path, "folds.csv.gz"), index_col="_id")
+    weights = pd.Series(data=folds['weight'], index=folds.index)
+    folds = pd.Series(data=folds['fold'], index=folds.index)
 
     loader = DataLoader(experiment["datasets"], folds.index)
 
@@ -126,6 +127,7 @@ def run_experiment(experiment_name: str,
             structures,
             targets,
             folds,
+            weights,
             get_predictor_by_name(this_trial["model"]),
             IS_INTENSIVE[target_name],
             this_trial["model_params"],
@@ -150,6 +152,7 @@ def cross_val_predict(
         data: pd.Series,
         targets: Union[pd.Series, List[pd.Series]],
         folds: pd.Series,
+        weights: pd.Series,
         predict_func: Callable,
         # predict_func(train, train_targets, test, test_targets, model_params, gpu)
         # returns predictions on test
@@ -219,6 +222,7 @@ def cross_val_predict(
             gpu=gpus[0],
             n_folds=n_folds,
             folds=folds,
+            weights=weights,
             data=data,
             targets=targets,
             predict_func=predict_func,
@@ -261,6 +265,7 @@ def predict_on_fold(
         gpu,
         n_folds,
         folds,
+        weights,
         data,
         targets,
         predict_func,
@@ -273,8 +278,10 @@ def predict_on_fold(
     train_folds = set(range(n_folds)) - set((test_fold,))
     train_ids = folds[folds.isin(train_folds)]
     train = data.reindex(index=train_ids.index)
+    train_weights = weights.reindex(index=train_ids.index)
     test_ids = folds[folds == test_fold]
     test = data.reindex(index=test_ids.index)
+    test_weights = weights.reindex(index=test_ids.index)
     this_wandb_config = wandb_config.copy()
     this_wandb_config["test_fold"] = test_fold
     with wandb.init(
@@ -288,8 +295,10 @@ def predict_on_fold(
         return predict_func(
             train,
             targets.reindex(index=train_ids.index),
+            train_weights,
             test,
             targets.reindex(index=test_ids.index),
+            test_weights,
             target_is_intensive,
             model_params,
             gpu,
