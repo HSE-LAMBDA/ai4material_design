@@ -90,7 +90,7 @@ def main():
             if args.drop_na:
                 all_structures.dropna(inplace=True)
 
-            output_path = StorageResolver()["experiments"].joinpath(args.experiment_name + 'validation')
+            output_path = StorageResolver()["experiments"].joinpath(args.experiment_name + '_validation')
             output_path.mkdir(exist_ok=True)
 
             fold_full = pd.DataFrame(
@@ -114,7 +114,7 @@ def main():
             with open(output_path.joinpath("config.yaml"), "wt") as config_file:
                 yaml.dump(config, config_file)
 
-            output_path = StorageResolver()["experiments"].joinpath(args.experiment_name + 'test')
+            output_path = StorageResolver()["experiments"].joinpath(args.experiment_name + '_test')
             output_path.mkdir(exist_ok=True)
 
             fold_val['fold'] = np.where(fold_val['fold'] == TEST_FOLD, TEST_FOLD, TRAIN_FOLD)
