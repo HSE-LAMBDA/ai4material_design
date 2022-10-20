@@ -54,7 +54,7 @@ def generate_grid_trials(template, param_config):
 
 def generate_random_trials(template, param_config, n_steps):
     param_sets = []
-    dfs(param_config, [], param_sets)
+    dfs(param_config, [], param_sets, split=False)
 
     for step in range(n_steps):
         cur_template = deepcopy(template)
