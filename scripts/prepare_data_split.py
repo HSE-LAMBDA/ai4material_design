@@ -50,8 +50,8 @@ def get_train_val_test_split(length, val_size, test_size, random_state):
 def main():
     parser = argparse.ArgumentParser("Prepares CV data splits")
     parser.add_argument("--datasets", nargs="+", required=True)
-    parser.add_argument("--test_size", type=float)
-    parser.add_argument("--validation_size", type=float)
+    parser.add_argument("--test-size", type=float)
+    parser.add_argument("--validation-size", type=float)
     parser.add_argument("--experiment-name", type=str, required=True)
     parser.add_argument("--random-seed", type=int, default=42)
     parser.add_argument("--n-folds", type=int, default=8)
