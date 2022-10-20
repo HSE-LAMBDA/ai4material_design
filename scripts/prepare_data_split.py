@@ -74,7 +74,12 @@ def main():
     if args.strategy == "train_test":
         if args.test_size > 0:
             folds = np.concatenate([
-                get_train_val_test_split(all_structures[i].shape[0], args.test_size, args.val_size, args.random_seed) for i in
+                get_train_val_test_split(
+                    all_structures[i].shape[0],
+                    args.test_size,
+                    args.validation_size,
+                    args.random_seed
+                ) for i in
                 range(len(all_structures))
             ], axis=None)
 
