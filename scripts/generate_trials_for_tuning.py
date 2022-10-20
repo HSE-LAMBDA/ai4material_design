@@ -59,9 +59,12 @@ def generate_random_trials(template, param_config, n_steps):
     for step in range(n_steps):
         cur_template = deepcopy(template)
         for param in param_sets:
-            cur_param_value = np.random.uniform(param[1][0], param[1][1])
-            if isinstance(param[1][0], int):
-                cur_param_value = int(cur_param_value)
+            if isinstance(param[1][0], float):
+                cur_param_value = np.random.uniform(param[1][0], param[1][1])
+            elif isinstance(param[1][0], int):
+                cur_param_value = int(np.random.uniform(param[1][0], param[1][1]))
+            else:
+                cur_param_value = np.random.choice(param[1])
             set_item_by_path(cur_template, cur_param_value, list(param[0].split()))
         yield cur_template
 
