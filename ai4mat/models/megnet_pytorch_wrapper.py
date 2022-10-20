@@ -5,8 +5,8 @@ from ai4mat.models.megnet_pytorch.megnet_pytorch_trainer import MEGNetPyTorchTra
 import os
 
 
-def set_y(structure, y):
-    setattr(structure, "y", y)
+def set_attr(structure, attr, name):
+    setattr(structure, name, y)
     return structure
 
 
@@ -29,12 +29,12 @@ def get_megnet_pytorch_predictions(
     target_name = train_targets.name
     train_targets = train_targets.tolist()
     test_targets = test_targets.tolist()
-    train_data = [setattr(s, "y", y) for s, y in zip(train_structures, train_targets)]
-    test_data = [setattr(s, "y", y) for s, y in zip(test_structures, test_targets)]
+    train_data = [set_attr(s, y, 'y') for s, y in zip(train_structures, train_targets)]
+    test_data = [set_attr(s, y, 'y') for s, y in zip(test_structures, test_targets)]
     train_weights = train_weights.tolist()
     test_weights = test_weights.tolist()
-    train_data = [setattr(s, "weight", w) for s, w in zip(train_data, train_weights)]
-    test_data = [setattr(s, "weights", w) for s, w in zip(test_data, test_weights)]
+    train_data = [set_attr(s, w, 'weight') for s, w in zip(train_data, train_weights)]
+    test_data = [set_attr(s, w, "weight") for s, w in zip(test_data, test_weights)]
 
     model = MEGNetPyTorchTrainer(
         train_data,
