@@ -8,7 +8,6 @@ from itertools import product
 from copy import deepcopy
 
 from pathlib import Path
-from plumbum import local, FG
 from datetime import datetime
 
 from ai4mat.data.data import StorageResolver
@@ -97,8 +96,7 @@ def main():
 
     relative_dir_path = Path(args.model_name).joinpath(datetime.now().strftime("%d-%m-%Y_%H-%M-%S"))
     res_dir_path = storage_resolver['trials'].joinpath(relative_dir_path)
-    mkdir = local["mkdir"]['-p'][res_dir_path]
-    mkdir & FG
+    res_dir_path.mkdir(parents=True, exist_ok=True)
     h = hashlib.new('sha256')
     generator = generate_grid_trials(template, param_config) if args.mode == 'grid' else \
         generate_random_trials(template, param_config, args.n_steps)
