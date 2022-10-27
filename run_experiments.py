@@ -83,9 +83,9 @@ def run_experiment(experiment_name: str,
     with open(Path(experiment_path, "config.yaml")) as experiment_file:
         experiment = yaml.safe_load(experiment_file)
     folds = pd.read_csv(Path(experiment_path, "folds.csv.gz"), index_col="_id")
-    weights = pd.Series(data=folds.loc[:, 'weight'], index=folds.index)\
+    weights = folds.loc[:, 'weight']\
         if 'weight' in folds.columns else pd.Series(data=np.ones(len(folds.index)), index=folds.index)
-    folds = pd.Series(data=folds.loc[:, 'fold'], index=folds.index)
+    folds = folds.loc[:, 'fold']
 
     loader = DataLoader(experiment["datasets"], folds.index)
 
