@@ -43,7 +43,7 @@ def main():
         with open(experiment_path.joinpath("config.yaml")) as experiment_file:
             experiment = yaml.safe_load(experiment_file)
         folds = pd.read_csv(experiment_path.joinpath("folds.csv.gz"),
-                            index_col="_id").squeeze("columns")
+                            index_col="_id").loc[:, 'fold']
         true_targets = pd.concat([pd.read_csv(storage_resolver["processed"]/dataset/"targets.csv.gz", index_col="_id")
                                   for dataset in experiment["datasets"]], axis=0).reindex(
                                           index=folds.index)
