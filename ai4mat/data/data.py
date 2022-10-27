@@ -14,6 +14,7 @@ import tarfile
 
 TRAIN_FOLD = 0
 TEST_FOLD = 1
+VALIDATION_FOLD = 2
 
 NICE_TARGET_NAMES = {
     "homo": "HOMO, eV",

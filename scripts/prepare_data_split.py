@@ -1,15 +1,19 @@
 import argparse
 import yaml
 from itertools import combinations
+from functools import reduce
 import pandas as pd
 import numpy as np
 import sys
+
 sys.path.append('.')
 
 from ai4mat.data.data import (
     read_structures_descriptions,
     StorageResolver,
-    TEST_FOLD, read_defects_descriptions,
+    TEST_FOLD,
+    VALIDATION_FOLD,
+    TRAIN_FOLD,
 )
 
 
@@ -34,10 +38,21 @@ def get_train_test_split(length, test_size, random_state):
     return np.random.permutation(res)
 
 
+def get_train_val_test_split(length, val_size, test_size, random_state):
+    np.random.seed(random_state)
+    val_length = int(length * val_size)
+    test_length = int(length * test_size)
+    res = np.zeros(length, dtype=int)
+    res[:val_length] = VALIDATION_FOLD
+    res[val_length: val_length + test_length] = TEST_FOLD
+    return np.random.permutation(res)
+
+
 def main():
     parser = argparse.ArgumentParser("Prepares CV data splits")
     parser.add_argument("--datasets", nargs="+", required=True)
-    parser.add_argument("--test_sizes", nargs="+", type=float)
+    parser.add_argument("--test-size", type=float)
+    parser.add_argument("--validation-size", type=float)
     parser.add_argument("--experiment-name", type=str, required=True)
     parser.add_argument("--random-seed", type=int, default=42)
     parser.add_argument("--n-folds", type=int, default=8)
@@ -46,51 +61,93 @@ def main():
     parser.add_argument("--drop-na", action="store_true",
                         help="Drop the ids for which fields are missing")
     parser.add_argument("--strategy", type=str, default="cv")
-
-    folds = None
     args = parser.parse_args()
     storage_resolver = StorageResolver()
-    structures = [read_structures_descriptions(storage_resolver["csv_cif"]/dataset_name)
-                  for dataset_name in args.datasets]
 
-    if any(map(indices_intersect, combinations(structures, 2))):
+    all_structures = [read_structures_descriptions(storage_resolver["csv_cif"] / dataset_name)
+                      for dataset_name in args.datasets]
+    average_len = reduce(lambda x, y: x + y, [i.shape[0] for i in all_structures])
+    part_weight = average_len / len(all_structures)
+    all_weights = [np.ones(len(i)) * part_weight / len(i) for i in all_structures]
+
+    if any(map(indices_intersect, combinations(all_structures, 2))):
         raise ValueError("Structures contain duplicate indices")
 
     if args.strategy == "train_test":
-        if len(args.datasets) != len(args.test_sizes):
-            raise f"please provide test sizes for all datasets"
-        folds = np.concatenate([
-            get_train_test_split(structures[i].shape[0], args.test_sizes[i], args.random_seed) for i in range(len(structures))
-        ], axis=None)
+        if args.test_size > 0:
+            folds = np.concatenate([
+                get_train_val_test_split(
+                    all_structures[i].shape[0],
+                    args.test_size,
+                    args.validation_size,
+                    args.random_seed
+                ) for i in
+                range(len(all_structures))
+            ], axis=None)
 
-    structures = pd.concat(structures, axis=0)
+            all_structures = pd.concat(all_structures, axis=0)
+            all_weights = np.concatenate(all_weights, axis=None)
+            if args.drop_na:
+                all_structures.dropna(inplace=True)
 
-    if args.drop_na:
-        structures.dropna(inplace=True)
+            output_path = StorageResolver()["experiments"].joinpath(args.experiment_name + '_validation')
+            output_path.mkdir(exist_ok=True)
 
-    defects = [read_defects_descriptions(storage_resolver["csv_cif"]/dataset_name)
-               for dataset_name in args.datasets]
-    if any(map(indices_intersect, combinations(defects, 2))):
-        raise ValueError("Defects contain duplicate indices")
-    defects = pd.concat(defects, axis=0)
+            fold_full = pd.DataFrame(
+                data={
+                    'fold': folds,
+                    'weight': all_weights
+                },
+                index=all_structures.index
+            )
 
-    random_state = np.random.RandomState(args.random_seed)
-    
-    output_path = StorageResolver()["experiments"].joinpath(args.experiment_name)
-    output_path.mkdir(exist_ok=True)
-    folds = folds if folds is not None else get_folds(len(structures), args.n_folds, random_state)
-    fold_full = pd.Series(data=folds,
-                          index=structures.index, name="fold")
-    fold_full.to_csv(output_path.joinpath("folds.csv.gz"), index_label="_id")
+            fold_val = fold_full[fold_full['fold'] != TEST_FOLD].copy()
+            fold_val['fold'] = np.where(fold_val['fold'] == VALIDATION_FOLD, TEST_FOLD, TRAIN_FOLD)
+            fold_val.to_csv(output_path.joinpath('folds.csv.gz'), index_label='_id')
 
-    config = {
-        "datasets": args.datasets,
-        "strategy": args.strategy,
-        "n-folds": args.n_folds,
-        "targets": args.targets
-    }
-    with open(output_path.joinpath("config.yaml"), "wt") as config_file:
-        yaml.dump(config, config_file)
+            config = {
+                "datasets": args.datasets,
+                "strategy": args.strategy,
+                "n-folds": args.n_folds,
+                "targets": args.targets
+            }
+            with open(output_path.joinpath("config.yaml"), "wt") as config_file:
+                yaml.dump(config, config_file)
+
+            output_path = StorageResolver()["experiments"].joinpath(args.experiment_name + '_test')
+            output_path.mkdir(exist_ok=True)
+
+            fold_val['fold'] = np.where(fold_val['fold'] == TEST_FOLD, TEST_FOLD, TRAIN_FOLD)
+            fold_val.to_csv(output_path.joinpath('folds.csv.gz'), index_label='_id')
+
+            config = {
+                "datasets": args.datasets,
+                "strategy": args.strategy,
+                "n-folds": args.n_folds,
+                "targets": args.targets
+            }
+            with open(output_path.joinpath("config.yaml"), "wt") as config_file:
+                yaml.dump(config, config_file)
+        else:
+            raise NotImplementedError
+    elif args.strategy == 'cv':
+        random_state = np.random.RandomState(args.random_seed)
+
+        output_path = StorageResolver()["experiments"].joinpath(args.experiment_name)
+        output_path.mkdir(exist_ok=True)
+        folds = get_folds(len(all_structures), args.n_folds, random_state)
+        fold_full = pd.Series(data=folds,
+                              index=all_structures.index, name="fold")
+        fold_full.to_csv(output_path.joinpath("folds.csv.gz"), index_label="_id")
+
+        config = {
+            "datasets": args.datasets,
+            "strategy": args.strategy,
+            "n-folds": args.n_folds,
+            "targets": args.targets
+        }
+        with open(output_path.joinpath("config.yaml"), "wt") as config_file:
+            yaml.dump(config, config_file)
 
 
 if __name__ == "__main__":
