@@ -113,5 +113,6 @@ def main():
     with open(output_path.joinpath("family.txt"), "wt") as family_file:
         family_file.write("\n".join(family))
 
+
 if __name__ == "__main__":
     main()

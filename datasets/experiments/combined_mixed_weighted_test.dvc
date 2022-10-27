@@ -1,0 +1,5 @@
+outs:
+- md5: 397689cb53e010eac8fb594a31d8b6eb.dir
+  size: 101634
+  nfiles: 2
+  path: combined_mixed_weighted_test

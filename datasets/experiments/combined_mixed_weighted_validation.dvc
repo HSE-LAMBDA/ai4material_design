@@ -1,0 +1,5 @@
+outs:
+- md5: 550205c6ebe7780fd3c92f93b4590649.dir
+  size: 101634
+  nfiles: 2
+  path: combined_mixed_weighted_validation
