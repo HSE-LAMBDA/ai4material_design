@@ -9,6 +9,7 @@ from functools import partial
 import pandas as pd
 from typing import Callable, List, Dict, Union
 from torch.multiprocessing import get_context
+from sklearn.utils import resample
 
 from ai4mat.data.data import (
     StorageResolver,
@@ -55,7 +56,7 @@ def main():
                        gpus,
                        args.processes_per_unit,
                        args.targets,
-                       args.n_jobs
+                       args.n_jobs,
                        )
 
 
@@ -64,7 +65,8 @@ def run_experiment(experiment_name: str,
                    gpus: List[int],
                    processes_per_unit: int,
                    requested_targets: List[str] = None,
-                   n_jobs=1) -> None:
+                   n_jobs=1,
+                   ) -> None:
     """
     Runs an experiment.
     Args:
@@ -118,12 +120,13 @@ def run_experiment(experiment_name: str,
             assert (
                     this_trial["representation"] == "matminer"
             ), "Expected representation 'matminer' for model 'catboost'"
+        
+        minority_class_upsampling = this_trial.get("minority_class_upsampling", False)
         wandb_config = {
             "trial": this_trial,
             "experiment": experiment,
             "target": target_name,
         }
-
         predictions = cross_val_predict(
             structures,
             targets,
@@ -139,6 +142,7 @@ def run_experiment(experiment_name: str,
                                                                      this_trial_name),
             n_jobs=n_jobs,
             strategy=experiment['strategy'],
+            minority_class_upsampling=minority_class_upsampling,
         )
         predictions.rename(lambda target_name: f"predicted_{target_name}_test", axis=1, inplace=True)
         save_path = storage_resolver["predictions"].joinpath(
@@ -166,10 +170,11 @@ def cross_val_predict(
         checkpoint_path,
         n_jobs,
         strategy="cv",
+        minority_class_upsampling=False,
 ):
     assert data.index.equals(targets.index)
     assert data.index.equals(folds.index)
-
+  
     n_folds = folds.max() + 1
     if strategy == "cv":
         test_fold_generator = range(n_folds)
@@ -194,7 +199,9 @@ def cross_val_predict(
                             model_params=model_params,
                             wandb_config=wandb_config,
                             checkpoint_path=checkpoint_path,
-                            n_jobs=n_jobs),
+                            n_jobs=n_jobs,
+                            minority_class_upsampling=minority_class_upsampling
+                            ),
                     zip(test_fold_generator, cycle(gpus)),
                     chunksize=1,
                 )
@@ -210,7 +217,9 @@ def cross_val_predict(
                         model_params=model_params,
                         wandb_config=wandb_config,
                         checkpoint_path=checkpoint_path,
-                        n_jobs=n_jobs),
+                        n_jobs=n_jobs,
+                        minority_class_upsampling=minority_class_upsampling
+                        ),
                 zip(test_fold_generator, cycle(gpus)),
             )
 
@@ -232,6 +241,7 @@ def cross_val_predict(
             wandb_config=wandb_config,
             checkpoint_path=checkpoint_path,
             n_jobs=n_jobs,
+            minority_class_upsampling=minority_class_upsampling
         )
     # TODO(kazeevn)
     # Should we add explicit Structure -> graph preprocessing with results shared?
@@ -275,6 +285,7 @@ def predict_on_fold(
         wandb_config,
         checkpoint_path,
         n_jobs,
+        minority_class_upsampling,
 ):
     train_folds = set(range(n_folds)) - set((test_fold,))
     train_ids = folds[folds.isin(train_folds)]
@@ -304,7 +315,8 @@ def predict_on_fold(
             model_params,
             gpu,
             checkpoint_path=checkpoint_path.joinpath('_'.join(map(str, train_folds))),
-            n_jobs=n_jobs
+            n_jobs=n_jobs,
+            minority_class_upsampling=minority_class_upsampling,
         )
 
 
