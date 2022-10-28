@@ -15,7 +15,6 @@ def parse_args():
     parser.add_argument("--experiment", required=True)
     parser.add_argument("--warm-start", action='store_true')
     parser.add_argument("--wandb-entity", required=True)
-    parser.add_argument("--mode", choices=['grid, random'], required=True)
     parser.add_argument("--trials-folder", type=str, required=True)
     return parser.parse_args()
 

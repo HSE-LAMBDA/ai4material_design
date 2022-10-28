@@ -56,6 +56,22 @@ Modify `slurm-job.sh` with the desired argument and export the required envirome
 python scripts/plot.py --experiments pilot-plain-cv --trials megnet_pytorch-sparse-pilot
 ```
 This produces plots in `datasets/plots/pilot-plain-cv`
+
+4. If you want to perform random hyperparameters search on pilot do next steps
+
+- change templates/megnet_pytorch/parameters_to_tune.yaml
+
+```
+python scripts/generate_trials_for_tuning.py --model-name megnet_pytorch --mode random --n-steps 5
+```
+
+- it will produce folder with trials
+- if you want then to run them on hpc cluster you can use
+
+```
+python scripts/hyperparam_tuning.py --model-name megnet_pytorch --experiment pilot-plain-cv --wandb-entity hse_lambda --trials-folder {folder name from previous step}
+```
+
 ## Data transformation: DVC pipline
 ### Getting the data
 The `.dvc` files are no longer there - but the data are!
