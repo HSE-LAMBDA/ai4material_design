@@ -33,7 +33,7 @@ def main():
 
     print(f"=====starting experiment {args.experiment}=====")
 
-    exp_file_path = storage_resolver['experiments'].joinpath(args.experiment + '/config.yamp')
+    exp_file_path = storage_resolver['experiments'].joinpath(args.experiment + '/config.yaml')
     with open(exp_file_path, 'r') as exp_file:
         exp = yaml.safe_load(exp_file)
     targets = exp['targets']
