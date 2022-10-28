@@ -25,5 +25,26 @@
 /dos_band_for_select_structures_nus_202111
 /initial_coordinates_wse2_pengru_converted_202111
 /initial_coordinates_wse2_pengru_innopolis_converted_202111
-/checkpoints
+
 /__checkpoints
+
+
+git add datasets/predictions/high_density/BP_spin_500/band_gap_majority/.gitignore
+git add datasets/predictions/high_density/BP_spin_500/band_gap_minority/.gitignore
+git add datasets/predictions/high_density/BP_spin_500/formation_energy_per_site/.gitignore
+git add datasets/predictions/high_density/BP_spin_500/homo_majority/.gitignore
+git add datasets/predictions/high_density/BP_spin_500/total_mag/.gitignore
+git add datasets/predictions/high_density/GaSe_500/band_gap/.gitignore
+git add datasets/predictions/high_density/GaSe_500/formation_energy_per_site/.gitignore
+git add datasets/predictions/high_density/GaSe_500/homo/.gitignore
+git add datasets/predictions/high_density/GaSe_500/lumo/.gitignore
+git add datasets/predictions/high_density/InSe_500/band_gap/.gitignore
+git add datasets/predictions/high_density/InSe_500/formation_energy_per_site/.gitignore
+git add datasets/predictions/high_density/InSe_500/homo/.gitignore
+git add datasets/predictions/high_density/InSe_500/lumo/.gitignore
+git add datasets/predictions/high_density/WSe2_500/band_gap/.gitignore
+git add datasets/predictions/high_density/WSe2_500/formation_energy_per_site/.gitignore
+git add datasets/predictions/high_density/hBN_spin_500/band_gap_majority/.gitignore
+git add datasets/predictions/high_density/hBN_spin_500/band_gap_minority/.gitignore
+git add datasets/predictions/high_density/hBN_spin_500/formation_energy_per_site/.gitignore
+git add datasets/predictions/high_density/hBN_spin_500/total_mag/.gitignore

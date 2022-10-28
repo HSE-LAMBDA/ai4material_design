@@ -1,0 +1,4 @@
+outs:
+- md5: 4b60485229081561ca112ee204c389bd
+  size: 17401
+  path: gemnet-full.csv.gz
