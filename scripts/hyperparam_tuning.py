@@ -52,6 +52,8 @@ def main():
                     need_to_restart = True
                     print(f'not find target {target} for trial {trial}')
                     break
+        else:
+            need_to_restart = True
 
         if need_to_restart:
             run_exp = local["python"]["run_experiments.py"]['--experiments'][args.experiment]['--trials'][trial] \
