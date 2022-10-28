@@ -34,7 +34,7 @@ def MAELoss(y, preds, weights, reduction):
             loss
     '''
     if weights is not None:
-        return weightedMAELoss(y, preds, weights, reduction)
+        return weightedMAELoss(y, preds, weights=None, reduction='mean')
     if reduction == 'mean':
         return torch.abs(y - preds).mean()
     elif reduction == 'sum':
