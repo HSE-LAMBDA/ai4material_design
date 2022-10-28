@@ -9,7 +9,6 @@ from functools import partial
 import pandas as pd
 from typing import Callable, List, Dict, Union
 from torch.multiprocessing import get_context
-from sklearn.utils import resample
 
 from ai4mat.data.data import (
     StorageResolver,
@@ -65,7 +64,7 @@ def run_experiment(experiment_name: str,
                    gpus: List[int],
                    processes_per_unit: int,
                    requested_targets: List[str] = None,
-                   n_jobs=1,
+                   n_jobs=1
                    ) -> None:
     """
     Runs an experiment.
