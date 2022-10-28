@@ -15,7 +15,7 @@ def parse_args():
     parser.add_argument("--experiment", required=True)
     parser.add_argument("--warm-start", action='store_true')
     parser.add_argument("--wandb-entity", required=True)
-    parser.add_argument("--trials-folder", type=str, required=True)
+    parser.add_argument("--trials-folder", type=Path, required=True)
     return parser.parse_args()
 
 
@@ -27,7 +27,7 @@ def main():
     relative_dir_path = Path(args.model_name).joinpath(args.trials_folder)
     res_dir_path = storage_resolver['trials'].joinpath(relative_dir_path)
     if res_dir_path.name not in os.listdir(res_dir_path.parent):
-        raise "Wrong timestamp for warm start"
+        raise ValueError("Wrong timestamp for warm start")
 
     print(f"=====starting experiment {args.experiment}=====")
 
