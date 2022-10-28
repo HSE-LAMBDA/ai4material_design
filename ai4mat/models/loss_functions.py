@@ -1,9 +1,19 @@
 import torch
 
 def MSELoss(y, preds, weights, reduction):
+    ''' MSE loss
+
+        Args:
+            y: target
+            preds: predictions
+            weights: weights for each sample, if set to None, then all samples are weighted equally
+            reduction: 'mean' or 'sum'
+
+        Returns:
+            loss
     '''
-        MSE loss
-    '''
+    if weights is not None:
+        return weightedMSELoss(y, preds, weights, reduction)
     if reduction == 'mean':
         return ((y - preds) ** 2).mean()
     elif reduction == 'sum':
@@ -13,9 +23,18 @@ def MSELoss(y, preds, weights, reduction):
 
 
 def MAELoss(y, preds, weights, reduction):
+    ''' MAE loss
+        Args:
+            y: target
+            preds: predictions
+            weights: weights for each sample, if set to None, then all samples are weighted equally
+            reduction: 'mean' or 'sum'
+
+        Returns:
+            loss
     '''
-        MAE loss
-    '''
+    if weights is not None:
+        return weightedMAELoss(y, preds, weights, reduction)
     if reduction == 'mean':
         return torch.abs(y - preds).mean()
     elif reduction == 'sum':
