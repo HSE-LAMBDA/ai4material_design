@@ -103,6 +103,7 @@ def main():
 
             fold_val = fold_full[fold_full['fold'] != TEST_FOLD].copy()
             fold_val['fold'] = np.where(fold_val['fold'] == VALIDATION_FOLD, TEST_FOLD, TRAIN_FOLD)
+            fold_val['weight'] *= fold_val.shape[0] / fold_val['weight'].sum()
             fold_val.to_csv(output_path.joinpath('folds.csv.gz'), index_label='_id')
 
             config = {
