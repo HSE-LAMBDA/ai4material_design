@@ -22,7 +22,7 @@ def MSELoss(y, preds, weights, reduction):
         raise ValueError
 
 
-def MAELoss(y, preds, weights, reduction):
+def MAELoss(y, preds, weights=None, reduction='mean'):
     ''' MAE loss
         Args:
             y: target
