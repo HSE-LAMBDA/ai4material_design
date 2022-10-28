@@ -28,7 +28,7 @@ def dfs(data, path, sets, split=True):
                 for val in value:
                     cur_set.append((cur_path, val))
             else:
-                cur_set.append((cur_path, value))
+                cur_set.extend([cur_path, value])
             sets.append(cur_set)
         else:
             dfs(value, path, sets, split)
@@ -65,7 +65,7 @@ def generate_random_trials(template, param_config, n_steps):
             elif param[1][0] == 'int_min_max':
                 cur_param_value = int(np.random.uniform(param[1][1], param[1][2]))
             elif param[1][0] == 'grid':
-                cur_param_value = np.random.choice(param[1][1:])
+                cur_param_value = np.random.choice(param[1][1:]).item()
             else:
                 raise ValueError('unknown distribution')
             set_item_by_path(cur_template, cur_param_value, list(param[0].split()))
