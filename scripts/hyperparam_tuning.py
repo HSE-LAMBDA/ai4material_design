@@ -1,11 +1,13 @@
 import argparse
 import yaml
 import os
+import sys
 
 from pathlib import Path
 from plumbum import local, FG
 from tqdm import tqdm
 
+sys.path.append('.')
 from ai4mat.data.data import StorageResolver
 
 
