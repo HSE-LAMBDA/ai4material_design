@@ -1,6 +1,8 @@
 from typing import List, Optional
 from itertools import groupby
 from operator import attrgetter
+from functools import partial
+
 import torch
 import numpy as np
 import torch.nn.functional as F
@@ -16,7 +18,7 @@ from torch_geometric.loader import DataLoader
 from torch_geometric.data import Data
 
 from ai4mat.models.megnet_pytorch.utils import Scaler
-from ai4mat.models.loss_functions import weightedMSELoss, weightedMAELoss, MSELoss, MAELoss
+from ai4mat.models.loss_functions import MSELoss, MAELoss
 from joblib import Parallel, delayed
 
 class ImbalancedSampler(torch.utils.data.WeightedRandomSampler):
@@ -24,13 +26,9 @@ class ImbalancedSampler(torch.utils.data.WeightedRandomSampler):
         self,
         dataset: List[Data],
     ):
-        class_data = [list(g) for _, g in groupby(dataset, key=lambda x: x.weight)]
+        class_data = [list(g) for _, g in groupby(dataset, attrgetter("weight"))]
         minority_class, majority_class = sorted(class_data, key=len)
         assert len(class_data) == 2, "Only support binary classes are supported"
-        for group in class_data:
-            class_weight = len(group) / len(dataset)
-            for data in group:
-                data.weight = class_weight
         weights = list(map(attrgetter('weight'), dataset))
         return super().__init__(weights, len(majority_class) * 2, replacement=True)
 
@@ -47,6 +45,7 @@ class MEGNetPyTorchTrainer(Trainer):
             minority_class_upsampling: bool = False,
     ):
         self.config = configs
+        self.minority_class_upsampling = minority_class_upsampling
 
         if self.config["model"]["add_z_bond_coord"]:
             bond_converter = FlattenGaussianDistanceConverter(
@@ -118,9 +117,6 @@ class MEGNetPyTorchTrainer(Trainer):
                 min_lr=self.config["optim"]["min_lr"],
                 verbose=True,
             )
-        
-        self.MAELoss = MAELoss if minority_class_upsampling else weightedMAELoss
-        self.MSELoss = MSELoss if minority_class_upsampling else weightedMSELoss
 
     def train(self):
 
@@ -142,7 +138,13 @@ class MEGNetPyTorchTrainer(Trainer):
                 preds = self.model(
                     batch.x, batch.edge_index, batch.edge_attr, batch.state, batch.batch, batch.bond_batch
                 ).squeeze()
-                loss = self.MSELoss(self.Scaler.transform(batch.y), preds, batch.weight, 'mean')
+                
+                loss = MSELoss(
+                    self.Scaler.transform(batch.y),
+                    preds, 
+                    weights=(None if self.minority_class_upsampling else batch.weight), 
+                    reduction='mean'
+                )
                 loss.backward()
 
                 self.optimizers.step()
@@ -150,8 +152,12 @@ class MEGNetPyTorchTrainer(Trainer):
 
                 batch_loss.append(loss.to("cpu").data.numpy())
                 total_train.append(
-                    self.MAELoss(self.Scaler.inverse_transform(preds), batch.y, batch.weight, 'sum').to(
-                        'cpu').data.numpy()
+                    MAELoss(
+                        self.Scaler.inverse_transform(preds),
+                        batch.y,
+                        weights=(None if self.minority_class_upsampling else batch.weight), 
+                        reduction='sum'
+                    ).to('cpu').data.numpy()
                 )
 
             total = []
@@ -165,8 +171,12 @@ class MEGNetPyTorchTrainer(Trainer):
                     ).squeeze()
 
                     total.append(
-                        self.MAELoss(self.Scaler.inverse_transform(preds), batch.y, batch.weight, reduction='sum') \
-                            .to('cpu').data.numpy()
+                        MAELoss(
+                            self.Scaler.inverse_transform(preds),
+                            batch.y,
+                            weights=batch.weight, 
+                            reduction='sum'
+                        ).to('cpu').data.numpy()
                     )
 
             cur_test_loss = sum(total) / len(self.test_structures)
