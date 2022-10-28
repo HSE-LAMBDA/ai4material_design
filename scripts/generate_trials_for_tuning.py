@@ -75,7 +75,7 @@ def generate_random_trials(template, param_config, n_steps):
 def parse_args():
     parser = argparse.ArgumentParser("Runs experiments")
     parser.add_argument("--model-name", required=True)
-    parser.add_argument("--mode", choices=['grid, random'], required=True)
+    parser.add_argument("--mode", choices=['grid', 'random'], required=True)
     parser.add_argument('--n-steps', type=int)
     return parser.parse_args()
 
