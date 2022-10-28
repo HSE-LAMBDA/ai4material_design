@@ -58,12 +58,14 @@ def generate_random_trials(template, param_config, n_steps):
     for step in range(n_steps):
         cur_template = deepcopy(template)
         for param in param_sets:
-            if isinstance(param[1][0], float):
-                cur_param_value = np.random.uniform(param[1][0], param[1][1])
-            elif isinstance(param[1][0], int):
-                cur_param_value = int(np.random.uniform(param[1][0], param[1][1]))
+            if param[1][0] == 'float_min_max':
+                cur_param_value = np.random.uniform(param[1][1], param[1][2])
+            elif param[1][0] == 'int_min_max':
+                cur_param_value = int(np.random.uniform(param[1][1], param[1][2]))
+            elif param[1][0] == 'grid':
+                cur_param_value = np.random.choice(param[1][1:])
             else:
-                cur_param_value = np.random.choice(param[1])
+                raise ValueError('unknown distribution')
             set_item_by_path(cur_template, cur_param_value, list(param[0].split()))
         yield cur_template
 
@@ -71,10 +73,8 @@ def generate_random_trials(template, param_config, n_steps):
 def parse_args():
     parser = argparse.ArgumentParser("Runs experiments")
     parser.add_argument("--model-name", required=True)
-    parser.add_argument("--experiments", nargs="+", required=True)
-    parser.add_argument("--wandb-entity", required=True)
     parser.add_argument("--mode", choices=['grid, random'], required=True)
-    parser.add_argument('n_steps', type=int)
+    parser.add_argument('--n-steps', type=int)
     return parser.parse_args()
 
 
@@ -105,6 +105,7 @@ def main():
         cur_trial_name = h.hexdigest()[-8:]
         with open(res_dir_path.joinpath(cur_trial_name + ".yaml"), 'w') as outf:
             yaml.dump(trial, outf, default_flow_style=False)
+    print(f'stored trials to {relative_dir_path}')
 
 
 if __name__ == '__main__':

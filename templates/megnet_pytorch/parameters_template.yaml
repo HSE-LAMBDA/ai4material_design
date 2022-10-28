@@ -8,8 +8,10 @@ model_params:
     add_z_bond_coord: true
     atom_features: 'werespecies'
     state_input_shape: 2
-    cutoff: 15
+    cutoff: 10
     edge_embed_size: 10
+    vertex_aggregation: 'mean'
+    global_aggregation: 'mean'
   optim:
     factor: 0.5
     patience: 30
