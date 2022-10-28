@@ -3,6 +3,7 @@ import yaml
 import hashlib
 import json
 import numpy as np
+import sys
 
 from itertools import product
 from copy import deepcopy
@@ -10,6 +11,7 @@ from copy import deepcopy
 from pathlib import Path
 from datetime import datetime
 
+sys.path.append('.')
 from ai4mat.data.data import StorageResolver
 
 
