@@ -46,7 +46,8 @@ def main():
         folds_data = pd.read_csv(experiment_path.joinpath("folds.csv.gz"),
                                  index_col="_id")
         folds = folds_data.loc[:, 'fold']
-        weights = folds_data.loc[:, 'weight'] if 'weight' in folds_data.columns else np.ones((len(folds)))
+        weights = folds_data.loc[:, 'weight'] if 'weight' in folds_data.columns else\
+            pd.Series(data=np.ones((len(folds))), index=folds.index)
         true_targets = pd.concat(
             [pd.read_csv(storage_resolver["processed"] / dataset / "targets.csv.gz", index_col="_id")
              for dataset in experiment["datasets"]], axis=0).reindex(
