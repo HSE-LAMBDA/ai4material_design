@@ -33,7 +33,7 @@ def main():
 
     print(f"=====starting experiment {args.experiment}=====")
 
-    exp_file_path = storage_resolver['experiments'].joinpath(args.experiment + '/config.yamp')
+    exp_file_path = storage_resolver['experiments'].joinpath(args.experiment + '/config.yaml')
     with open(exp_file_path, 'r') as exp_file:
         exp = yaml.safe_load(exp_file)
     targets = exp['targets']
@@ -52,6 +52,8 @@ def main():
                     need_to_restart = True
                     print(f'not find target {target} for trial {trial}')
                     break
+        else:
+            need_to_restart = True
 
         if need_to_restart:
             run_exp = local["python"]["run_experiments.py"]['--experiments'][args.experiment]['--trials'][trial] \
