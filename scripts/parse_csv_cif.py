@@ -288,7 +288,7 @@ def main():
 
     if args.fill_missing_band_properties:
         for kind in ("majority", "minority", "max", "min"):
-            for property in ("homo_lumo_gap", "homo", "lumo", "normalized_homo", "normalized_lumo"):
+            for property in ("homo_lumo_gap", "homo", "lumo", "normalized_homo", "normalized_lumo", "E_1"):
                 spin_column = f"{property}_{kind}"
                 if spin_column not in structures.columns:
                     if property in structures.columns:
