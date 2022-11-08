@@ -47,6 +47,8 @@ class MEGNetPyTorchTrainer(Trainer):
         self.model = MEGNet(
             edge_input_shape=bond_converter.get_shape(eos=use_eos),
             node_input_shape=atom_converter.get_shape(),
+            embedding_size=self.config['model']['embedding_size'],
+            n_blocks=self.config['model']['nblocks'],
             state_input_shape=self.config["model"]["state_input_shape"],
             vertex_aggregation=self.config["model"]["vertex_aggregation"],
             global_aggregation=self.config["model"]["global_aggregation"],
