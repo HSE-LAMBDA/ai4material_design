@@ -1,3 +1,8 @@
+from typing import List, Optional
+from itertools import groupby
+from operator import attrgetter
+from functools import partial
+
 import torch
 import numpy as np
 import torch.nn.functional as F
@@ -10,10 +15,22 @@ from ai4mat.models.megnet_pytorch.megnet_pytorch import MEGNet
 from ai4mat.models.megnet_pytorch.struct2graph import SimpleCrystalConverter, GaussianDistanceConverter
 from ai4mat.models.megnet_pytorch.struct2graph import FlattenGaussianDistanceConverter, AtomFeaturesExtractor
 from torch_geometric.loader import DataLoader
+from torch_geometric.data import Data
+
 from ai4mat.models.megnet_pytorch.utils import Scaler
-from ai4mat.models.loss_functions import weightedMSELoss, weightedMAELoss
+from ai4mat.models.loss_functions import MSELoss, MAELoss
 from joblib import Parallel, delayed
 
+class ImbalancedSampler(torch.utils.data.WeightedRandomSampler):
+    def __init__(
+        self,
+        dataset: List[Data],
+    ):
+        class_data = [list(g) for _, g in groupby(dataset, attrgetter("weight"))]
+        minority_class, majority_class = sorted(class_data, key=len)
+        assert len(class_data) == 2, "Only support binary classes are supported"
+        weights = list(map(attrgetter('weight'), dataset))
+        return super().__init__(weights, len(majority_class) * 2, replacement=True)
 
 class MEGNetPyTorchTrainer(Trainer):
     def __init__(
@@ -25,8 +42,10 @@ class MEGNetPyTorchTrainer(Trainer):
             gpu_id: int,
             save_checkpoint: bool,
             n_jobs: int = -1,
+            minority_class_upsampling: bool = False,
     ):
         self.config = configs
+        self.minority_class_upsampling = minority_class_upsampling
 
         if self.config["model"]["add_z_bond_coord"]:
             bond_converter = FlattenGaussianDistanceConverter(
@@ -47,6 +66,8 @@ class MEGNetPyTorchTrainer(Trainer):
         self.model = MEGNet(
             edge_input_shape=bond_converter.get_shape(eos=use_eos),
             node_input_shape=atom_converter.get_shape(),
+            embedding_size=self.config['model']['embedding_size'],
+            n_blocks=self.config['model']['nblocks'],
             state_input_shape=self.config["model"]["state_input_shape"],
             vertex_aggregation=self.config["model"]["vertex_aggregation"],
             global_aggregation=self.config["model"]["global_aggregation"],
@@ -60,13 +81,14 @@ class MEGNetPyTorchTrainer(Trainer):
             delayed(self.converter.convert)(s) for s in tqdm(test_data))
         self.Scaler.fit(self.train_structures)
         self.target_name = target_name
-
         self.trainloader = DataLoader(
             self.train_structures,
             batch_size=self.config["model"]["train_batch_size"],
-            shuffle=True,
-            num_workers=0
+            shuffle=False if minority_class_upsampling else True,
+            num_workers=0,
+            sampler=ImbalancedSampler(self.train_structures) if minority_class_upsampling else None,
         )
+
         self.testloader = DataLoader(
             self.test_structures,
             batch_size=self.config["model"]["test_batch_size"],
@@ -112,12 +134,19 @@ class MEGNetPyTorchTrainer(Trainer):
             batch_loss = []
             total_train = []
             self.model.train(True)
+            
             for i, batch in enumerate(self.trainloader):
                 batch = batch.to(self.device)
                 preds = self.model(
                     batch.x, batch.edge_index, batch.edge_attr, batch.state, batch.batch, batch.bond_batch
                 ).squeeze()
-                loss = weightedMSELoss(self.Scaler.transform(batch.y), preds, batch.weight, 'mean')
+                
+                loss = MSELoss(
+                    self.Scaler.transform(batch.y),
+                    preds, 
+                    weights=(None if self.minority_class_upsampling else batch.weight), 
+                    reduction='mean'
+                )
                 loss.backward()
 
                 self.optimizers.step()
@@ -125,8 +154,12 @@ class MEGNetPyTorchTrainer(Trainer):
 
                 batch_loss.append(loss.to("cpu").data.numpy())
                 total_train.append(
-                    weightedMAELoss(self.Scaler.inverse_transform(preds), batch.y, batch.weight, 'sum').to(
-                        'cpu').data.numpy()
+                    MAELoss(
+                        self.Scaler.inverse_transform(preds),
+                        batch.y,
+                        weights=(None if self.minority_class_upsampling else batch.weight), 
+                        reduction='sum'
+                    ).to('cpu').data.numpy()
                 )
 
             total = []
@@ -140,8 +173,12 @@ class MEGNetPyTorchTrainer(Trainer):
                     ).squeeze()
 
                     total.append(
-                        weightedMAELoss(self.Scaler.inverse_transform(preds), batch.y, batch.weight, reduction='sum') \
-                            .to('cpu').data.numpy()
+                        MAELoss(
+                            self.Scaler.inverse_transform(preds),
+                            batch.y,
+                            weights=batch.weight, 
+                            reduction='sum'
+                        ).to('cpu').data.numpy()
                     )
 
             cur_test_loss = sum(total) / len(self.test_structures)

@@ -22,6 +22,7 @@ def get_megnet_pytorch_predictions(
         gpu: int,
         checkpoint_path,
         n_jobs,
+        minority_class_upsampling: bool,
         ):
     if not target_is_intensive:
         raise NotImplementedError
@@ -43,7 +44,8 @@ def get_megnet_pytorch_predictions(
         configs=model_params,
         gpu_id=gpu,
         save_checkpoint=False,
-        n_jobs=n_jobs
+        n_jobs=n_jobs,
+        minority_class_upsampling=minority_class_upsampling,
     )
     model.train()
 

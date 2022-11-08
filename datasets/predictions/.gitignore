@@ -32,3 +32,10 @@
 /BN_pilot_5e-2
 /BN_pilot_5e-2_ss
 /dichalcogenides_x1s6_202109_plain_cv
+/combined_mixed_upsampling_minority_validation
+/combined_mixed_upsampling_minority_test
+
+git add datasets/plots/combined_mixed_upsampling_minority_test.dvc
+git add datasets/predictions/.gitignore
+git add datasets/predictions/combined_mixed_upsampling_minority_test.dvc
+git add datasets/predictions/combined_mixed_upsampling_minority_validation.dvc
