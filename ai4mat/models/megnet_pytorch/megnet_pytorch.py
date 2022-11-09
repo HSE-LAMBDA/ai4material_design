@@ -50,6 +50,7 @@ class MEGNet(nn.Module):
                 embedding_size,
                 embedding_size,
                 embedding_size,
+                embed_size=embedding_size,
                 vertex_aggregation=vertex_aggregation,
                 global_aggregation=global_aggregation,
             ))
