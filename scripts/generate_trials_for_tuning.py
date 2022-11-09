@@ -32,7 +32,7 @@ def dfs(data, path, sets, split=True):
             sets.append(cur_set)
         else:
             dfs(value, path, sets, split)
-        path = path[:-1]
+        path.pop()
 
 
 def set_item_by_path(d, value, path):
