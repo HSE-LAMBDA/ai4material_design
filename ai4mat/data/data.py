@@ -227,7 +227,7 @@ def get_gpaw_trajectories(defect_db_path:str):
     return res
 
 
-def read_structures_descriptions(data_path:str | Path) -> pd.DataFrame:
+def read_structures_descriptions(data_path) -> pd.DataFrame:
     """
     Reads the description of the structures in the folder.
     We assume that all columns not in Column enum are targets.
@@ -251,7 +251,7 @@ def read_defects_descriptions(data_path:str):
         converters={"cell": lambda x: tuple(eval(x)), "defects": eval})
 
 
-def get_dichalcogenides_innopolis(data_path: str | Path):
+def get_dichalcogenides_innopolis(data_path):
     structures = read_structures_descriptions(data_path)
     initial_structures = dict()
     structures_tar = Path(data_path) / "initial.tar.gz"
