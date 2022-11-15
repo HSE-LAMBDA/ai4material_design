@@ -6,7 +6,7 @@ mkdir $LOG_FOLDER
 JOB_ID=0
 
 launch_job() {
-    echo "Running trials: ${1}" 
+    echo "Running trials: ${1}"
     local JOB_NAME=ai4material_design_${EXPERIMENT_NAME////-}_megnet_sparse_${JOB_ID}
     JOB_ID=$((JOB_ID+1))
     qsub -o "$LOG_FOLDER/$JOB_NAME".oe -N $JOB_NAME -v EXPERIMENT="$EXPERIMENT_NAME",TRIALS="$1" scripts/run_experiments_nscc.pbs
