@@ -1,0 +1,16 @@
+model_params:
+  model:
+    num_spherical: ['grid', 7, 5, 3]
+    num_radial: ['grid', 128, 64, 32]
+    num_blocks: ['grid', 3, 2]
+    emb_size_atom: ['grid', 512, 256, 128]
+    emb_size_edge: ['grid', 512, 256, 128]
+    emb_size_trip: ['grid', 64, 32, 16]
+    emb_size_rbf: ['grid', 16, 8]
+    emb_size_cbf: ['grid', 16, 8]
+    emb_size_bil_trip: ['grid', 64, 32, 16]
+    envelope:
+      exponent: ['grid', 5, 3, 1]
+  optim:
+    batch_size: ['grid', 32, 16]
+    lr_initial: ['grid', 5.e-4, 3.e-3]
