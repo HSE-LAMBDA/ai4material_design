@@ -22,6 +22,7 @@ from ai4mat.models import get_predictor_by_name
 
 IS_INTENSIVE = Is_Intensive()
 
+
 def main():
     parser = argparse.ArgumentParser("Runs experiments")
     parser.add_argument("--experiments", type=str, nargs="+")
@@ -54,7 +55,7 @@ def main():
                        gpus,
                        args.processes_per_unit,
                        args.targets,
-                       args.n_jobs
+                       args.n_jobs,
                        )
 
 
@@ -62,11 +63,11 @@ def run_experiment(experiment_name: str,
                    trials_names: List[str],
                    gpus: List[int],
                    processes_per_unit: int,
-                   requested_targets: List[str]=None,
-                   n_jobs=1) -> None:
+                   requested_targets: List[str] = None,
+                   n_jobs=1
+                   ) -> None:
     """
     Runs an experiment.
-
     Args:
         experiment_name: Name of the experiment.
         trials_names: Names of the trials.
@@ -77,16 +78,18 @@ def run_experiment(experiment_name: str,
         experiment - config file, path to the dataset, cv strategy, n folds and targets
         trial - config with model name, representation and model params
     """
-    
+
     storage_resolver = StorageResolver()
     experiment_path = storage_resolver["experiments"].joinpath(experiment_name)
     with open(Path(experiment_path, "config.yaml")) as experiment_file:
         experiment = yaml.safe_load(experiment_file)
-    folds = pd.read_csv(
-        Path(experiment_path, "folds.csv.gz"), index_col="_id").squeeze("columns")
+    folds = pd.read_csv(Path(experiment_path, "folds.csv.gz"), index_col="_id")
+    weights = folds.loc[:, 'weight']\
+        if 'weight' in folds.columns else pd.Series(data=np.ones(len(folds.index)), index=folds.index)
+    folds = folds.loc[:, 'fold']
 
     loader = DataLoader(experiment["datasets"], folds.index)
-    
+
     if requested_targets is None:
         used_targets = experiment["targets"]
     else:
@@ -94,7 +97,7 @@ def run_experiment(experiment_name: str,
 
     for target_name, this_trial_name in product(used_targets, trials_names):
         with open(
-            storage_resolver["trials"].joinpath(f"{this_trial_name}.yaml")
+                storage_resolver["trials"].joinpath(f"{this_trial_name}.yaml")
         ) as this_trial_file:
             this_trial = yaml.safe_load(this_trial_file)
 
@@ -110,31 +113,35 @@ def run_experiment(experiment_name: str,
 
         if this_trial["representation"] == "matminer":
             assert (
-                this_trial["model"] == "catboost"
+                    this_trial["model"] == "catboost"
             ), "Expected model 'catboost' for representation 'matminer'"
         if this_trial["model"] == "catboost":
             assert (
-                this_trial["representation"] == "matminer"
+                    this_trial["representation"] == "matminer"
             ), "Expected representation 'matminer' for model 'catboost'"
+        
+        minority_class_upsampling = this_trial.get("minority_class_upsampling", False)
         wandb_config = {
             "trial": this_trial,
             "experiment": experiment,
             "target": target_name,
         }
-
         predictions = cross_val_predict(
             structures,
             targets,
             folds,
+            weights,
             get_predictor_by_name(this_trial["model"]),
             IS_INTENSIVE[target_name],
             this_trial["model_params"],
             gpus,
             processes_per_unit,
             wandb_config,
-            checkpoint_path=storage_resolver["checkpoints"].joinpath(experiment_name, str(target_name), this_trial_name),
+            checkpoint_path=storage_resolver["checkpoints"].joinpath(experiment_name, str(target_name),
+                                                                     this_trial_name),
             n_jobs=n_jobs,
             strategy=experiment['strategy'],
+            minority_class_upsampling=minority_class_upsampling,
         )
         predictions.rename(lambda target_name: f"predicted_{target_name}_test", axis=1, inplace=True)
         save_path = storage_resolver["predictions"].joinpath(
@@ -146,32 +153,34 @@ def run_experiment(experiment_name: str,
 
 
 def cross_val_predict(
-    data: pd.Series,
-    targets: Union[pd.Series, List[pd.Series]],
-    folds: pd.Series,
-    predict_func: Callable,
-    # predict_func(train, train_targets, test, test_targets, model_params, gpu)
-    # returns predictions on test
-    # test_targets are used for monitoring
-    target_is_intensive: bool,
-    model_params: Dict,
-    gpus: List[int],
-    processes_per_unit: int,
-    wandb_config,
-    checkpoint_path,
-    n_jobs,
-    strategy="cv",
+        data: pd.Series,
+        targets: Union[pd.Series, List[pd.Series]],
+        folds: pd.Series,
+        weights: pd.Series,
+        predict_func: Callable,
+        # predict_func(train, train_targets, test, test_targets, model_params, gpu)
+        # returns predictions on test
+        # test_targets are used for monitoring
+        target_is_intensive: bool,
+        model_params: Dict,
+        gpus: List[int],
+        processes_per_unit: int,
+        wandb_config,
+        checkpoint_path,
+        n_jobs,
+        strategy="cv",
+        minority_class_upsampling=False,
 ):
     assert data.index.equals(targets.index)
     assert data.index.equals(folds.index)
-    
+  
     n_folds = folds.max() + 1
     if strategy == "cv":
         test_fold_generator = range(n_folds)
     elif strategy == "train_test":
-        test_fold_generator = (TEST_FOLD, )
+        test_fold_generator = (TEST_FOLD,)
     else:
-        raise ValueError('Unknown split strategy')    
+        raise ValueError('Unknown split strategy')
     assert set(folds.unique()) == set(range(n_folds))
     if strategy == "cv":
         # Not necessary, but makes debug easier
@@ -182,6 +191,7 @@ def cross_val_predict(
                     partial(predict_on_fold,
                             n_folds=n_folds,
                             folds=folds,
+                            weights=weights,
                             data=data,
                             targets=targets,
                             predict_func=predict_func,
@@ -189,14 +199,18 @@ def cross_val_predict(
                             model_params=model_params,
                             wandb_config=wandb_config,
                             checkpoint_path=checkpoint_path,
-                            n_jobs=n_jobs),
+                            n_jobs=n_jobs,
+                            minority_class_upsampling=minority_class_upsampling
+                            ),
                     zip(test_fold_generator, cycle(gpus)),
+                    chunksize=1,
                 )
         else:
             predictions = starmap(
                 partial(predict_on_fold,
                         n_folds=n_folds,
                         folds=folds,
+                        weights=weights,
                         data=data,
                         targets=targets,
                         predict_func=predict_func,
@@ -204,11 +218,13 @@ def cross_val_predict(
                         model_params=model_params,
                         wandb_config=wandb_config,
                         checkpoint_path=checkpoint_path,
-                        n_jobs=n_jobs),
+                        n_jobs=n_jobs,
+                        minority_class_upsampling=minority_class_upsampling
+                        ),
                 zip(test_fold_generator, cycle(gpus)),
             )
-            
-                
+
+
     # TODO(kazeevn)
     # Should we add explicit Structure -> graph preprocessing with results shared?
     elif strategy == "train_test":
@@ -217,6 +233,7 @@ def cross_val_predict(
             gpu=gpus[0],
             n_folds=n_folds,
             folds=folds,
+            weights=weights,
             data=data,
             targets=targets,
             predict_func=predict_func,
@@ -224,72 +241,83 @@ def cross_val_predict(
             model_params=model_params,
             wandb_config=wandb_config,
             checkpoint_path=checkpoint_path,
-            n_jobs=n_jobs
+            n_jobs=n_jobs,
+            minority_class_upsampling=minority_class_upsampling
         )
     # TODO(kazeevn)
     # Should we add explicit Structure -> graph preprocessing with results shared?
 
     if isinstance(targets, pd.DataFrame):
-        predictions_pd = pd.DataFrame(index=targets.index, columns=targets.columns, data=np.zeros_like(targets.to_numpy()))
+        predictions_pd = pd.DataFrame(index=targets.index, columns=targets.columns,
+                                      data=np.zeros_like(targets.to_numpy()))
     elif isinstance(targets, pd.Series):
-        predictions_pd = pd.DataFrame(index=targets.index, columns=[targets.name], data=np.zeros_like(targets.to_numpy()))
-
+        predictions_pd = pd.DataFrame(index=targets.index, columns=[targets.name],
+                                      data=np.zeros_like(targets.to_numpy()))
 
     if strategy == "cv":
         if isinstance(targets, pd.DataFrame):
-            predictions_pd = pd.DataFrame(index=targets.index, columns=targets.columns, data=np.zeros_like(targets.to_numpy()))
+            predictions_pd = pd.DataFrame(index=targets.index, columns=targets.columns,
+                                          data=np.zeros_like(targets.to_numpy()))
         elif isinstance(targets, pd.Series):
-            predictions_pd = pd.DataFrame(index=targets.index, columns=[targets.name], data=np.zeros_like(targets.to_numpy()))
+            predictions_pd = pd.DataFrame(index=targets.index, columns=[targets.name],
+                                          data=np.zeros_like(targets.to_numpy()))
 
         for this_predictions, test_fold in zip(predictions, range(n_folds)):
             test_mask = folds == test_fold
             predictions_pd[test_mask] = this_predictions
     elif strategy == "train_test":
-        predictions_pd = pd.DataFrame(index=folds[folds==TEST_FOLD].index,
-        columns=[targets.name], data=predictions)
+        predictions_pd = pd.DataFrame(index=folds[folds == TEST_FOLD].index,
+                                      columns=[targets.name], data=predictions)
 
     return predictions_pd
 
 
 def predict_on_fold(
-    test_fold,
-    gpu,
-    n_folds,
-    folds,
-    data,
-    targets,
-    predict_func,
-    target_is_intensive,
-    model_params,
-    wandb_config,
-    checkpoint_path,
-    n_jobs,
+        test_fold,
+        gpu,
+        n_folds,
+        folds,
+        weights,
+        data,
+        targets,
+        predict_func,
+        target_is_intensive,
+        model_params,
+        wandb_config,
+        checkpoint_path,
+        n_jobs,
+        minority_class_upsampling,
 ):
     train_folds = set(range(n_folds)) - set((test_fold,))
     train_ids = folds[folds.isin(train_folds)]
     train = data.reindex(index=train_ids.index)
+    train_weights = weights.reindex(index=train_ids.index)
     test_ids = folds[folds == test_fold]
     test = data.reindex(index=test_ids.index)
+    test_weights = weights.reindex(index=test_ids.index)
     this_wandb_config = wandb_config.copy()
     this_wandb_config["test_fold"] = test_fold
     with wandb.init(
         project="ai4material_design",
         entity=os.environ["WANDB_ENTITY"],
         config=this_wandb_config,
-        group=f"{wandb_config.get('experiment').get('datasets')}-{targets.name}",
+        group=f'{targets.name}',
     ) as run:
         # change wandb run name
         run.name = checkpoint_path.joinpath('_'.join(map(str, train_folds))).name
         return predict_func(
             train,
             targets.reindex(index=train_ids.index),
+            train_weights,
             test,
             targets.reindex(index=test_ids.index),
+            test_weights,
             target_is_intensive,
             model_params,
             gpu,
             checkpoint_path=checkpoint_path.joinpath('_'.join(map(str, train_folds))),
-            n_jobs=n_jobs
+            n_jobs=n_jobs,
+            minority_class_upsampling=minority_class_upsampling,
         )
 
 

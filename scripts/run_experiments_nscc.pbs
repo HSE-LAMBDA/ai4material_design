@@ -7,4 +7,4 @@
 #PBS -j oe
 IMAGE=/home/projects/ai/singularity/nvcr.io/nvidia/pytorch:22.04-py3.sif
 cd /home/projects/11001786/ai4material_design/
-singularity exec $IMAGE python run_experiments.py --gpus 0 --processes-per-unit 4 --wandb-entity hse_lambda --experiments ${EXPERIMENT} --trials ${TRIAL}
+parallel singularity exec $IMAGE python run_experiments.py --gpus 0 --processes-per-unit 1 --wandb-entity hse_lambda --experiments ${EXPERIMENT} --trials ::: ${TRIALS}

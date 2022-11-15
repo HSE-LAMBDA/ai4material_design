@@ -82,10 +82,17 @@ class SimpleCrystalConverter:
             state[0].append(state[0][0])
             logging.warning("Tiling state from length 1 to length 2")
         y = d.y if hasattr(d, "y") else 0
+        weight = d.weight if hasattr(d, 'weight') else 1
         bond_batch = MyTensor(np.zeros(edge_index.shape[1])).long()
 
         return Data(
-            x=x, edge_index=edge_index, edge_attr=edge_attr, state=torch.Tensor(state), y=y, bond_batch=bond_batch
+            x=x,
+            edge_index=edge_index,
+            edge_attr=edge_attr,
+            state=torch.Tensor(state),
+            y=y,
+            bond_batch=bond_batch,
+            weight=weight,
         )
 
     def __call__(self, d):

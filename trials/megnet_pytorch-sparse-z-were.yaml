@@ -1,5 +1,6 @@
 model: 'megnet_pytorch'
 representation: 'sparse'
+minority_class_upsampling: true
 model_params:
   model:
     epochs: 400
@@ -10,6 +11,8 @@ model_params:
     state_input_shape: 2
     cutoff: 10
     edge_embed_size: 10
+    vertex_aggregation: 'mean'
+    global_aggregation: 'mean'
   optim:
     factor: 0.5
     patience: 30

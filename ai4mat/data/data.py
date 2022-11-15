@@ -14,6 +14,7 @@ import tarfile
 
 TRAIN_FOLD = 0
 TEST_FOLD = 1
+VALIDATION_FOLD = 2
 
 NICE_TARGET_NAMES = {
     "homo": "HOMO, eV",
@@ -50,7 +51,7 @@ class Is_Intensive:
             "homo_1": True,
             "homo_2": True,
             "lumo": True,
-            "normalized_luom": True,
+            "normalized_lumo": True,
             "lumo_1": True,
             "lumo_2": True,
             "formation_energy": False,
@@ -60,14 +61,27 @@ class Is_Intensive:
             "band_gap_2": True,
             "band_gap_majority": True,
             "band_gap_minority": True,
+            "homo_lumo_gap": True,
+            "homo_lumo_majority": True,
+            "homo_lumo_minority": True,
+            "homo_lumo_gap_min": True,
+            "homo_lumo_gap_max": True,
             "homo_majority": True,
             "homo_minority": True,
+            "homo_min": True,
+            "homo_max": True,
             "lumo_majority": True,
             "lumo_minority": True,
+            "lumo_min": True,
+            "lumo_max": True,
             "normalized_homo_majority": True,
             "normalized_homo_minority": True,
+            "normalized_homo_max": True,
+            "normalized_homo_min": True,
             "normalized_lumo_majority": True,
             "normalized_lumo_minority": True,
+            "normalized_lumo_max": True,
+            "normalized_lumo_min": True,
             "formation_energy_per_site": True,
             "band_gap_from_eigenvalue_band_properties": True,
             "band_gap_from_get_band_structure": True,
@@ -182,15 +196,18 @@ def get_column_from_data_type(data_type):
         raise ValueError("Unknown data_type")
 
 
-def copy_indexed_structures(index, input_tar, output_tar):
+def copy_indexed_structures(
+    index: pd.Index,
+    input_tar: Path,
+    output_tar: Path) -> None:
     copied = pd.Series(data=False, index=index, dtype=bool)
-    with tarfile.open(input_tar, "r:gz") as input_tar, \
-        tarfile.open(output_tar, "w:gz") as output_tar:
-        for member in tqdm(input_tar.getmembers()):
+    with tarfile.open(input_tar, "r:gz") as input_tar_file, \
+        tarfile.open(output_tar, "w:gz") as output_tar_file:
+        for member in tqdm(input_tar_file.getmembers()):
             assert member.name.endswith(".cif")
             structure_id = member.name[:-4]
             if structure_id in index:
-                output_tar.addfile(member, input_tar.extractfile(member))
+                output_tar_file.addfile(member, input_tar_file.extractfile(member))
                 copied[structure_id] = True
     if not copied.all():
         raise ValueError("Not all structures were copied")
@@ -210,30 +227,7 @@ def get_gpaw_trajectories(defect_db_path:str):
     return res
 
 
-
-def read_structures_descriptions(data_path: str):
-    return pd.read_csv(os.path.join(data_path, "defects.csv"),
-                       index_col="_id",
-                       # An explicit list of columns is due to the fact that
-                       # dichalcogenides8x8_innopolis_202108/defects.csv
-                       # contains an unnamed index column, and
-                       # datasets/dichalcogenides_innopolis_202105/defects.csv
-                       # doesn't
-                       # TODO(RomanovI) killed normalization
-                       # usecols=["_id",
-                       #          "descriptor_id",
-                       #          "energy",
-                       #          "energy_per_atom",
-                       #          "fermi_level",
-                       #          "homo",
-                       #          "lumo",
-                       #          # "normalized_homo",
-                       #          # "normalized_lumo"
-                       #          ]
-                       )
-
-
-def read_structures_descriptions(data_path:str) -> pd.DataFrame:
+def read_structures_descriptions(data_path) -> pd.DataFrame:
     """
     Reads the description of the structures in the folder.
     We assume that all columns not in Column enum are targets.
@@ -257,7 +251,7 @@ def read_defects_descriptions(data_path:str):
         converters={"cell": lambda x: tuple(eval(x)), "defects": eval})
 
 
-def get_dichalcogenides_innopolis(data_path: str):
+def get_dichalcogenides_innopolis(data_path):
     structures = read_structures_descriptions(data_path)
     initial_structures = dict()
     structures_tar = Path(data_path) / "initial.tar.gz"
