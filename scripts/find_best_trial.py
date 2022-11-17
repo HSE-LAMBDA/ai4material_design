@@ -75,6 +75,10 @@ def main():
     df_results = pd.DataFrame.from_dict(results, orient='index', columns=[targets])
     print(df_results)
 
+    for target in targets:
+        cur_col = df_results.loc[:, target]
+        print(f"for {target} best trial is {cur_col.index[cur_col.argmin()]} with mae {cur_col[cur_col.argmin()]}")
+
 
 if __name__ == "__main__":
     main()
