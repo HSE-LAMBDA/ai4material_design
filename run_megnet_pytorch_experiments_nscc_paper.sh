@@ -1,5 +1,6 @@
 #!/bin/bash
 TRIALS_PATH="trials"
+PREDICTIONS_PATH="datasets/predictions"
 EXPERIMENT_NAME="combined_mixed_weighted_validation"
 LOG_FOLDER=nscc_logs/$(date "+%F-%H-%M-%S")
 mkdir $LOG_FOLDER
