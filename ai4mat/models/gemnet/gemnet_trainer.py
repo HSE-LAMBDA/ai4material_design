@@ -22,7 +22,6 @@ from ai4mat.models.gemnet.gemnet import GemNetT
 from ..modules.scaling import ScaleFactor
 from ..modules.scaling.util import ensure_fitted
 
-
 class FitScalingMixin:
     def fit_scaling(self):
         try:
@@ -31,7 +30,7 @@ class FitScalingMixin:
             self.scales()
         
     def scales(self):
-        logging.info("Model not fitted yet")
+        print("Model not fitted yet")
         data_batch = next(iter(self.trainloader)).cuda()
         out = self.model(data_batch)
         _ = torch.nn.functional.l1_loss(out.view(-1), getattr(data_batch, 'metadata'))
@@ -48,17 +47,17 @@ class FitScalingMixin:
             if module.fitted
         ]
         fitted_scale_factors_str = ", ".join(fitted_scale_factors)
-        logging.info(f"Fitted scale factors: [{fitted_scale_factors_str}]")
+        print(f"Fitted scale factors: [{fitted_scale_factors_str}]")
         unfitted_scale_factors = [
             name for name, module in scale_factors.items() if not module.fitted
         ]
         unfitted_scale_factors_str = ", ".join(unfitted_scale_factors)
-        logging.info(f"Unfitted scale factors: [{unfitted_scale_factors_str}]")
+        print(f"Unfitted scale factors: [{unfitted_scale_factors_str}]")
         
 
         for name, scale_factor in scale_factors.items():
             if scale_factor.fitted:
-                logging.info(
+                print(
                     f"{name} is already fitted in the checkpoint, resetting it. {scale_factor.scale_factor}"
                 )
             scale_factor.reset_()
@@ -75,7 +74,7 @@ class FitScalingMixin:
                 assert name is not None
                 if name not in scale_factor_indices:
                     scale_factor_indices[name] = max_idx
-                    logging.debug(f"Scale factor for {name} = {max_idx}")
+                    print(f"Scale factor for {name} = {max_idx}")
                     max_idx += 1
 
             module.initialize_(index_fn=index_fn)
@@ -90,26 +89,29 @@ class FitScalingMixin:
             key=lambda x: scale_factor_indices.get(x[0], math.inf),
         )
 
-        logging.info("Sorted scale factors by computation order:")
+        print("Sorted scale factors by computation order:")
         for name, _ in sorted_factors:
-            logging.info(f"{name}: {scale_factor_indices[name]}")
+            print(f"{name}: {scale_factor_indices[name]}")
 
         # endregion
 
         # loop over the scale factors in the computation order
         # and fit them one by one
-        logging.info("Start fitting")
+        print("Start fitting")
 
         for name, module in sorted_factors:
-            logging.info(f"Fitting {name}...")
+            print(f"Fitting {name}...")
             with module.fit_context_():
-                for batch in tqdm(iter(self.trainloader)):
+                for idx, batch in tqdm(enumerate(iter(self.trainloader))):
                     out = self.model(batch.cuda())
                     _ = torch.nn.functional.l1_loss(out.view(-1), getattr(batch, 'metadata'))
                     del out, _
+                    # just use 20 batches for fitting
+                    if idx > 20: 
+                        break
                 stats, ratio, value = module.fit_()
 
-                logging.info(
+                print(
                     f"Variable: {name}, "
                     f"Var_in: {stats['variance_in']:.3f}, "
                     f"Var_out: {stats['variance_out']:.3f}, "
@@ -130,6 +132,7 @@ class GemNetTrainer(Trainer, FitScalingMixin):
         configs=None,
         gpu_id=0,
         checkpoint_path=None,
+        minority_class_upsampling: bool = False,
         **kwargs
         ):
         if configs:

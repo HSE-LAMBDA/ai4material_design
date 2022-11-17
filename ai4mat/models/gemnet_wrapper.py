@@ -6,17 +6,22 @@ from ai4mat.models.gemnet.gemnet_trainer import GemNetTrainer
 def get_gemnet_predictions(
         train_structures,
         train_targets,
+        train_weights,
         test_structures,
         test_targets,
+        test_weights,
         target_is_intensive,
         model_params,
         gpu,
         checkpoint_path,
+        minority_class_upsampling,
         n_jobs=1,
         **kwargs
         ):
     os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu)
     model_params['model'].update({'extensive': target_is_intensive})
+    [setattr(s, 'weight', w) for s, w in zip(train_structures, train_weights)]
+    [setattr(s, "weight", w) for s, w in zip(test_structures, test_weights)]
     model = GemNetTrainer(
         train_structures,
         train_targets,
