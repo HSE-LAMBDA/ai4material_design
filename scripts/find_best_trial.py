@@ -60,7 +60,7 @@ def main():
     results = {}
     for trial in os.listdir(trial_folder):
         try:
-            these_results, targets = read_results(experiment, experiment, trial[:-5])
+            these_results, targets = read_results(experiment, experiment, args.trials_folder + '/' + trial[:-5])
 
         except FileNotFoundError:
             if args.skip_missing_data:
