@@ -19,7 +19,7 @@ def read_results(folds_experiment_name: str,
         folds_experiment_name).joinpath("folds.csv.gz"),
                         index_col="_id")
     weights = folds.loc[:, 'weight'] if 'weight' in folds.columns else pd.Series(data=np.ones((len(folds))), index=folds.index)
-    folds = folds.loc[:, 'folds']
+    folds = folds.loc[:, 'fold']
 
     experiment_path = storage_resolver["experiments"].joinpath(predictions_experiment_name)
     with open(experiment_path.joinpath("config.yaml")) as experiment_file:
