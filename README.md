@@ -59,7 +59,19 @@ This produces plots in `datasets/plots/pilot-plain-cv`
 
 4. If you want to perform random hyperparameters search on pilot do next steps
 
-- change templates/megnet_pytorch/parameters_to_tune.yaml
+- change templates/megnet_pytorch/parameters_to_tune.yaml (if model is not megnet you need to create the directory with model name and two template files)
+
+example
+```
+model_params:
+  model:
+    train_batch_size: ['int_min_max', 32, 256]
+    vertex_aggregation: ['grid', 'sum', 'max']
+  optim:
+    factor: ['float_min_max', 0.3, 0.9]
+```
+
+the first element in each list must be distribution, these three distributions are now available
 
 ```
 python scripts/generate_trials_for_tuning.py --model-name megnet_pytorch --mode random --n-steps 5
