@@ -76,7 +76,7 @@ def main():
     print(df_results)
 
     for target in targets:
-        cur_col = df_results.loc[:, target]
+        cur_col = df_results.loc[:, target].squeeze()
         print(f"for {target} best trial is {cur_col.index[cur_col.argmin()]} with mae {cur_col[cur_col.argmin()]}")
 
 
