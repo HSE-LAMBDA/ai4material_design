@@ -39,7 +39,7 @@ def read_results(folds_experiment_name: str,
                 trial
             )), index_col="_id").squeeze("columns")
         errors = np.abs(predictions - true_targets.loc[:, target_name])
-        mae = errors * weights / weights.sum()
+        mae = (errors * weights).sum() / weights.sum()
         results.append(mae)
 
     return results, experiment['targets']
