@@ -147,21 +147,17 @@ For data computed without spin interaction, you might want to add `--fill-missin
 python scripts/parse_csv_cif.py --input-name high_density_defects/GaSe --fill-missing-band-properties
 ```
 
-## Running sparse experiments for the paper
+## Running random search for the paper
 Get the data
 ```
-dvc pull datasets/csv_cif/high_density_defects/{BP_spin,GaSe_spin,hBN_spin,InSe_spin,MoS2,WSe2}_500
-dvc pull datasets/csv_cif/low_density_defects/{MoS2,WSe2}
-dvc pull datasets/processed/high_density_defects/{BP_spin,GaSe_spin,hBN_spin,InSe_spin,MoS2,WSe2}_500/{data.pickle.gz,targets.csv.gz}
-dvc pull datasets/processed/low_density_defects/{MoS2,WSe2}/{data.pickle.gz,targets.csv.gz}
-dvc pull datasets/experiments/{high,low}_density/*.dvc
-dvc pull datasets/experiments/low_high_combined
+dvc pull datasets/csv_cif/high_density_defects/{BP_spin,GaSe_spin,hBN_spin,InSe_spin,MoS2,WSe2}_500 datasets/csv_cif/low_density_defects/{MoS2,WSe2} datasets/processed/high_density_defects/{BP_spin,GaSe_spin,hBN_spin,InSe_spin,MoS2,WSe2}_500/{data.pickle.gz,targets.csv.gz} datasets/processed/low_density_defects/{MoS2,WSe2}/{data.pickle.gz,targets.csv.gz} datasets/experiments/combined_mixed_weighted_test.dvc datasets/experiments/combined_mixed_weighted_validation.dvc
 ```
-Launch on ASPIRE
+### megnet_pytorch_sparse
 ```
-./run_experiments_nscc_paper.sh
+dvc pull trials/megnet_pytorch/09-11-2022_18-11-54.dvc
+./run_megnet_pytorch_experiments_nscc_paper.sh
 ```
-Print the tables
+### Print the tables [obsolete]
 ```
 python scripts/summary_table_lean.py --experiments high_density/{BP,hBN,InSe,GaSe}_spin_500 high_density/{MoS2,WSe2}_500 high_density/combined --combined-experiment high_density/combined --trials megnet_pytorch_paper/sparse{,-z,-z-were,-z-were-eos} --skip-missing --separate-by target --column-format-re megnet_pytorch_paper/\(?P\<name\>.+\) --row-format-re high_density/\(?P\<name\>.\*\)
 python scripts/summary_table_lean.py --experiments low_density/{MoS2,WSe2,combined} --combined-experiment low_density/combined --trials megnet_pytorch_paper/sparse{,-z,-z-were,-z-were-eos} --skip-missing --separate-by target --column-format-re megnet_pytorch_paper/\(?P\<name\>.+\) --row-format-re low_density/\(?P\<name\>.\*\)
