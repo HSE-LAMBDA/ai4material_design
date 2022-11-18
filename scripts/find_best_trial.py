@@ -76,6 +76,9 @@ def main():
     print(df_results)
 
     folds = pd.read_csv(sr["experiments"].joinpath(experiment).joinpath("folds.csv.gz"), index_col="_id").loc[:, 'fold']
+    experiment_path = sr["experiments"].joinpath(experiment)
+    with open(experiment_path.joinpath("config.yaml")) as experiment_file:
+        experiment = yaml.safe_load(experiment_file)
     for target in targets:
         cur_col = df_results.loc[:, target].squeeze()
         best_trial = cur_col.index[cur_col.argmin()]
