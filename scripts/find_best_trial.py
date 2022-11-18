@@ -94,7 +94,7 @@ def main():
                     args.trials_folder + '/' + best_trial
                 )), index_col="_id").squeeze("columns")
 
-            mae = np.abs(predictions - cur_targets.loc[:, target])
+            mae = np.abs(predictions - cur_targets.loc[:, target]).mean()
             print(f"{dataset} {mae}")
 
 
