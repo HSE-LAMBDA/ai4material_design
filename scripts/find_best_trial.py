@@ -91,7 +91,7 @@ def main():
                 get_prediction_path(
                     experiment,
                     target,
-                    best_trial
+                    args.trials_folder + '/' + best_trial
                 )), index_col="_id").squeeze("columns")
 
             mae = np.abs(predictions - cur_targets.loc[:, target])
