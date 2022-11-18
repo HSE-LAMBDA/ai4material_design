@@ -78,14 +78,14 @@ def main():
     folds = pd.read_csv(sr["experiments"].joinpath(experiment).joinpath("folds.csv.gz"), index_col="_id").loc[:, 'fold']
     experiment_path = sr["experiments"].joinpath(experiment)
     with open(experiment_path.joinpath("config.yaml")) as experiment_file:
-        experiment = yaml.safe_load(experiment_file)
+        experiment_yaml = yaml.safe_load(experiment_file)
     for target in targets:
         cur_col = df_results.loc[:, target].squeeze()
         best_trial = cur_col.index[cur_col.argmin()]
         print(f"for {target} best trial is {best_trial} with mae {cur_col[cur_col.argmin()]}")
         print(f"{target} mae data")
 
-        for dataset in experiment['datasets']:
+        for dataset in experiment_yaml['datasets']:
             cur_targets = pd.read_csv(sr["processed"] / dataset / "targets.csv.gz", index_col="_id").reindex(folds.index)
             predictions = pd.read_csv(sr["predictions"].joinpath(
                 get_prediction_path(
