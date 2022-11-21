@@ -926,3 +926,32 @@ stages:
       md5: 2a0811358cc874e9ec786ae8c260d80d.dir
       size: 32
       nfiles: 1
+  matminer@high_density_defects/WSe2_500:
+    cmd: python scripts/compute_matminer_features.py --input-name high_density_defects/WSe2_500
+      --n-proc=20
+    deps:
+    - path: datasets/csv_cif/high_density_defects/WSe2_500
+      md5: 4361e7306690c8f98ffbe24d665b00ec.dir
+      size: 390774
+      nfiles: 6
+    - path: scripts/compute_matminer_features.py
+      md5: f4efd9cf88b7c89a724d47046efd23e8
+      size: 1671
+    outs:
+    - path: datasets/processed/high_density_defects/WSe2_500/matminer.csv.gz
+      md5: 870ecdcda32607a23e46d15a0312ab91
+      size: 1703303
+  matminer@pilot:
+    cmd: python scripts/compute_matminer_features.py --input-name pilot --n-proc=20
+    deps:
+    - path: datasets/csv_cif/pilot
+      md5: 244155e13a4dbccd0a5b1336b764c6e9.dir
+      size: 142919
+      nfiles: 7
+    - path: scripts/compute_matminer_features.py
+      md5: f4efd9cf88b7c89a724d47046efd23e8
+      size: 1671
+    outs:
+    - path: datasets/processed/pilot/matminer.csv.gz
+      md5: 451e96781052bb9cf67e5aa593cadba8
+      size: 1095038

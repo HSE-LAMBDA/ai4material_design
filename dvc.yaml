@@ -155,6 +155,14 @@ stages:
       outs:
         - datasets/processed/high_density_defects/${item}_500/targets.csv.gz
         - datasets/processed/high_density_defects/${item}_500/data.pickle.gz
+  processed-pilot:
+    cmd: python scripts/parse_csv_cif.py --input-name=pilot --fill-missing-band-properties
+    deps:
+      - scripts/parse_csv_cif.py
+      - datasets/csv_cif/pilot
+    outs:
+      - datasets/processed/pilot/targets.csv.gz
+      - datasets/processed/pilot/data.pickle.gz
   rolos-2d-materials-point-defects:
     cmd:
       ./scripts/pack_for_rolos.sh
@@ -166,3 +174,21 @@ stages:
       - datasets/csv_cif/low_density_defects
     outs:
       - datasets/others/rolos/2d-materials-point-defects
+  matminer:
+    foreach:
+      - high_density_defects/BP_spin_500
+      - high_density_defects/GaSe_spin_500
+      - high_density_defects/hBN_spin_500
+      - high_density_defects/InSe_spin_500
+      - high_density_defects/MoS2_500
+      - high_density_defects/WSe2_500
+      - low_density_defects/MoS2
+      - low_density_defects/WSe2
+      - pilot
+    do:
+      cmd: python scripts/compute_matminer_features.py --input-name ${item} --n-proc=24
+      deps:
+        - datasets/csv_cif/${item}
+        - scripts/compute_matminer_features.py
+      outs:
+        - datasets/processed/${item}/matminer.csv.gz
