@@ -12,19 +12,15 @@ import torch
 from torch_scatter import scatter
 from torch_sparse import SparseTensor
 
-# from ocpmodels.common.registry import registry
-from ai4mat.common.utils import (
-    get_pbc_distances,
-    radius_graph_pbc,
-)
 
+from ..modules.scaling.compat import load_scales_compat
+from ..modules.base import BaseModel
 from .layers.atom_update_block import OutputBlock
 from .layers.base_layers import Dense
 from .layers.efficient import EfficientInteractionDownProjection
 from .layers.embedding_block import AtomEmbedding, EdgeEmbedding
 from .layers.interaction_block import InteractionBlockTripletsOnly
 from .layers.radial_basis import RadialBasis
-from .layers.scaling import AutomaticFit
 from .layers.spherical_basis import CircularBasisLayer
 from .utils import (
     inner_product_normalized,
@@ -33,16 +29,20 @@ from .utils import (
     repeat_blocks,
 )
 
+# TODO
+# /home/al-maeeni/.conda/envs/ai4mat/lib/python3.8/site-packages/torch/functional.py:1069: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at  ../aten/src/ATen/native/TensorShape.cpp:2157.)
+#   return _VF.cartesian_prod(tensors)  # type: ignore[attr-defined]
+# /home/al-maeeni/fresh/ai4material_design/ai4mat/models/gemnet/gemnet.py:360: UserWarning: __floordiv__ is deprecated, and its behavior will change in a future version of pytorch. It currently rounds toward 0 (like the 'trunc' function NOT 'floor'). This results in incorrect rounding for negative values. To keep the current behavior, use torch.div(a, b, rounding_mode='trunc'), or for actual floor division, use torch.div(a, b, rounding_mode='floor').
+#   neighbors_new // 2,
+# /home/al-maeeni/fresh/ai4material_design/ai4mat/models/gemnet/gemnet.py:454: UserWarning: __floordiv__ is deprecated, and its behavior will change in a future version of pytorch. It currently rounds toward 0 (like the 'trunc' function NOT 'floor'). This results in incorrect rounding for negative values. To keep the current behavior, use torch.div(a, b, rounding_mode='trunc'), or for actual floor division, use torch.div(a, b, rounding_mode='floor').
+#   block_sizes = neighbors // 2
 
-#@registry.register_model("gemnet_t")
-class GemNetT(torch.nn.Module):
+class GemNetT(BaseModel):
     """
     GemNet-T, triplets-only variant of GemNet
 
     Parameters
     ----------
-        num_atoms (int): Unused argument
-        bond_feat_dim (int): Unused argument
         num_targets: int
             Number of prediction targets.
 
@@ -124,8 +124,10 @@ class GemNetT(torch.nn.Module):
         cbf: dict = {"name": "spherical_harmonics"},
         extensive: bool = True,
         otf_graph: bool = False,
+        use_pbc: bool = True,
         output_init: str = "HeOrthogonal",
         activation: str = "swish",
+        num_elements: int = 83,
         scale_file: Optional[str] = None,
     ):
         super().__init__()
@@ -142,8 +144,7 @@ class GemNetT(torch.nn.Module):
 
         self.regress_forces = regress_forces
         self.otf_graph = otf_graph
-
-        AutomaticFit.reset()  # make sure that queue is empty (avoid potential error)
+        self.use_pbc = use_pbc
 
         # GemNet variants
         self.direct_forces = direct_forces
@@ -198,7 +199,7 @@ class GemNetT(torch.nn.Module):
         ### ------------------------------------------------------------------------------------- ###
 
         # Embedding block
-        self.atom_emb = AtomEmbedding(emb_size_atom)
+        self.atom_emb = AtomEmbedding(emb_size_atom, num_elements)
         self.edge_emb = EdgeEmbedding(
             emb_size_atom, num_radial, emb_size_edge, activation=activation
         )
@@ -222,7 +223,6 @@ class GemNetT(torch.nn.Module):
                     num_concat=num_concat,
                     num_atom=num_atom,
                     activation=activation,
-                    scale_file=scale_file,
                     name=f"IntBlock_{i+1}",
                 )
             )
@@ -238,7 +238,6 @@ class GemNetT(torch.nn.Module):
                     activation=activation,
                     output_init=output_init,
                     direct_forces=direct_forces,
-                    scale_file=scale_file,
                     name=f"OutBlock_{i}",
                 )
             )
@@ -252,6 +251,8 @@ class GemNetT(torch.nn.Module):
             (self.mlp_rbf_h.linear.weight, self.num_blocks),
             (self.mlp_rbf_out.linear.weight, self.num_blocks + 1),
         ]
+
+        load_scales_compat(self, scale_file)
 
     def get_triplets(self, edge_index, num_atoms):
         """
@@ -363,7 +364,7 @@ class GemNetT(torch.nn.Module):
 
         # Create indexing array
         edge_reorder_idx = repeat_blocks(
-            torch.div(neighbors_new, 2, rounding_mode='floor'),
+            neighbors_new // 2,
             repeats=2,
             continuous_indexing=True,
             repeat_inc=edge_index_new.size(1),
@@ -419,33 +420,17 @@ class GemNetT(torch.nn.Module):
     def generate_interaction_graph(self, data):
         num_atoms = data.atomic_numbers.size(0)
 
-        if self.otf_graph:
-            edge_index, cell_offsets, neighbors = radius_graph_pbc(
-                data, self.cutoff, self.max_neighbors
-            )
-        else:
-            edge_index = data.edge_index
-            cell_offsets = data.cell_offsets
-            neighbors = data.neighbors
-
-        # Switch the indices, so the second one becomes the target index,
-        # over which we can efficiently aggregate.
-        out = get_pbc_distances(
-            data.pos,
+        (
             edge_index,
-            data.cell,
+            D_st,
+            distance_vec,
             cell_offsets,
+            _,  # cell offset distances
             neighbors,
-            return_offsets=True,
-            return_distance_vec=True,
-        )
-
-        edge_index = out["edge_index"]
-        D_st = out["distances"]
+        ) = self.generate_graph(data)
         # These vectors actually point in the opposite direction.
         # But we want to use col as idx_t for efficient aggregation.
-        V_st = -out["distance_vec"] / D_st[:, None]
-        # offsets_ca = -out["offsets"]  # a - c + offset
+        V_st = -distance_vec / D_st[:, None]
 
         # Mask interaction edges if required
         if self.otf_graph or np.isclose(self.cutoff, 6):
@@ -473,7 +458,7 @@ class GemNetT(torch.nn.Module):
         )
 
         # Indices for swapping c->a and a->c (for symmetric MP)
-        block_sizes = torch.div(neighbors, 2, rounding_mode='floor')
+        block_sizes = neighbors // 2
         id_swap = repeat_blocks(
             block_sizes,
             repeats=2,
@@ -497,7 +482,6 @@ class GemNetT(torch.nn.Module):
             id3_ca,
             id3_ragged_idx,
         )
-
 
     def forward(self, data):
         pos = data.pos
