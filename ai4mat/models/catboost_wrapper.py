@@ -9,9 +9,12 @@ def get_catboost_predictions(
     target_is_intensive,
     model_params,
     gpu,
+    checkpoint_path,
     n_jobs=None,
     minority_class_upsampling=False):
     specific_params = model_params.copy()
+    if checkpoint_path is not None:
+        logging.warning("Checkpoint path is not supported for CatBoost")
     if minority_class_upsampling:
         raise NotImplemented("minority_class_upsampling makes isn't implemented for CatBoost")
     if gpu is None:
@@ -25,12 +28,16 @@ def get_catboost_predictions(
     specific_params["eval_metric"] = "MAE"
     model = CatBoostRegressor(**specific_params)
     eval_pool = Pool(data=x_test, label=y_test, weight=weight_test)
+    if gpu is None:
+        callbacks = [WandbCallback()]
+    else:
+        callbacks = None
     model.fit(x_train,
               y_train,
               sample_weight=weights_train,
               eval_set=eval_pool,
-              callbacks=[WandbCallback()])
+              callbacks=callbacks,
+              use_best_model=False)
     log_summary(model, save_model_checkpoint=False)
     predictions = model.predict(x_test)
-    predictions = pd.Series(predictions, index=x_test.index)
-    return predictions
+    return predictions.reshape(-1, 1)

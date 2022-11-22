@@ -186,9 +186,16 @@ stages:
       - low_density_defects/WSe2
       - pilot
     do:
-      cmd: python scripts/compute_matminer_features.py --input-name ${item} --n-proc=24
+      cmd: python scripts/compute_matminer_features.py --input-name ${item} --n-proc=36
       deps:
         - datasets/csv_cif/${item}
         - scripts/compute_matminer_features.py
       outs:
         - datasets/processed/${item}/matminer.csv.gz
+  matminer-debug:
+    cmd: python scripts/compute_matminer_features.py --input-name pilot --n-proc=2 --debug
+    deps:
+      - datasets/csv_cif/pilot
+      - scripts/compute_matminer_features.py
+    outs:
+      - datasets/processed/pilot/matminer_dbg.csv.gz

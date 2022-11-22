@@ -22,8 +22,7 @@ def get_megnet_pytorch_predictions(
         gpu: int,
         checkpoint_path,
         n_jobs,
-        minority_class_upsampling: bool,
-        ):
+        minority_class_upsampling: bool):
     if not target_is_intensive:
         raise NotImplementedError
     os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu)

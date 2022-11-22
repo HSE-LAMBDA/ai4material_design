@@ -1,0 +1,8 @@
+Running stage 'matminer@high_density_defects/MoS2_500':
+> python scripts/compute_matminer_features.py --input-name high_density_defects/MoS2_500 --n-proc=24
+============== Data Loading ==============
+  0%|                                                                                                                                 | 0/500 [00:00<?, ?it/s]/home/users/nus/kna/.local/lib/python3.8/site-packages/pymatgen/io/cif.py:1155: UserWarning: Issues encountered while parsing CIF: Some fractional coordinates rounded to ideal values to avoid issues with finite precision.
+  warnings.warn("Issues encountered while parsing CIF: " + "\n".join(self.warnings))
+100%|_______________________________________________________________________________________________________________________| 500/500 [00:53<00:00,  9.36it/s]
+========== Features Computation ==========
+100%|_____________________________________________________________________________________________________________________| 500/500 [2:36:51<00:00, 18.82s/it

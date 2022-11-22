@@ -127,20 +127,20 @@ python scripts/compute_matminer_features.py --input-name=pilot --n-proc 8
 ```
 OR load existing features
 ```
-dvc pull datasets/processed/pilot
+dvc pull datasets/processed/pilot/matminer.csv.gz
 ```
 
 Both scenarios produce `datasets/processed/pilot/matminer.csv.gz`
 
 2. Run the experiments
 ```
-python run_experiments.py --experiments matminer-test --trials catboost-test --gpus 0 1 2 3 --wandb-entity hse_lambda   
+python run_experiments.py --experiments matminer-test --trials catboost-pilot --gpus 0 1 2 3 --wandb-entity hse_lambda
 ```
 This creates predictions in `datasets/predcitions/matminer-test`
 
 3. Plot the plots
 ```
-python scripts/plot.py --experiments matminer-test --trials catboost-test
+python scripts/plot.py --experiments matminer-test --trials catboost-pilot
 ```
 This produces plots in `datasets/plots/matminer-test`
 
@@ -160,7 +160,7 @@ export SINGULARITYENV_PATH=/opt/conda/lib/python3.8/site-packages/torch_tensorrt
 export IMAGE=/home/projects/ai/singularity/nvcr.io/nvidia/pytorch:22.04-py3.sif
 parallel -j8 --delay 10 singularity exec $IMAGE dvc repro matminer@{} ::: high_density_defects/{BP_spin,GaSe_spin,hBN_spin,InSe_spin,MoS2,WSe2}_500 low_density_defects/{MoS2,WSe2}
 ```
-If DVC wants to recompute csv/cif, but you are sure it's not needed, you can add `--downstream` to the dvc arguments.
+If DVC wants to recompute csv/cif, but you are sure it's not needed, you can add `--single-item` to the dvc arguments.
 ## Additional considerations
 ### `prepare_data_split.py`
 Generates data splits aka experiments. There is no need to do this step to run the existing experiments, the splits are available in DVC. Splits are by design shared between people, so don't overwrite them needlessly. Example:
