@@ -1,0 +1,4 @@
+outs:
+- md5: 4dc56e85c8b7898448c0985bd771d919
+  size: 762462
+  path: merged_table_rolos.csv.gz
