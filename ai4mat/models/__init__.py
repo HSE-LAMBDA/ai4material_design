@@ -6,7 +6,7 @@ def get_predictor_by_name(name):
         from ai4mat.models.gemnet_wrapper import get_gemnet_predictions
         return get_gemnet_predictions
     elif name == "schnet":
-        #from ai4mat.models.schnet_wrapper import get_schnet_predictions
+        from ai4mat.models.schnet_wrapper import get_schnet_predictions
         return get_schnet_predictions
     elif name == "catboost":
         from ai4mat.models.catboost_wrapper import get_catboost_predictions

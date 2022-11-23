@@ -1,5 +1,6 @@
 model: 'schnet'
 representation: 'full'
+minority_class_upsampling: true
 model_params:
   model:
     hidden_channels: 128
@@ -10,7 +11,8 @@ model_params:
     max_num_neighbors: 32
     readout: 'mean'
   optim: 
-    max_epochs: 50 
+    max_epochs: 100
+    minority_class_upsampling: true
     batch_size: 32
     eval_batch_size: 32
     num_workers: 2

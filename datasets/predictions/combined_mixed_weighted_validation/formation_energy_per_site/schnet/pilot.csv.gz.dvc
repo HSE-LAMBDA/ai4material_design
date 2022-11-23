@@ -1,0 +1,4 @@
+outs:
+- md5: 3eeb6ba09a8d9be8a73d069a67eb7a82
+  size: 40489
+  path: pilot.csv.gz
