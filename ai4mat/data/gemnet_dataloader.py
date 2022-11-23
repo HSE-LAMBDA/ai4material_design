@@ -37,7 +37,7 @@ class GemNetFullStructFolds:
             configs,
             graph_construction_config=None,
             ):
-        self.minority_class_upsampling = configs["optim"].get("minority_class_upsampling", False) 
+        self.minority_class_upsampling = configs.get("minority_class_upsampling", False) 
         self.graph_construction_config = graph_construction_config
         self.config = configs
         
@@ -107,8 +107,7 @@ class GemNetFullStructFolds:
 class GemNetFullStruct:
     def __init__(self, config):
         self.config = config
-        self.minority_class_upsampling = self.config["optim"].get("minority_class_upsampling", False)
-
+        self.minority_class_upsampling = self.config.get("minority_class_upsampling", False)
         self._data = pd.read_pickle(self.config["dataset_dir"])
         # Add structure length
         self._data["len_struct"] = self._data["initial_structure"].apply(

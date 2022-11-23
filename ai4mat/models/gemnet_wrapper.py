@@ -16,10 +16,11 @@ def get_gemnet_predictions(
         checkpoint_path,
         minority_class_upsampling,
         n_jobs=1,
+        minority_class_upsampling=False,
         **kwargs
         ):
     os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu)
-    model_params['model'].update({'extensive': target_is_intensive})
+    model_params['model'].update({'extensive': not target_is_intensive})
     [setattr(s, 'weight', w) for s, w in zip(train_structures, train_weights)]
     [setattr(s, "weight", w) for s, w in zip(test_structures, test_weights)]
     model = GemNetTrainer(
