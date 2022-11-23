@@ -1,0 +1,4 @@
+outs:
+- md5: 4fb5f550445a73c3eb11b47ddc954202
+  size: 2375
+  path: catboost-pilot.csv.gz

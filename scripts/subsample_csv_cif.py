@@ -1,6 +1,7 @@
 import argparse
-
-from data import read_structures_descriptions, copy_indexed_structures
+import sys
+sys.path.append('.')
+from ai4mat.data.data import read_structures_descriptions, copy_indexed_structures
 
 def main():
     parser = argparse.ArgumentParser("Subsamples csv/cif")

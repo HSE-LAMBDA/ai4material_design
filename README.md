@@ -113,7 +113,7 @@ Multiple families:
 ```bash
 awk 1 datasets/experiments/MoS2_to_WSe2_4?/family.txt | WANDB_RUN_GROUP="MoS2_to_WSe2 $(date --rfc-3339=seconds)" parallel -j4 python run_experiments.py --experiments {} --trials megnet_pytorch-sparse-10 --gpus 0 --wandb-entity hse_lambda :::: -
 ```
-## Running CatBoost
+## Running CatBoost on pilot
 0. Pull the inputs from DVC
 ```
 dvc pull datasets/csv_cif/pilot datasets/experiments/matminer-test
@@ -127,22 +127,40 @@ python scripts/compute_matminer_features.py --input-name=pilot --n-proc 8
 ```
 OR load existing features
 ```
-dvc pull datasets/processed/pilot
+dvc pull datasets/processed/pilot/matminer.csv.gz
 ```
+
 Both scenarios produce `datasets/processed/pilot/matminer.csv.gz`
 
 2. Run the experiments
 ```
-python run_experiments.py --experiments matminer-test --trials catboost-test --gpus 0 1 2 3 --wandb-entity hse_lambda   
+python run_experiments.py --experiments matminer-test --trials catboost-pilot --gpus 0 1 2 3 --wandb-entity hse_lambda
 ```
 This creates predictions in `datasets/predcitions/matminer-test`
 
 3. Plot the plots
 ```
-python scripts/plot.py --experiments matminer-test --trials catboost-test
+python scripts/plot.py --experiments matminer-test --trials catboost-pilot
 ```
 This produces plots in `datasets/plots/matminer-test`
 
+## CatBoost for paper
+1. Data preprocessing
+Pull the csv/cif from dvc:
+```
+dvc pull datasets/csv_cif/high_density_defects/{BP_spin,GaSe_spin,hBN_spin,InSe_spin,MoS2,WSe2}_500 datasets/csv_cif/low_density_defects/{MoS2,WSe2}
+```
+then run the featuriser
+```
+parallel -j8 --delay 5 dvc repro matminer@{} ::: high_density_defects/{BP_spin,GaSe_spin,hBN_spin,InSe_spin,MoS2,WSe2}_500 low_density_defects/{MoS2,WSe2}
+```
+or, on ASPIRE 1
+```
+export SINGULARITYENV_PATH=/opt/conda/lib/python3.8/site-packages/torch_tensorrt/bin:/opt/conda/bin:/usr/local/mpi/bin:/usr/local/nvidia/bin:/usr/local/cuda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/ucx/bin:/opt/tensorrt/bin:/home/users/nus/kna/.local/bin 
+export IMAGE=/home/projects/ai/singularity/nvcr.io/nvidia/pytorch:22.04-py3.sif
+parallel -j8 --delay 10 singularity exec $IMAGE dvc repro matminer@{} ::: high_density_defects/{BP_spin,GaSe_spin,hBN_spin,InSe_spin,MoS2,WSe2}_500 low_density_defects/{MoS2,WSe2}
+```
+If DVC wants to recompute csv/cif, but you are sure it's not needed, you can add `--single-item` to the dvc arguments.
 ## Additional considerations
 ### `prepare_data_split.py`
 Generates data splits aka experiments. There is no need to do this step to run the existing experiments, the splits are available in DVC. Splits are by design shared between people, so don't overwrite them needlessly. Example:

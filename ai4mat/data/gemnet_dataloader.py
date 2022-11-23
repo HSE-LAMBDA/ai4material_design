@@ -108,7 +108,6 @@ class GemNetFullStruct:
     def __init__(self, config):
         self.config = config
         self.minority_class_upsampling = self.config.get("minority_class_upsampling", False)
-
         self._data = pd.read_pickle(self.config["dataset_dir"])
         # Add structure length
         self._data["len_struct"] = self._data["initial_structure"].apply(

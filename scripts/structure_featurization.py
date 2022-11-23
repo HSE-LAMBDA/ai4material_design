@@ -1,25 +1,22 @@
-import os
-import json
-
-from ase.io import read as ase_read
 import pymatgen
-from pymatgen.io.ase import AseAtomsAdaptor
-
 from matminer.featurizers.base import MultipleFeaturizer
-from matminer.featurizers.structure import *
-from matminer.featurizers.composition import *
+from matminer.featurizers.structure.order import (
+    DensityFeatures,
+    MaximumPackingEfficiency,
+    StructuralComplexity)
+from matminer.featurizers.structure.matrix import OrbitalFieldMatrix
+from matminer.featurizers.structure.misc import XRDPowderPattern
+from matminer.featurizers.structure.composite import JarvisCFID
+
 
 def featurize(structure: pymatgen.core.structure.Structure) -> dict:
     """Computes features for one pymatgen structure"""
-    feature_calculator = MultipleFeaturizer([
-                                        DensityFeatures(),
-                                        OrbitalFieldMatrix(),
-                                        StructuralHeterogeneity(), 
-                                        MaximumPackingEfficiency(),
-                                        XRDPowderPattern(), 
-                                        JarvisCFID(), 
-                                        StructuralComplexity(),
-                                        ])
+    feature_calculator = MultipleFeaturizer([DensityFeatures(),
+                                             OrbitalFieldMatrix(),
+                                             MaximumPackingEfficiency(),
+                                             XRDPowderPattern(), 
+                                             JarvisCFID(), 
+                                             StructuralComplexity()])
     features = feature_calculator.featurize(structure)
     features = dict(zip(feature_calculator.feature_labels(), features))
     return features
@@ -35,6 +32,7 @@ def rdf_transform(features):
     features = {**features, **dict(zip(rdf_keys, rdf_values))}
     return features
 
+
 def erdf_transform(features):
     """Parses results of ERDF featurization"""
     erdf = features['electronic radial distribution function']
@@ -44,7 +42,8 @@ def erdf_transform(features):
     del features['electronic radial distribution function']
     features = {**features, **dict(zip(erdf_keys, erdf_values))}
     return features       
-        
+
+
 def featurize_expanded(structure: pymatgen.core.structure.Structure, 
                                guess_oxidation: bool=True):
     """Computes expanded set of features for one pymatgen structure"""

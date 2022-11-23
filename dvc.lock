@@ -926,3 +926,139 @@ stages:
       md5: 2a0811358cc874e9ec786ae8c260d80d.dir
       size: 32
       nfiles: 1
+  matminer@high_density_defects/WSe2_500:
+    cmd: python scripts/compute_matminer_features.py --input-name high_density_defects/WSe2_500
+      --n-proc=24
+    deps:
+    - path: datasets/csv_cif/high_density_defects/WSe2_500
+      md5: 4361e7306690c8f98ffbe24d665b00ec.dir
+      size: 390774
+      nfiles: 6
+    - path: scripts/compute_matminer_features.py
+      md5: f4efd9cf88b7c89a724d47046efd23e8
+      size: 1671
+    outs:
+    - path: datasets/processed/high_density_defects/WSe2_500/matminer.csv.gz
+      md5: 672dad1624c26bdad8f595b8c17c8a0e
+      size: 1703303
+  matminer@pilot:
+    cmd: python scripts/compute_matminer_features.py --input-name pilot --n-proc=24
+    deps:
+    - path: datasets/csv_cif/pilot
+      md5: 244155e13a4dbccd0a5b1336b764c6e9.dir
+      size: 142919
+      nfiles: 7
+    - path: scripts/compute_matminer_features.py
+      md5: f4efd9cf88b7c89a724d47046efd23e8
+      size: 1671
+    outs:
+    - path: datasets/processed/pilot/matminer.csv.gz
+      md5: ae14070c03dc678af09362dac27235e9
+      size: 1095038
+  processed-pilot:
+    cmd: python scripts/parse_csv_cif.py --input-name=pilot --fill-missing-band-properties
+    deps:
+    - path: datasets/csv_cif/pilot
+      md5: 244155e13a4dbccd0a5b1336b764c6e9.dir
+      size: 142919
+      nfiles: 7
+    - path: scripts/parse_csv_cif.py
+      md5: 7e6534049d1d278071e52d674b69f308
+      size: 13782
+    outs:
+    - path: datasets/processed/pilot/data.pickle.gz
+      md5: c24aa667df9260185311d5176b2e08e3
+      size: 148416
+    - path: datasets/processed/pilot/targets.csv.gz
+      md5: aa2c4646cd06b57d8256407dd186d7b9
+      size: 10925
+  matminer@high_density_defects/GaSe_spin_500:
+    cmd: python scripts/compute_matminer_features.py --input-name high_density_defects/GaSe_spin_500
+      --n-proc=24
+    deps:
+    - path: datasets/csv_cif/high_density_defects/GaSe_spin_500
+      md5: c6f312abd729b98037a3453302afecf3.dir
+      size: 311908
+      nfiles: 5
+    - path: scripts/compute_matminer_features.py
+      md5: f4efd9cf88b7c89a724d47046efd23e8
+      size: 1671
+    outs:
+    - path: datasets/processed/high_density_defects/GaSe_spin_500/matminer.csv.gz
+      md5: 7797253bdd48711b1f6a946d8e0a4e25
+      size: 1942961
+  matminer@high_density_defects/BP_spin_500:
+    cmd: python scripts/compute_matminer_features.py --input-name high_density_defects/BP_spin_500
+      --n-proc=24
+    deps:
+    - path: datasets/csv_cif/high_density_defects/BP_spin_500
+      md5: a4e333c05b0aca73103df29ed416778f.dir
+      size: 200980
+      nfiles: 5
+    - path: scripts/compute_matminer_features.py
+      md5: f4efd9cf88b7c89a724d47046efd23e8
+      size: 1671
+    outs:
+    - path: datasets/processed/high_density_defects/BP_spin_500/matminer.csv.gz
+      md5: 16a1fe473ecd642ddd8d65ae83e19734
+      size: 639100
+  matminer@high_density_defects/hBN_spin_500:
+    cmd: python scripts/compute_matminer_features.py --input-name high_density_defects/hBN_spin_500
+      --n-proc=24
+    deps:
+    - path: datasets/csv_cif/high_density_defects/hBN_spin_500
+      md5: 15ffbeaf570a720ffc5140e954ef80dd.dir
+      size: 211367
+      nfiles: 5
+    - path: scripts/compute_matminer_features.py
+      md5: f4efd9cf88b7c89a724d47046efd23e8
+      size: 1671
+    outs:
+    - path: datasets/processed/high_density_defects/hBN_spin_500/matminer.csv.gz
+      md5: 0ac24e9b208d62d2cb76e5de9c70009c
+      size: 641049
+  matminer@high_density_defects/InSe_spin_500:
+    cmd: python scripts/compute_matminer_features.py --input-name high_density_defects/InSe_spin_500
+      --n-proc=24
+    deps:
+    - path: datasets/csv_cif/high_density_defects/InSe_spin_500
+      md5: 7e402a43158b671d97818d511fab4e04.dir
+      size: 302288
+      nfiles: 5
+    - path: scripts/compute_matminer_features.py
+      md5: 00cfa091f2d24ba71b10a34de66f2f34
+      size: 1817
+    outs:
+    - path: datasets/processed/high_density_defects/InSe_spin_500/matminer.csv.gz
+      md5: 07698158bed539dba0234836a20034f9
+      size: 1872923
+  matminer-debug:
+    cmd: python scripts/compute_matminer_features.py --input-name pilot --n-proc=2
+      --debug
+    deps:
+    - path: datasets/csv_cif/pilot
+      md5: 244155e13a4dbccd0a5b1336b764c6e9.dir
+      size: 142919
+      nfiles: 7
+    - path: scripts/compute_matminer_features.py
+      md5: 00cfa091f2d24ba71b10a34de66f2f34
+      size: 1817
+    outs:
+    - path: datasets/processed/pilot/matminer_dbg.csv.gz
+      md5: d0127597a6915d78226a26fb7f007c67
+      size: 17590
+  matminer@high_density_defects/MoS2_500:
+    cmd: python scripts/compute_matminer_features.py --input-name high_density_defects/MoS2_500
+      --n-proc=24
+    deps:
+    - path: datasets/csv_cif/high_density_defects/MoS2_500
+      md5: a0f6e394f0df735e90693a2ad4402f43.dir
+      size: 400566
+      nfiles: 6
+    - path: scripts/compute_matminer_features.py
+      md5: 00cfa091f2d24ba71b10a34de66f2f34
+      size: 1817
+    outs:
+    - path: datasets/processed/high_density_defects/MoS2_500/matminer.csv.gz
+      md5: 17a145eef699d1619207b07bf5bf8c99
+      size: 1675281

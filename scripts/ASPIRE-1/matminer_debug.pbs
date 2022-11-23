@@ -1,0 +1,8 @@
+#!/bin/bash
+#PBS -l select=1:ncpus=2
+#PBS -l walltime=00:20:00
+#PBS -q dgx
+#PBS -P 11001786
+IMAGE=/home/projects/ai/singularity/nvcr.io/nvidia/pytorch:22.04-py3.sif
+cd /home/users/nus/kna/ai4material_design
+singularity exec $IMAGE python -m dvc repro --single-item matminer-debug
