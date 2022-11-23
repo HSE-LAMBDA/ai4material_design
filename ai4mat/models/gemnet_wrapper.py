@@ -14,7 +14,6 @@ def get_gemnet_predictions(
         model_params,
         gpu,
         checkpoint_path,
-        minority_class_upsampling,
         n_jobs=1,
         minority_class_upsampling=False,
         **kwargs
