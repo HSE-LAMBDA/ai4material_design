@@ -301,10 +301,7 @@ def predict_on_fold(
         project="ai4material_design",
         entity=os.environ["WANDB_ENTITY"],
         config=this_wandb_config,
-        group=f'{targets.name}',
-    ) as run:
-        # change wandb run name
-        run.name = checkpoint_path.joinpath('_'.join(map(str, train_folds))).name
+        group=f'{targets.name}'):
         return predict_func(
             train,
             targets.reindex(index=train_ids.index),

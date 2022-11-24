@@ -1,5 +1,6 @@
 model: 'schnet'
 representation: 'full'
+minority_class_upsampling: true
 model_params:
   model:
     hidden_channels: 128
@@ -9,12 +10,14 @@ model_params:
     cutoff: 10.0
     max_num_neighbors: 32
     readout: 'mean'
-  optim: 
-    max_epochs: 50 
+  optim:
+    max_epochs: 2
+    minority_class_upsampling: true
     batch_size: 32
     eval_batch_size: 32
     num_workers: 2
     lr_initial: 5.e-4
     max_lr: 1.e-3
-    optimizer: AdamW
+    # Hardcoded
+    # optimizer: AdamW
     optimizer_params: {"amsgrad": True}
