@@ -13,6 +13,8 @@ model_params:
     edge_embed_size: 10
     vertex_aggregation: 'mean'
     global_aggregation: 'mean'
+    embedding_size: 32
+    nblocks: 3
   optim:
     factor: 0.5
     patience: 30
