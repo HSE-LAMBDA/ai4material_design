@@ -55,6 +55,7 @@ def main():
 
         if args.strategy == "train_test":
             true_targets = true_targets[folds == TEST_FOLD]
+            weights = weights[folds == TEST_FOLD]
 
         if args.targets:
             targets = args.targets
