@@ -28,7 +28,7 @@ def get_schnet_predictions(
         test_structures: Test structures.
         test_targets: Test targets.
         test_weights: Test weights.
-        target_is_intensive: Whether the target is intensive, only intensive are supported.
+        target_is_intensive: Whether the target is intensive2.
         model_params: Model parameters.
         gpu: GPU ID. None for CPU.
         checkpoint_path: Checkpoint path, not used, but is retained for compatibility.
@@ -37,13 +37,12 @@ def get_schnet_predictions(
     Returns:
         Predictions on the test set.
     """
-    if not target_is_intensive:
-        raise NotImplementedError("SchNet only supports intensive targets")
-    if "minority_class_upsampling" in model_params['optim']:
-        if model_params['optim']['minority_class_upsampling'] != minority_class_upsampling:
+    model_params_copy = model_params.copy()
+    if "minority_class_upsampling" in model_params_copy['optim']:
+        if model_params_copy['optim']['minority_class_upsampling'] != minority_class_upsampling:
             raise ValueError("Minority class upsampling does not match model")
     elif minority_class_upsampling is not None:
-        model_params['optim']['minority_class_upsampling'] = minority_class_upsampling
+        model_params_copy['optim']['minority_class_upsampling'] = minority_class_upsampling
     if train_weights is not None and not minority_class_upsampling:
         raise ValueError("Train weights are only supported with minority class upsampling")
     if checkpoint_path is not None:
@@ -55,12 +54,16 @@ def get_schnet_predictions(
         [setattr(s, 'weight', w) for s, w in zip(train_structures, train_weights)]
     if test_weights is not None:
         [setattr(s, "weight", w) for s, w in zip(test_structures, test_weights)]
+    if target_is_intensive:
+        model_params["readout"] = "mean"
+    else:
+        model_params["readout"] = "add"
     model = SchNetTrainer(
         train_structures,
         train_targets,
         test_structures,
         test_targets,
-        configs=model_params,
+        configs=model_params_copy,
         gpu_id=gpu,
         target_name=train_targets.name
     )

@@ -11,7 +11,7 @@ model_params:
     max_num_neighbors: 32
     readout: 'mean'
   optim: 
-    max_epochs: 100
+    max_epochs: 50
     minority_class_upsampling: true
     batch_size: 32
     eval_batch_size: 32
