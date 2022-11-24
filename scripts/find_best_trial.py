@@ -8,7 +8,7 @@ import logging
 import sys
 
 sys.path.append('.')
-from ai4mat.data.data import StorageResolver, get_prediction_path
+from ai4mat.data.data import StorageResolver, get_prediction_path, TEST_FOLD
 
 
 def read_results(folds_experiment_name: str,
@@ -31,6 +31,8 @@ def read_results(folds_experiment_name: str,
                                           usecols=["_id"] + experiment["targets"])
                               for path in experiment["datasets"]], axis=0).reindex(
         index=folds.index)
+    true_targets = true_targets[folds == TEST_FOLD]
+    weights = weights[folds == TEST_FOLD]
     for target_name in experiment["targets"]:
         predictions = pd.read_csv(storage_resolver["predictions"].joinpath(
             get_prediction_path(
@@ -87,6 +89,7 @@ def main():
 
         for dataset in experiment_yaml['datasets']:
             cur_targets = pd.read_csv(sr["processed"] / dataset / "targets.csv.gz", index_col="_id").reindex(folds.index)
+            cur_targets = cur_targets[folds == TEST_FOLD]
             predictions = pd.read_csv(sr["predictions"].joinpath(
                 get_prediction_path(
                     experiment,
