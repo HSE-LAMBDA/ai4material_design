@@ -1062,3 +1062,33 @@ stages:
     - path: datasets/processed/high_density_defects/MoS2_500/matminer.csv.gz
       md5: 17a145eef699d1619207b07bf5bf8c99
       size: 1675281
+  matminer@low_density_defects/MoS2:
+    cmd: python scripts/compute_matminer_features.py --input-name low_density_defects/MoS2
+      --n-proc=92
+    deps:
+    - path: datasets/csv_cif/low_density_defects/MoS2
+      md5: aed2687937cf76f490ff628e4898bde1.dir
+      size: 2370927
+      nfiles: 7
+    - path: scripts/compute_matminer_features.py
+      md5: 00cfa091f2d24ba71b10a34de66f2f34
+      size: 1817
+    outs:
+    - path: datasets/processed/low_density_defects/MoS2/matminer.csv.gz
+      md5: 9bf6089be6bb77f0128e3137ea470f96
+      size: 36820413
+  matminer@low_density_defects/WSe2:
+    cmd: python scripts/compute_matminer_features.py --input-name low_density_defects/WSe2
+      --n-proc=92
+    deps:
+    - path: datasets/csv_cif/low_density_defects/WSe2
+      md5: 1ec2db571d69850769ab2fa44eb4548f.dir
+      size: 2157751
+      nfiles: 7
+    - path: scripts/compute_matminer_features.py
+      md5: 00cfa091f2d24ba71b10a34de66f2f34
+      size: 1817
+    outs:
+    - path: datasets/processed/low_density_defects/WSe2/matminer.csv.gz
+      md5: d4adddb43d3d2f078d94043be478275c
+      size: 32122482
