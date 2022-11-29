@@ -1,0 +1,10 @@
+model_params:
+  model:
+    hidden_channels: ['grid', 32, 64, 128, 256]
+    num_filters: ['grid', 32, 64, 128, 256]
+    num_interactions: ['grid', 2, 4, 6, 8, 10, 12]
+    num_gaussians: ['grid', 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+    cutoff: ['grid', 8, 10, 12]
+  optim:
+    lr_initial: ['grid', 5.e-4, 1.e-4, 1.e-3]
+    max_lr: ['grid', 1.e-3, 5.e-4, 5.e-3]

@@ -54,10 +54,12 @@ def get_schnet_predictions(
         [setattr(s, 'weight', w) for s, w in zip(train_structures, train_weights)]
     if test_weights is not None:
         [setattr(s, "weight", w) for s, w in zip(test_structures, test_weights)]
+    if "readout" in model_params_copy['model']:
+        logging.warning("SchNet readout is handled per target based on target_is_intensive")
     if target_is_intensive:
-        model_params["readout"] = "mean"
+        model_params_copy['model']["readout"] = "mean"
     else:
-        model_params["readout"] = "add"
+        model_params_copy['model']["readout"] = "add"
     model = SchNetTrainer(
         train_structures,
         train_targets,

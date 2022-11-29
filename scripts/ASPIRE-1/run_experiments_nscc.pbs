@@ -10,6 +10,6 @@ cd /home/projects/11001786/ai4material_design/
 if [ -n "$TARGETS" ]; then
     TARGETS_FLAG="--targets ${TARGETS}"
 fi
-singularity exec $IMAGE python run_experiments.py --gpus 0 --processes-per-unit 1 --wandb-entity hse_lambda ${TARGETS_FLAG} --experiments ${EXPERIMENT} --trials ${TRIALS}
+# singularity exec $IMAGE python run_experiments.py --gpus 0 --processes-per-unit 1 --wandb-entity hse_lambda ${TARGETS_FLAG} --experiments ${EXPERIMENT} --trials ${TRIALS}
 # Alternatively, the low-memory random search runs can be parallelised with
-# parallel singularity exec $IMAGE python run_experiments.py --gpus 0 --processes-per-unit 1 --wandb-entity hse_lambda ${TARGETS_FLAG} --experiments ${EXPERIMENT} --trials ::: ${TRIALS}
+parallel singularity exec $IMAGE python run_experiments.py --gpus 0 --processes-per-unit 1 --wandb-entity hse_lambda ${TARGETS_FLAG} --experiments ${EXPERIMENT} --trials ::: ${TRIALS}

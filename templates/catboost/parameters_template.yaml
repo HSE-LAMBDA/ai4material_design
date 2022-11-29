@@ -1,0 +1,6 @@
+model: 'catboost'
+representation: 'matminer'
+model_params:
+  iterations: 1000
+  verbose: True
+  gpu_ram_part: 0.5

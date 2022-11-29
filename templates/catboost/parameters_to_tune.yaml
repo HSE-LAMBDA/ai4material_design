@@ -1,0 +1,8 @@
+model_params:
+  learning_rate: ['grid', 0.1, 0.05, 0.01, 0.005, 0.001]
+  loss_function: ['grid', 'MAE', 'RMSE']
+  l2_leaf_reg: ['grid', 1, 3, 5, 7, 9]
+  border_count: ['grid', 128, 254]
+  grow_policy: ['grid', 'SymmetricTree', 'Depthwise', 'Lossguide']
+  min_child_samples: ['grid', 1, 5, 10]
+  bootstrap_type: ['grid', 'Bayesian', 'Bernoulli', 'MVS']

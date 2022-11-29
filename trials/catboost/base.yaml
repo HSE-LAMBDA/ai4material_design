@@ -1,7 +1,7 @@
 model: 'catboost'
 representation: 'matminer'
 model_params:
-  iterations: 10
+  iterations: 1000
   verbose: True
   learning_rate: 0.1
   loss_function: 'MAE'

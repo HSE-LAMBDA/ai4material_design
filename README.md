@@ -180,7 +180,7 @@ python scripts/parse_csv_cif.py --input-name high_density_defects/GaSe --fill-mi
 ## Running random search for the paper
 Get the data
 ```
-dvc pull datasets/csv_cif/high_density_defects/{BP_spin,GaSe_spin,hBN_spin,InSe_spin,MoS2,WSe2}_500 datasets/csv_cif/low_density_defects/{MoS2,WSe2} datasets/processed/high_density_defects/{BP_spin,GaSe_spin,hBN_spin,InSe_spin,MoS2,WSe2}_500/{data.pickle.gz,targets.csv.gz} datasets/processed/low_density_defects/{MoS2,WSe2}/{data.pickle.gz,targets.csv.gz} datasets/experiments/combined_mixed_weighted_test.dvc datasets/experiments/combined_mixed_weighted_validation.dvc
+dvc pull datasets/csv_cif/high_density_defects/{BP_spin,GaSe_spin,hBN_spin,InSe_spin,MoS2,WSe2}_500 datasets/csv_cif/low_density_defects/{MoS2,WSe2} datasets/processed/high_density_defects/{BP_spin,GaSe_spin,hBN_spin,InSe_spin,MoS2,WSe2}_500/{data.pickle.gz,targets.csv.gz,matminer.csv.gz} datasets/processed/low_density_defects/{MoS2,WSe2}/{data.pickle.gz,targets.csv.gz,matminer.csv.gz} datasets/experiments/combined_mixed_weighted_test.dvc datasets/experiments/combined_mixed_weighted_validation.dvc
 ```
 ### megnet_pytorch_sparse
 ```
