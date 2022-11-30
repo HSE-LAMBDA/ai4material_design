@@ -1,5 +1,5 @@
 model: 'megnet_pytorch'
-representation: 'sparse'
+representation: 'full'
 model_params:
   model:
     epochs: 400
@@ -8,7 +8,7 @@ model_params:
     add_z_bond_coord: true
     atom_features: 'werespecies'
     state_input_shape: 2
-    cutoff: 10
+    cutoff: 5
     edge_embed_size: 10
     vertex_aggregation: 'mean'
     global_aggregation: 'mean'
