@@ -1,0 +1,12 @@
+model_params:
+  model:
+    cutoff: ['int_min_max', 5,  15]
+    global_aggregation: ['grid', 'mean', 'sum', 'max']
+    vertex_aggregation: ['grid', 'sum', 'max', 'mean']
+    train_batch_size: ['grid', 32, 64, 128, 256]
+    embedding_size: ['grid', 16, 32, 64]
+    nblocks: ['grid', 2, 3, 4, 5]
+  optim:
+    factor: ['grid', 0.3, 0.5, 0.7, 0.9]
+    patience: ['grid', 10, 30, 50]
+    threshold: ['grid', 5.e-2, 5.e-3, 5.e-4]

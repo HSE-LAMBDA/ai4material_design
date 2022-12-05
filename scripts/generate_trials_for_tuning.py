@@ -107,7 +107,7 @@ def main():
         cur_trial_name = h.hexdigest()[-8:]
         with open(res_dir_path.joinpath(cur_trial_name + ".yaml"), 'w') as outf:
             yaml.dump(trial, outf, default_flow_style=False)
-    print(f'stored trials to {relative_dir_path}')
+    print(f'Stored trials to {relative_dir_path}')
 
 
 if __name__ == '__main__':

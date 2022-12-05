@@ -3,7 +3,7 @@ MODEL=$1
 TRIALS_PACK=$2
 BATCH_SIZE=$3
 if [ -z "$MODEL" -o -z "$TRIALS_PACK" ]; then
-    echo "Usage: $0 MODEL TRIALS_PACK"
+    echo "Usage: $0 MODEL TRIALS_PACK BATCH_SIZE"
     exit 1
 fi
 

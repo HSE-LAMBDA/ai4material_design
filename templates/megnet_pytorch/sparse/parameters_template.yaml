@@ -1,0 +1,15 @@
+model: megnet_pytorch
+representation: sparse
+model_params:
+  model:
+    add_eos_features: true
+    add_z_bond_coord: true
+    atom_features: werespecies
+    edge_embed_size: 10
+    epochs: 400
+    state_input_shape: 2
+    test_batch_size: 128
+  optim:
+    lr_initial: 0.001
+    min_lr: 1.0e-05
+    scheduler: ReduceLROnPlateau
