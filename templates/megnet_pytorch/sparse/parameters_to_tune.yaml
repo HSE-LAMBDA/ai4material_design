@@ -3,8 +3,8 @@ model_params:
     cutoff: ['int_min_max', 10, 16]
     global_aggregation: ['grid', 'mean', 'sum', 'max']
     vertex_aggregation: ['grid', 'sum', 'max']
-    train_batch_size: ['int_min_max', 16, 129]
-    embedding_size: ['int_min_max', 16, 65]
+    train_batch_size: ['grid', 16, 32, 64, 128]
+    embedding_size: ['grid', 16, 32, 64]
     nblocks: ['int_min_max', 2, 6]
   optim:
     factor: ['grid', 0.3, 0.5, 0.7, 0.9]

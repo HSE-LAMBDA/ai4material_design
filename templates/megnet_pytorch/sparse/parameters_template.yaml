@@ -3,6 +3,7 @@ representation: sparse
 minority_class_upsampling: true
 model_params:
   model:
+    add_eos_features: true
     epochs: 400
     test_batch_size: 128
     add_z_bond_coord: true
