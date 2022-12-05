@@ -1,3 +1,4 @@
+from typing import Dict, Tuple
 import argparse
 import yaml
 import pandas as pd
@@ -7,29 +8,38 @@ from pathlib import Path
 from prettytable import PrettyTable as pt
 import re
 import sys
+from collections import defaultdict
 sys.path.append('.')
-from ai4mat.data.data import StorageResolver, get_prediction_path
+from ai4mat.data.data import StorageResolver, get_prediction_path, TEST_FOLD
 
 
 def read_results(folds_experiment_name: str,
                  predictions_experiment_name: str,
                  trial:str,
-                 skip_missing:bool) -> dict[str, tuple[float]]:
+                 skip_missing:bool) -> Dict[str, Dict[str, float]]:
     storage_resolver = StorageResolver()
-    folds = pd.read_csv(storage_resolver["experiments"].joinpath(
+    with open(storage_resolver["experiments"].joinpath(folds_experiment_name).joinpath("config.yaml")) as experiment_file:
+        folds_yaml = yaml.safe_load(experiment_file)
+    folds_definition = pd.read_csv(storage_resolver["experiments"].joinpath(
                         folds_experiment_name).joinpath("folds.csv.gz"),
-                        index_col="_id").squeeze('columns')
+                        index_col="_id")
+    if folds_yaml['strategy'] == 'train_test':
+        folds_definition = folds_definition[folds_definition['fold'] == TEST_FOLD]
 
+    folds = folds_definition.loc[:, 'fold']
+    weights = folds_definition.loc[:, 'weight']
+    
     experiment_path = storage_resolver["experiments"].joinpath(predictions_experiment_name)
     with open(experiment_path.joinpath("config.yaml")) as experiment_file:
         experiment = yaml.safe_load(experiment_file)
-    
-    results = {}
-    true_targets = pd.concat([pd.read_csv(storage_resolver["processed"]/path/"targets.csv.gz",
-                                        index_col="_id",
-                                        usecols=["_id"] + experiment["targets"])
-                                        for path in experiment["datasets"]], axis=0).reindex(
-                                        index=folds.index)
+
+    results = defaultdict(dict)
+    targets_per_dataset = [pd.read_csv(storage_resolver["processed"]/path/"targets.csv.gz",
+                                       index_col="_id",
+                                       usecols=["_id"] + experiment["targets"])
+                                       for path in experiment["datasets"]]
+    true_targets = pd.concat(targets_per_dataset, axis=0).reindex(index=folds.index)
+
     for target_name in experiment["targets"]:
         try:
             predictions = pd.read_csv(storage_resolver["predictions"].joinpath(
@@ -46,10 +56,12 @@ def read_results(folds_experiment_name: str,
             else:
                 raise
         errors = np.abs(predictions - true_targets.loc[:, target_name])
-        mae = errors.mean()
-        error_std = errors.std()
-        mae_cv_std = np.std(errors.groupby(by=folds).mean())
-        results[target_name] = (mae, mae_cv_std, error_std)
+        mae = np.average(errors, weights=weights)
+        results[target_name]['combined'] = mae
+        for dataset, targets in zip(experiment["datasets"], targets_per_dataset):
+            this_errors = errors.reindex(index=targets.index.intersection(errors.index))
+            # Assume the weight is the same for all structures in a dataset
+            results[target_name][dataset] = this_errors.mean()
     return results
 
 
@@ -63,9 +75,8 @@ def main():
                         help="Regular expression to be matched against the column names for formating.")
     parser.add_argument("--row-format-re", type=re.compile,
                         help="Regular expression to be matched against the row names for formating.")
-    parser.add_argument("--separate-by", choices=["experiment", "target", "trial"],
-        help="Tables are 2D, but we have 3 dimensions: target, trial, experiment. "
-        "One of them must be used to separate the tables.")
+    parser.add_argument("--separate-by", type=str,
+        help="Tables are 2D, we must slice the data")
     parser.add_argument("--presentation-config", type=str)
     parser.add_argument("--skip-missing-data", action="store_true",
                         help="Skip experiments that don't have data for all targets")
@@ -76,49 +87,34 @@ def main():
     results = []
     for experiment in args.experiments:
         for trial in args.trials:
-            these_results = pd.DataFrame.from_dict(read_results(experiment, experiment, trial, skip_missing=args.skip_missing_data),
-                                                   orient="index", columns=["MAE", "MAE_CV_std", "error_std"])
-            these_results['experiment'] = experiment
-            these_results['trial'] = trial
-            these_results.index.name = "target"
-            these_results.set_index(["experiment", "trial"], inplace=True, append=True)
-            results.append(these_results)
+            these_results = read_results(experiment, experiment, trial, skip_missing=args.skip_missing_data)
+            these_results_unwrapped = []
+            for target, target_results in these_results.items():
+                for dataset, mae in target_results.items():
+                    these_results_pd = these_results_unwrapped.append({
+                        "trial": trial,
+                        "target": target,
+                        "dataset": dataset,
+                        "mae": mae
+                    })
+            these_results_pd = pd.DataFrame.from_records(these_results_unwrapped)
+            these_results_pd.set_index(["target", "dataset", "trial"], inplace=True)
+            results.append(these_results_pd)
     
-    if args.combined_experiment:
-        for experiment in args.experiments:
-            if experiment == args.combined_experiment:
-                continue
-            for trial in args.trials:
-                these_results = pd.DataFrame.from_dict(read_results(experiment, args.combined_experiment, trial, skip_missing=args.skip_missing_data),
-                                                       orient="index", columns=["MAE", "MAE_CV_std", "error_std"])
-                these_results['experiment'] = experiment + "_combined"
-                these_results['trial'] = trial
-                these_results.index.name = "target"
-                these_results.set_index(["experiment", "trial"], inplace=True, append=True)
-                results.append(these_results)
     results_pd = pd.concat(results, axis=0)
     if args.save_pandas:
         results_pd.to_pickle(args.save_pandas)
     
-    results_str = results_pd.apply(lambda x: f"{x['MAE']:.3f} ± {x['MAE_CV_std']:.3f}", axis="columns")
+    results_str = results_pd["mae"].apply(lambda x: f"{x:.3f}")
 
     if args.presentation_config:
         with open(args.presentation_config) as config_file:
             presentatation_config = yaml.safe_load(config_file)
     else:
         presentatation_config = None
-
-    if args.separate_by == "trial":        
-        rows = "experiment"
-        columns = "target"
-    elif args.separate_by == "experiment":
-        rows = "trial"
-        columns = "target"
-    elif args.separate_by == "target":
-        rows = "experiment"
-        columns = "trial"
-    else:
-        raise ValueError("Must separate by one of experiment, trial, target")
+    
+    table_keys = [name for name in results_str.index.names if name not in args.separate_by]
+    rows, columns = table_keys
     all_separators = results_str.index.get_level_values(args.separate_by).unique()
 
     for table_index in all_separators:

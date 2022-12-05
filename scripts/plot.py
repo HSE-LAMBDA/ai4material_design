@@ -71,7 +71,6 @@ def main():
                 )), index_col="_id").squeeze("columns")
             assert predictions.index.equals(true_targets.index)
             mae = (np.abs(predictions - true_targets.loc[:, target_name]) * weights).sum() / weights.sum()
-            R = pearsonr(predictions, true_targets.loc[:, target_name])[0]
             fig, ax = plt.subplots()
             ax.scatter(true_targets.loc[:, target_name],
                        predictions,
@@ -95,7 +94,8 @@ def main():
             plots_folder = storage_resolver["plots"].joinpath(
                 experiment_name,
                 target_name)
-            plots_folder.mkdir(exist_ok=True, parents=True)
+            file_name = plots_folder / f"{this_trial_name}.{args.filetype}"
+            file_name.parent.mkdir(exist_ok=True, parents=True)
             if args.filetype == "pdf":
                 dpi = None
                 metadata = {
@@ -109,8 +109,7 @@ def main():
             else:
                 dpi = 300
                 metadata = None
-            fig.savefig(Path(plots_folder, f"{this_trial_name}.{args.filetype}"),
-                        dpi=dpi, bbox_inches='tight', metadata=metadata)
+            fig.savefig(file_name, dpi=dpi, bbox_inches='tight', metadata=metadata)
 
 
 if __name__ == "__main__":

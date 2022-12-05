@@ -26,9 +26,9 @@ for TRIAL in "$TRIALS_PATH"/"$MODEL"/"$TRIALS_PACK"/*.yaml; do
     for TARGET in ${TARGETS[@]}; do
         if [ ! -f "$PREDICTIONS_PATH"/"$EXPERIMENT_NAME"/"$TARGET"/"$TRIAL_NAME".csv.gz ]; then
             echo CHANGE THIS TO RUN THE JOB IN THE WAY YOU WANT
-            #python run_experiments.py --targets $TARGET --cpu --experiments $EXPERIMENT_NAME --trials $TRIAL_NAME --wandb-entity hse_lambda --n-jobs 40
-            #JOB_NAME=${EXPERIMENT_NAME////-}_${TARGET}_${TRIAL_NAME////-}
-            #qsub -o "$LOG_FOLDER/$JOB_NAME".oe -N $JOB_NAME -v EXPERIMENT="$EXPERIMENT_NAME",TRIALS="$TRIAL_NAME",TARGETS="$TAGRET" $SCRIPTPATH/run_experiments_nscc.pbs
+            # python run_experiments.py --targets $TARGET --cpu --experiments $EXPERIMENT_NAME --trials $TRIAL_NAME --wandb-entity hse_lambda --n-jobs 40
+            # JOB_NAME=${EXPERIMENT_NAME////-}_${TARGET}_${TRIAL_NAME////-}
+            # qsub -o "$LOG_FOLDER/$JOB_NAME".oe -N $JOB_NAME -v EXPERIMENT="$EXPERIMENT_NAME",TRIALS="$TRIAL_NAME",TARGETS="$TAGRET" $SCRIPTPATH/run_experiments_nscc.pbs
         fi
     done    
 done
