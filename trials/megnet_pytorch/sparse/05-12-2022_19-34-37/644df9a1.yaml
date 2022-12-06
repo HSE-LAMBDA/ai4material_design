@@ -1,0 +1,24 @@
+minority_class_upsampling: true
+model: megnet_pytorch
+model_params:
+  model:
+    add_z_bond_coord: true
+    atom_features: werespecies
+    cutoff: 11
+    edge_embed_size: 10
+    embedding_size: 44
+    epochs: 400
+    global_aggregation: sum
+    nblocks: 4
+    state_input_shape: 2
+    test_batch_size: 128
+    train_batch_size: 126
+    vertex_aggregation: sum
+  optim:
+    factor: 0.7
+    lr_initial: 0.001
+    min_lr: 1.0e-05
+    patience: 30
+    scheduler: ReduceLROnPlateau
+    threshold: 0.0005
+representation: sparse
