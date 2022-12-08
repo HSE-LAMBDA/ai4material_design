@@ -45,8 +45,8 @@ def main():
         need_to_restart = False
         if args.warm_start:
             for target in targets:
-                cur_dir = prediction_folder.joinpath(target)
-                if cur_dir.is_dir() and cur_dir.joinpath(str(trial) + '.csv.gz') in os.listdir(cur_dir):
+                cur_path = prediction_folder.joinpath(target).joinpath(str(trial) + '.csv.gz')
+                if cur_path.parent.is_dir() and os.path.basename(cur_path) in os.listdir(cur_path.parent):
                     print(f'find target {target} for trial {trial}')
                 else:
                     need_to_restart = True
