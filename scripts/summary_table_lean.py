@@ -1,4 +1,4 @@
-from typing import Dict, Tuple
+from typing import Dict, Tuple, List
 import argparse
 import yaml
 import pandas as pd
@@ -16,7 +16,8 @@ from ai4mat.data.data import StorageResolver, get_prediction_path, TEST_FOLD
 def read_results(folds_experiment_name: str,
                  predictions_experiment_name: str,
                  trial:str,
-                 skip_missing:bool) -> Dict[str, Dict[str, float]]:
+                 skip_missing:bool,
+                 targets: List[str]) -> Dict[str, Dict[str, float]]:
     storage_resolver = StorageResolver()
     with open(storage_resolver["experiments"].joinpath(folds_experiment_name).joinpath("config.yaml")) as experiment_file:
         folds_yaml = yaml.safe_load(experiment_file)
@@ -40,7 +41,7 @@ def read_results(folds_experiment_name: str,
                                        for path in experiment["datasets"]]
     true_targets = pd.concat(targets_per_dataset, axis=0).reindex(index=folds.index)
 
-    for target_name in experiment["targets"]:
+    for target_name in set(experiment["targets"]).intersection(targets):
         try:
             predictions = pd.read_csv(storage_resolver["predictions"].joinpath(
                                       get_prediction_path(
@@ -87,7 +88,7 @@ def main():
     results = []
     for experiment in args.experiments:
         for trial in args.trials:
-            these_results = read_results(experiment, experiment, trial, skip_missing=args.skip_missing_data)
+            these_results = read_results(experiment, experiment, trial, skip_missing=args.skip_missing_data, targets=args.targets)
             these_results_unwrapped = []
             for target, target_results in these_results.items():
                 for dataset, mae in target_results.items():
