@@ -18,7 +18,7 @@ from ai4mat.common.ema import ExponentialMovingAverage
 from ai4mat.data.gemnet_dataloader import (GemNetFullStruct,
                                            GemNetFullStructFolds)
 from ai4mat.models.gemnet.gemnet import GemNetT
-
+from ai4mat.models.loss_functions import MAELoss
 from ..modules.scaling import ScaleFactor
 from ..modules.scaling.util import ensure_fitted
 
@@ -166,8 +166,10 @@ class GemNetTrainer(Trainer, FitScalingMixin):
             self.target_name = train_targets.name 
 
             self.trainloader = self.structures.trainloader
+            self.validloader = self.structures.validloader
         else:
             self.trainloader = GemNetFullStruct(self.config).trainloader
+            raise NotImplemented
 
         super().__init__(
             run_id=1,
@@ -202,19 +204,20 @@ class GemNetTrainer(Trainer, FitScalingMixin):
     def train(self):
         ensure_fitted(self.model)
         # Define the custom x axis metric
-        wandb.define_metric("epoch")
-        wandb.define_metric("dataloader_step")
-        # Define which metrics to plot against that x-axis
-        wandb.define_metric("loss_per_epoch", step_metric='epoch')
-        wandb.define_metric("loss", step_metric='dataloader_step')
-        wandb.define_metric("grad_norm", step_metric='dataloader_step')
+        # wandb.define_metric("epoch")
+        # wandb.define_metric("dataloader_step")
+        # # Define which metrics to plot against that x-axis
+        # wandb.define_metric("loss_per_epoch", step_metric='epoch')
+        # wandb.define_metric("loss", step_metric='dataloader_step')
+        # wandb.define_metric("grad_norm", step_metric='dataloader_step')
         
+        wandb.define_metric(f"{self.target_name} train_loss_per_batch", step_metric="batch")
+        wandb.define_metric(f'{self.target_name} test_loss_per_epoch', step_metric="epoch")
+        batch_number = 0
+        _grad_norm = []
         for epoch in trange(self.config["optim"]["max_epochs"]):
-            print(f'=========== {epoch} ==============')
-            batch_loss = []
-            for i, item in enumerate(self.trainloader):
-                _loss = []
-                _grad_norm = []
+            self.model.train(True)
+            for item in tqdm(self.trainloader):
                 item = item.to(self.device)
                 out = self.model(item)
                 loss = torch.nn.functional.l1_loss(out.view(-1), getattr(item, 'metadata'))
@@ -232,20 +235,33 @@ class GemNetTrainer(Trainer, FitScalingMixin):
                         .numpy()
                     )
                 self.optimizers.step()
-                _loss.append(loss.detach().cpu().numpy())
                 self.ema.update()
                 self.optimizers.zero_grad()
 
-                self.log({"loss": np.mean(_loss), "grad_norm": np.mean(_grad_norm), 'dataloader_step': i}, epoch)
-                batch_loss.append(np.mean(_loss))
-            wandb.log({'loss_per_epoch': np.mean(batch_loss), 'epoch': epoch})
+                wandb.log({f"{self.target_name} train_loss_per_batch": loss.item(), "batch": batch_number})
+                batch_number += 1
             if self.save_checkpoint:
                 self.save()
             self.scheduler.step(loss)
             torch.cuda.empty_cache()
-            print(
-                f"Epoch: {epoch},  Loss: {np.mean(_loss)}, Grad_norm: {np.mean(_grad_norm)}"
-            )
+
+            self.model.train(False)
+            test_loss_sum_per_batch = []
+            with torch.no_grad():
+                for batch in self.validloader:
+                    batch = batch.to(self.device)
+                    preds = self.model(batch).view(-1)
+                    test_loss_sum_per_batch.append(
+                        MAELoss(
+                            preds,
+                            batch.metadata,
+                            weights=batch.weight, 
+                            reduction='sum'
+                        ).detach().cpu().numpy()
+                    )
+            wandb.log({
+                f'{self.target_name} test_loss_per_epoch': sum(test_loss_sum_per_batch) / len(self.validloader.dataset),
+                "epoch": epoch})
 
     def predict_structures(self, structures):
         ensure_fitted(self.model)

@@ -88,16 +88,16 @@ class GemNetFullStructFolds:
     @property
     def validloader(self):
         return DataLoader(
-            self.test_graph_list,
+            self.test_structures,
             batch_size=self.config["optim"]["batch_size"],
             num_workers=0,
             pin_memory=True,
             shuffle=False,
         )
     
-    def testloader(self, data):
+    def testloader(self, test_structures):
         return DataLoader(
-            data,
+            test_structures,
             batch_size=self.config["optim"]["batch_size"],
             num_workers=0,
             pin_memory=True,
