@@ -17,7 +17,7 @@ def read_results(folds_experiment_name: str,
                  predictions_experiment_name: str,
                  trial:str,
                  skip_missing:bool,
-                 targets: List[str]) -> Dict[str, Dict[str, float]]:
+                 targets: List[str]) -> Dict[str, Dict[str, Dict[str, float]]]:
     storage_resolver = StorageResolver()
     with open(storage_resolver["experiments"].joinpath(folds_experiment_name).joinpath("config.yaml")) as experiment_file:
         folds_yaml = yaml.safe_load(experiment_file)
@@ -34,7 +34,7 @@ def read_results(folds_experiment_name: str,
     with open(experiment_path.joinpath("config.yaml")) as experiment_file:
         experiment = yaml.safe_load(experiment_file)
 
-    results = defaultdict(dict)
+    results = defaultdict(lambda: defaultdict(dict))
     targets_per_dataset = [pd.read_csv(storage_resolver["processed"]/path/"targets.csv.gz",
                                        index_col="_id",
                                        usecols=["_id"] + experiment["targets"])
@@ -58,11 +58,19 @@ def read_results(folds_experiment_name: str,
                 raise
         errors = np.abs(predictions - true_targets.loc[:, target_name])
         mae = np.average(errors, weights=weights)
-        results[target_name]['combined'] = mae
+        std = np.sqrt(np.cov(errors, aweights=weights))
+        results[target_name]['combined']['mae'] = mae
+        results[target_name]['combined']['std'] = std
+        results[target_name]['combined']['errors'] = errors
+        results[target_name]['combined']['weights'] = weights
         for dataset, targets in zip(experiment["datasets"], targets_per_dataset):
             this_errors = errors.reindex(index=targets.index.intersection(errors.index))
             # Assume the weight is the same for all structures in a dataset
-            results[target_name][dataset] = this_errors.mean()
+            results[target_name][dataset]['mae'] = this_errors.mean()
+            this_std = np.std(this_errors)
+            results[target_name][dataset]['std'] = this_std
+            results[target_name][dataset]['errors'] = this_errors.values
+            results[target_name][dataset]['weights'] = weights.reindex(index=this_errors.index)
     return results
 
 
@@ -83,6 +91,8 @@ def main():
                         help="Skip experiments that don't have data for all targets")
     parser.add_argument("--save-pandas", type=Path,
                         help="Save the pandas dataframe to a file")
+    parser.add_argument("--bootstrap-significance", action="store_true",
+                        help="Use bootstrap to estimate whether the differenecs are statistically significant")
     args = parser.parse_args()
     
     results = []
@@ -91,12 +101,15 @@ def main():
             these_results = read_results(experiment, experiment, trial, skip_missing=args.skip_missing_data, targets=args.targets)
             these_results_unwrapped = []
             for target, target_results in these_results.items():
-                for dataset, mae in target_results.items():
+                for dataset, mae_std in target_results.items():
                     these_results_pd = these_results_unwrapped.append({
                         "trial": trial,
                         "target": target,
                         "dataset": dataset,
-                        "mae": mae
+                        "mae": mae_std["mae"],
+                        "std": mae_std["std"],
+                        "errors": mae_std["errors"],
+                        "weights": mae_std["weights"],
                     })
             these_results_pd = pd.DataFrame.from_records(these_results_unwrapped)
             these_results_pd.set_index(["target", "dataset", "trial"], inplace=True)
@@ -106,14 +119,27 @@ def main():
     if args.save_pandas:
         results_pd.to_pickle(args.save_pandas)
     
-    results_str = results_pd["mae"].apply(lambda x: f"{x:.3f}")
+    results_str = results_pd.apply(lambda row: f"{row['mae']:.3f} ± {row['std']:.3f}", axis=1)
 
-    if args.presentation_config:
-        with open(args.presentation_config) as config_file:
-            presentatation_config = yaml.safe_load(config_file)
-    else:
-        presentatation_config = None
-    
+    if args.bootstrap_significance:
+        # Select the subsets that for each target and dataset
+        for target in results_pd.index.get_level_values("target").unique():
+            for dataset in results_pd.index.get_level_values("dataset").unique():
+                this_results = results_pd.loc[(target, dataset), :]
+                ranks = []
+                this_errors = np.stack(this_results.errors.values)
+                this_weights = np.stack(this_results.weights.values)
+                for _ in range(1000):
+                    boostrap_selection = np.random.choice(
+                        len(this_results.errors), len(this_results.errors), replace=True, p=this_weights[0])
+                    maes = np.average(this_errors[boostrap_selection], axis=1)
+                    ranks.append(np.argsort(maes))
+                ranks = np.stack(ranks)
+                print(target, dataset)
+                for trial, rank in zip(this_results.index, ranks.T):
+                    print(trial, np.unique(rank, return_counts=True))
+
+
     table_keys = [name for name in results_str.index.names if name not in args.separate_by]
     rows, columns = table_keys
     all_separators = results_str.index.get_level_values(args.separate_by).unique()
