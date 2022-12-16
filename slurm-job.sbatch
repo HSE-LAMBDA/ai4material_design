@@ -18,5 +18,5 @@ module load Python/Anaconda_v11.2020
 eval "$(conda shell.bash hook)"
 conda activate common
 
-srun --ntasks=1 --gpus=1 --exclusive -N1 -n1 --cpus-per-task=1 python scripts/hyperparam_tuning.py --model-name megnet_pytorch --experiment combined_mixed_weighted_validation  --trials-folder 25-11-2022_11-38-18 --wandb-entity hse_lambda --warm-start &
+srun --ntasks=1 --gpus=1 --exclusive -N1 -n1 --cpus-per-task=1 python run_experiments.py --experiments combined_mixed_weighted_test  --trials 1baefba7 --wandb-entity hse_lambda --gpus 0 &
 wait
