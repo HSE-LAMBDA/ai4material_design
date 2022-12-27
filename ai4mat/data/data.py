@@ -274,3 +274,16 @@ def get_dichalcogenides_innopolis(data_path):
     structures[Columns()["structure"]["unrelaxed"]] =  structures.apply(
         lambda row: initial_structures[row.name], axis=1)
     return structures, read_defects_descriptions(data_path)
+
+
+def read_experiment_datasets(experiment_name):
+    storage_resolver = StorageResolver()
+    experiment_path = storage_resolver["experiments"].joinpath(experiment_name)
+    with open(experiment_path.joinpath("config.yaml")) as experiment_file:
+        experiment = yaml.safe_load(experiment_file)
+    folds = pd.read_csv(storage_resolver["experiments"].joinpath(
+                        experiment_name).joinpath("folds.csv.gz"),
+                        index_col="_id")
+    datasets = pd.concat([pd.read_pickle(storage_resolver["processed"]/dataset/"data.pickle.gz") for dataset in experiment["datasets"]], axis=0)
+    defects = pd.concat([read_defects_descriptions(storage_resolver["csv_cif"]/dataset) for dataset in experiment["datasets"]], axis=0)
+    return experiment, folds, datasets, defects
