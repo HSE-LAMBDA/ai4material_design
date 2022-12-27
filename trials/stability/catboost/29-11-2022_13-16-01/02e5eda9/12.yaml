@@ -10,4 +10,5 @@ model_params:
   loss_function: RMSE
   min_child_samples: 1
   verbose: true
+  random_seed: 12
 representation: matminer

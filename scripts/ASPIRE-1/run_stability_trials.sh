@@ -5,6 +5,11 @@ REPEATS=$3
 BATCH_SIZE=$4
 EXPERIMENT_NAME="combined_mixed_weighted_test"
 
+if [ $((REPEATS % BATCH_SIZE)) -ne 0 ]; then
+    echo "REPEATS must be a multiple of BATCH_SIZE"
+    exit 1
+fi
+
 SCRIPT=$(realpath "$0")
 SCRIPTPATH=$(dirname "$SCRIPT")
 PROJECT_ROOT=$(realpath "$SCRIPTPATH/../../")
