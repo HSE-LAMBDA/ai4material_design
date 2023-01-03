@@ -1,7 +1,6 @@
-from enum import Enum
+from typing import Union
 import logging
 import os
-import shutil
 from pathlib import Path
 import yaml
 import pandas as pd
@@ -245,7 +244,7 @@ def read_structures_descriptions(data_path) -> pd.DataFrame:
                            index_col=Columns()["structure"]["id"])
 
 
-def read_defects_descriptions(data_path:str):
+def read_defects_descriptions(data_path: Union[str, Path]) -> pd.DataFrame:
     return pd.read_csv(
         os.path.join(data_path, "descriptors.csv"), index_col="_id",
         converters={"cell": lambda x: tuple(eval(x)), "defects": eval})
