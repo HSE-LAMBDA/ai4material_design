@@ -10,15 +10,15 @@ from prettytable import PrettyTable as pt
 import re
 import sys
 from collections import defaultdict, OrderedDict
-sys.path.append('.')
-from ai4mat.data.data import StorageResolver, get_prediction_path, TEST_FOLD
+from ..ai4mat.data.data import StorageResolver, get_prediction_path, TEST_FOLD
 
 
 def read_results(folds_experiment_name: str,
                  predictions_experiment_name: str,
                  trial:str,
                  skip_missing:bool,
-                 targets: List[str]) -> Dict[str, Dict[str, Dict[str, float]]]:
+                 targets: List[str],
+                 return_predictions: bool = False) -> Dict[str, Dict[str, Dict[str, float]]]:
     storage_resolver = StorageResolver()
     with open(storage_resolver["experiments"].joinpath(folds_experiment_name).joinpath("config.yaml")) as experiment_file:
         folds_yaml = yaml.safe_load(experiment_file)
@@ -29,7 +29,10 @@ def read_results(folds_experiment_name: str,
         folds_definition = folds_definition[folds_definition['fold'] == TEST_FOLD]
 
     folds = folds_definition.loc[:, 'fold']
-    weights = folds_definition.loc[:, 'weight']
+    if "weight" in folds_definition.columns:
+        weights = folds_definition.loc[:, 'weight']
+    else:
+        weights = None
     
     experiment_path = storage_resolver["experiments"].joinpath(predictions_experiment_name)
     with open(experiment_path.joinpath("config.yaml")) as experiment_file:
@@ -63,7 +66,10 @@ def read_results(folds_experiment_name: str,
         results[target_name]['combined']['mae'] = mae
         results[target_name]['combined']['std'] = std
         results[target_name]['combined']['errors'] = errors
-        results[target_name]['combined']['weights'] = weights
+        if return_predictions:
+            results[target_name]['combined']['predictions'] = predictions
+        if weights is not None:
+            results[target_name]['combined']['weights'] = weights
         for dataset, targets in zip(experiment["datasets"], targets_per_dataset):
             this_errors = errors.reindex(index=targets.index.intersection(errors.index))
             # Assume the weight is the same for all structures in a dataset
@@ -71,7 +77,10 @@ def read_results(folds_experiment_name: str,
             this_std = np.std(this_errors)
             results[target_name][dataset]['std'] = this_std
             results[target_name][dataset]['errors'] = this_errors.values
-            results[target_name][dataset]['weights'] = weights.reindex(index=this_errors.index)
+            if return_predictions:
+                results[target_name][dataset]['predictions'] = predictions.reindex(index=this_errors.index)
+            if weights is not None:
+                results[target_name][dataset]['weights'] = weights.reindex(index=this_errors.index)
     return results
 
 
@@ -150,9 +159,9 @@ def format_result(row, latex=False):
         return f"{row['mae']:.{digits}f} ± {row['std']:.{digits}f}"
 
 
-def read_trial(experiment, trial, skip_missing_data, targets):
+def read_trial(experiment, trial, skip_missing_data, targets, return_predictions=False):
     these_results_unwrapped = []
-    these_results = read_results(experiment, experiment, trial, skip_missing=skip_missing_data, targets=targets)
+    these_results = read_results(experiment, experiment, trial, skip_missing=skip_missing_data, targets=targets, return_predictions=return_predictions)
     for target, target_results in these_results.items():
         for dataset, mae_std in target_results.items():
             these_results_unwrapped.append({
@@ -161,11 +170,14 @@ def read_trial(experiment, trial, skip_missing_data, targets):
                 "dataset": dataset,
                 "mae": mae_std["mae"],
                 "std": mae_std["std"],
-                "errors": mae_std["errors"],
-                "weights": mae_std["weights"],
-            })
+                "errors": mae_std["errors"]})
+            if "weights" in mae_std:
+                these_results_unwrapped[-1]["weights"] = mae_std["weights"]
+            if return_predictions:
+                these_results_unwrapped[-1]["predictions"] = mae_std["predictions"]
     these_results_pd = pd.DataFrame.from_records(these_results_unwrapped)
-    these_results_pd.set_index(["target", "dataset", "trial"], inplace=True)
+    if len(these_results_pd) > 0:
+        these_results_pd.set_index(["target", "dataset", "trial"], inplace=True)
     return these_results_pd
 
 

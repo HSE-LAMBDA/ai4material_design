@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "2d-defects-potential-learning"
-version = "0.5.0"
+version = "0.5.1"
 description = "Sparse representation of defects in 2D materials: models, expeiments, and results."
 authors = ["Abdalaziz Rashid Al-Maeeni <al-maeeni@hse.ru>",
     	   "Nikita Kazeev <kna@nus.edu.sg>",
@@ -26,6 +26,7 @@ httplib2 = ">=0.20.2"
 catboost = ">=1.0.3"
 matminer = ">=0.7.3"
 ratarmount = ">=0.11.3"
+pyyaml = ">=6.0.0"
 
 [tool.poetry.dev-dependencies]
 yapf = ">=0.31.0"
