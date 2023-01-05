@@ -6,6 +6,7 @@ import yaml
 import pandas as pd
 import ase.io
 import pymatgen.io.cif
+from ast import literal_eval
 from tqdm.auto import tqdm
 from collections import defaultdict
 import tarfile
@@ -247,7 +248,7 @@ def read_structures_descriptions(data_path) -> pd.DataFrame:
 def read_defects_descriptions(data_path: Union[str, Path]) -> pd.DataFrame:
     return pd.read_csv(
         os.path.join(data_path, "descriptors.csv"), index_col="_id",
-        converters={"cell": lambda x: tuple(eval(x)), "defects": eval})
+        converters={"cell": lambda x: tuple(literal_eval(x)), "defects": literal_eval})
 
 
 def get_dichalcogenides_innopolis(data_path):

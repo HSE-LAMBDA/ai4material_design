@@ -1092,3 +1092,93 @@ stages:
     - path: datasets/processed/low_density_defects/WSe2/matminer.csv.gz
       md5: d4adddb43d3d2f078d94043be478275c
       size: 32122482
+  vacancy_pairs@InSe:
+    cmd: python scripts/defects_generation.py --output-path datasets/POSCARs/vacancy_pairs/InSe
+      --config-path datasets/generation_configs/vacancy_pairs/InSe.yaml --clean-output
+    deps:
+    - path: datasets/generation_configs/vacancy_pairs/InSe.yaml
+      md5: 6701009ee9dfa108719ad6336c6d61c1
+      size: 110
+    - path: defects_generation/molecules/InSe.cif
+      md5: 955cc09801115eb803eb631560340cf0
+      size: 863
+    - path: scripts/defects_generation.py
+      md5: 42fc955869af5dbdfa2ae812caed5c9d
+      size: 13474
+    outs:
+    - path: datasets/POSCARs/vacancy_pairs/InSe
+      md5: 72e2f429fb61a9139018c0022283880d.dir
+      size: 182300
+      nfiles: 20
+  vacancy_pairs@MoS2:
+    cmd: python scripts/defects_generation.py --output-path datasets/POSCARs/vacancy_pairs/MoS2
+      --config-path datasets/generation_configs/vacancy_pairs/MoS2.yaml --clean-output
+    deps:
+    - path: datasets/generation_configs/vacancy_pairs/MoS2.yaml
+      md5: 39a05066750adad2cea3001217f6c428
+      size: 109
+    - path: defects_generation/molecules/MoS2.cif
+      md5: 862c7fffd168aab0d56a8bbd17d324ad
+      size: 812
+    - path: scripts/defects_generation.py
+      md5: 42fc955869af5dbdfa2ae812caed5c9d
+      size: 13474
+    outs:
+    - path: datasets/POSCARs/vacancy_pairs/MoS2
+      md5: 37086c8736b24afedca86328f5c3e501.dir
+      size: 199723
+      nfiles: 17
+  vacancy_pairs@GaSe:
+    cmd: python scripts/defects_generation.py --output-path datasets/POSCARs/vacancy_pairs/GaSe
+      --config-path datasets/generation_configs/vacancy_pairs/GaSe.yaml --clean-output
+    deps:
+    - path: datasets/generation_configs/vacancy_pairs/GaSe.yaml
+      md5: 434dc23e8d61fc1f777991a6fc034d04
+      size: 110
+    - path: defects_generation/molecules/GaSe.cif
+      md5: f2d9a4ac75ad2180f3025024ea26ab5a
+      size: 863
+    - path: scripts/defects_generation.py
+      md5: 42fc955869af5dbdfa2ae812caed5c9d
+      size: 13474
+    outs:
+    - path: datasets/POSCARs/vacancy_pairs/GaSe
+      md5: eabcbfaeb1a465b6931f2d41bedc41ed.dir
+      size: 182300
+      nfiles: 20
+  vacancy_pairs@P:
+    cmd: python scripts/defects_generation.py --output-path datasets/POSCARs/vacancy_pairs/P
+      --config-path datasets/generation_configs/vacancy_pairs/P.yaml --clean-output
+    deps:
+    - path: datasets/generation_configs/vacancy_pairs/P.yaml
+      md5: fb8f66be6cde9e0a91b87c1411f2fb9a
+      size: 99
+    - path: defects_generation/molecules/P.cif
+      md5: 768a72b84839a206daada19ad4e88a2c
+      size: 843
+    - path: scripts/defects_generation.py
+      md5: 42fc955869af5dbdfa2ae812caed5c9d
+      size: 13474
+    outs:
+    - path: datasets/POSCARs/vacancy_pairs/P
+      md5: c5d40d493311c3268b1bf199fec76990.dir
+      size: 826616
+      nfiles: 85
+  vacancy_pairs@BN:
+    cmd: python scripts/defects_generation.py --output-path datasets/POSCARs/vacancy_pairs/BN
+      --config-path datasets/generation_configs/vacancy_pairs/BN.yaml --clean-output
+    deps:
+    - path: datasets/generation_configs/vacancy_pairs/BN.yaml
+      md5: 62b203858203b4446bc312dc53e3cfe1
+      size: 106
+    - path: defects_generation/molecules/BN.cif
+      md5: dc4db0ece9fca5b7068f8063ebcb783b
+      size: 782
+    - path: scripts/defects_generation.py
+      md5: 42fc955869af5dbdfa2ae812caed5c9d
+      size: 13474
+    outs:
+    - path: datasets/POSCARs/vacancy_pairs/BN
+      md5: b5d4cee3fb0ad4bdb99c507ea56eb072.dir
+      size: 133373
+      nfiles: 17

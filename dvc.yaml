@@ -199,3 +199,19 @@ stages:
       - scripts/compute_matminer_features.py
     outs:
       - datasets/processed/pilot/matminer_dbg.csv.gz
+  vacancy_pairs:
+    foreach:
+      - BN
+      - GaSe
+      - InSe
+      - MoS2
+      - P
+    do:
+      cmd: python scripts/defects_generation.py --output-path datasets/POSCARs/vacancy_pairs/${item}
+           --config-path datasets/generation_configs/vacancy_pairs/${item}.yaml --clean-output
+      deps:
+        - datasets/generation_configs/vacancy_pairs/${item}.yaml
+        - defects_generation/molecules/${item}.cif
+        - scripts/defects_generation.py
+      outs:
+        - datasets/POSCARs/vacancy_pairs/${item}

@@ -1,0 +1,6 @@
+base_material: "InSe"
+supercell: [6, 6, 1]
+all_combinations: true
+defects:
+  In: ["Vacancy"]
+  Se: ["Vacancy"]
