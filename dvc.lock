@@ -1103,11 +1103,11 @@ stages:
       md5: 955cc09801115eb803eb631560340cf0
       size: 863
     - path: scripts/defects_generation.py
-      md5: 42fc955869af5dbdfa2ae812caed5c9d
-      size: 13474
+      md5: a0ef3e7bf9333c906845f32f3af48202
+      size: 13880
     outs:
     - path: datasets/POSCARs/vacancy_pairs/InSe
-      md5: 72e2f429fb61a9139018c0022283880d.dir
+      md5: 609d182d6fd30559f73400606b651562.dir
       size: 182300
       nfiles: 20
   vacancy_pairs@MoS2:
@@ -1121,11 +1121,11 @@ stages:
       md5: 862c7fffd168aab0d56a8bbd17d324ad
       size: 812
     - path: scripts/defects_generation.py
-      md5: 42fc955869af5dbdfa2ae812caed5c9d
-      size: 13474
+      md5: a0ef3e7bf9333c906845f32f3af48202
+      size: 13880
     outs:
     - path: datasets/POSCARs/vacancy_pairs/MoS2
-      md5: 37086c8736b24afedca86328f5c3e501.dir
+      md5: cc91a04c8f533629086f0c85b9882f11.dir
       size: 199723
       nfiles: 17
   vacancy_pairs@GaSe:
@@ -1139,11 +1139,11 @@ stages:
       md5: f2d9a4ac75ad2180f3025024ea26ab5a
       size: 863
     - path: scripts/defects_generation.py
-      md5: 42fc955869af5dbdfa2ae812caed5c9d
-      size: 13474
+      md5: a0ef3e7bf9333c906845f32f3af48202
+      size: 13880
     outs:
     - path: datasets/POSCARs/vacancy_pairs/GaSe
-      md5: eabcbfaeb1a465b6931f2d41bedc41ed.dir
+      md5: e6401d28e0bd984909e2f5f4077f5304.dir
       size: 182300
       nfiles: 20
   vacancy_pairs@P:
@@ -1157,11 +1157,11 @@ stages:
       md5: 768a72b84839a206daada19ad4e88a2c
       size: 843
     - path: scripts/defects_generation.py
-      md5: 42fc955869af5dbdfa2ae812caed5c9d
-      size: 13474
+      md5: a0ef3e7bf9333c906845f32f3af48202
+      size: 13880
     outs:
     - path: datasets/POSCARs/vacancy_pairs/P
-      md5: c5d40d493311c3268b1bf199fec76990.dir
+      md5: 85037d61f9397705c19192c8589fc789.dir
       size: 826616
       nfiles: 85
   vacancy_pairs@BN:
@@ -1175,10 +1175,10 @@ stages:
       md5: dc4db0ece9fca5b7068f8063ebcb783b
       size: 782
     - path: scripts/defects_generation.py
-      md5: 42fc955869af5dbdfa2ae812caed5c9d
-      size: 13474
+      md5: a0ef3e7bf9333c906845f32f3af48202
+      size: 13880
     outs:
     - path: datasets/POSCARs/vacancy_pairs/BN
-      md5: b5d4cee3fb0ad4bdb99c507ea56eb072.dir
+      md5: be5de22a4aec11a4a306c2bb9e93b5fb.dir
       size: 133373
       nfiles: 17

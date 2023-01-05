@@ -209,6 +209,12 @@ def main():
                     else:
                         description.append({"type": "substitution", "from": element, "to": replacement})
             # Make the first defect
+            # There is a catch. If we have a complicated cell (which we don't)
+            # there might be more than two ways to place a single defect
+            sga = SpacegroupAnalyzer(one_defect_supercell)
+            symm_structure = sga.get_symmetrized_structure()
+            if len(symm_structure.equivalent_sites) > 2:
+                raise NotImplemented("Can't handle complicated cells (yet)")
             defects_to_place = config["defects"].copy()
             for i, site in enumerate(one_defect_supercell):
                 if site.specie.symbol in defects_to_place:
