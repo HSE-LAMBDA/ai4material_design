@@ -8,9 +8,13 @@ import logging
 from pathlib import Path
 from prettytable import PrettyTable as pt
 import re
-import sys
 from collections import defaultdict, OrderedDict
-from ..ai4mat.data.data import StorageResolver, get_prediction_path, TEST_FOLD
+if __name__ == "__main__":
+    import sys
+    sys.path.append('.')
+    from ai4mat.data.data import StorageResolver, get_prediction_path, TEST_FOLD    
+else:
+    from ..ai4mat.data.data import StorageResolver, get_prediction_path, TEST_FOLD
 
 
 def read_results(folds_experiment_name: str,
