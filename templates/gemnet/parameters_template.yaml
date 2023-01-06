@@ -1,7 +1,6 @@
 model: 'gemnet'
 representation: 'full'
 name: gemnet
-model: gemnet
 
 model_params:
   model:
