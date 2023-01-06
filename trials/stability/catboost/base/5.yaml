@@ -3,6 +3,5 @@ representation: 'matminer'
 model_params:
   iterations: 1000
   verbose: True
-  loss_function: 'MAE'
   random_seed: 4
   gpu_ram_part: 0.45
