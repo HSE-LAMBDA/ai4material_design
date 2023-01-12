@@ -1,9 +1,10 @@
-megnet_pytorch/sparse/05-12-2022_19-50-53/831cc496 homo_lumo_gap_min 12 4
-schnet/25-11-2022_16-52-31/71debf15 formation_energy_per_site 12 1
-schnet/25-11-2022_16-52-31/2a52dbe8 homo_lumo_gap_min 12 1
-catboost/29-11-2022_13-16-01/02e5eda9 formation_energy_per_site 12 2
-catboost/29-11-2022_13-16-01/1b1af67c homo_lumo_gap_min 12 2
-gemnet/16-11-2022_20-05-04/b5723f85 formation_energy_per_site 12 1
-gemnet/16-11-2022_20-05-04/c366c47e homo_lumo_gap_min 12 1
-megnet_pytorch/25-11-2022_11-38-18/1baefba7 formation_energy_per_site 12 2
-megnet_pytorch/25-11-2022_11-38-18/1baefba7 homo_lumo_gap_min 12 2
+megnet_pytorch/sparse/05-12-2022_19-50-53/d6b7ce45 formation_energy_per_site 12 4 combined_mixed_weighted_test
+megnet_pytorch/sparse/05-12-2022_19-50-53/831cc496 homo_lumo_gap_min 12 4 combined_mixed_weighted_test
+schnet/25-11-2022_16-52-31/71debf15 formation_energy_per_site 12 1 combined_mixed_weighted_test
+schnet/25-11-2022_16-52-31/2a52dbe8 homo_lumo_gap_min 12 1 combined_mixed_weighted_test
+catboost/29-11-2022_13-16-01/02e5eda9 formation_energy_per_site 12 2 combined_mixed_weighted_test
+catboost/29-11-2022_13-16-01/1b1af67c homo_lumo_gap_min 12 2 combined_mixed_weighted_test
+gemnet/16-11-2022_20-05-04/b5723f85 formation_energy_per_site 12 1 combined_mixed_weighted_test
+gemnet/16-11-2022_20-05-04/c366c47e homo_lumo_gap_min 12 1 combined_mixed_weighted_test
+megnet_pytorch/25-11-2022_11-38-18/1baefba7 formation_energy_per_site 12 2 combined_mixed_weighted_test
+megnet_pytorch/25-11-2022_11-38-18/1baefba7 homo_lumo_gap_min 12 2 combined_mixed_weighted_test

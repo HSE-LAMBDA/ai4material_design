@@ -1182,3 +1182,262 @@ stages:
       md5: be5de22a4aec11a4a306c2bb9e93b5fb.dir
       size: 133373
       nfiles: 17
+  csv-cif-vacancy-pairs-no-spin@GaSe:
+    cmd: python scripts/vasp_to_csv_cif.py --input-vasp datasets/raw_vasp/vacancy_pairs/GaSe
+      --input-structures-list "datasets/POSCARs/vacancy_pairs/GaSe" --POSCARs-in-input-list
+      --output-csv-cif "datasets/csv_cif/vacancy_pairs/GaSe" --pristine-folder datasets/others/pristine_high_density
+    deps:
+    - path: datasets/POSCARs/vacancy_pairs/GaSe
+      md5: e6401d28e0bd984909e2f5f4077f5304.dir
+      size: 182300
+      nfiles: 20
+    - path: datasets/others/pristine_high_density
+      md5: 2d5e8d944914ac80b59959fde18d7fec.dir
+      size: 568
+      nfiles: 2
+    - path: datasets/raw_vasp/vacancy_pairs/GaSe
+      md5: 7e8ef381a8d013cb18f92dd4d1f66757.dir
+      size: 90875584
+      nfiles: 270
+    - path: scripts/vasp_to_csv_cif.py
+      md5: 418a3ac216d3a0e1ed71fbc1aaa277e5
+      size: 8246
+    outs:
+    - path: datasets/csv_cif/vacancy_pairs/GaSe
+      md5: e01fa045b2f19827406be9299cf5ac6b.dir
+      size: 4994
+      nfiles: 5
+  csv-cif-vacancy-pairs-no-spin@InSe:
+    cmd: python scripts/vasp_to_csv_cif.py --input-vasp datasets/raw_vasp/vacancy_pairs/InSe
+      --input-structures-list "datasets/POSCARs/vacancy_pairs/InSe" --POSCARs-in-input-list
+      --output-csv-cif "datasets/csv_cif/vacancy_pairs/InSe" --pristine-folder datasets/others/pristine_high_density
+    deps:
+    - path: datasets/POSCARs/vacancy_pairs/InSe
+      md5: 609d182d6fd30559f73400606b651562.dir
+      size: 182300
+      nfiles: 20
+    - path: datasets/others/pristine_high_density
+      md5: 2d5e8d944914ac80b59959fde18d7fec.dir
+      size: 568
+      nfiles: 2
+    - path: datasets/raw_vasp/vacancy_pairs/InSe
+      md5: 9046b309ddfc92100a0bdef86fa3a201.dir
+      size: 83752831
+      nfiles: 270
+    - path: scripts/vasp_to_csv_cif.py
+      md5: 418a3ac216d3a0e1ed71fbc1aaa277e5
+      size: 8246
+    outs:
+    - path: datasets/csv_cif/vacancy_pairs/InSe
+      md5: d61b5495a22b298910552f4052551481.dir
+      size: 4960
+      nfiles: 5
+  vacancy-pairs-configs-hBN:
+    cmd: python scripts/defects_generation.py --output-path datasets/POSCARs/vacancy_pairs/hBN
+      --config-path datasets/generation_configs/vacancy_pairs/hBN.yaml
+    deps:
+    - path: datasets/generation_configs/vacancy_pairs/hBN.yaml
+      md5: 62b203858203b4446bc312dc53e3cfe1
+      size: 106
+    - path: defects_generation/molecules/BN.cif
+      md5: dc4db0ece9fca5b7068f8063ebcb783b
+      size: 782
+    - path: scripts/defects_generation.py
+      md5: a0ef3e7bf9333c906845f32f3af48202
+      size: 13880
+    outs:
+    - path: datasets/POSCARs/vacancy_pairs/hBN
+      md5: be5de22a4aec11a4a306c2bb9e93b5fb.dir
+      size: 133373
+      nfiles: 17
+  csv-cif-vacancy-pairs-no-spin@hBN:
+    cmd: python scripts/vasp_to_csv_cif.py --input-vasp datasets/raw_vasp/vacancy_pairs/hBN
+      --input-structures-list "datasets/POSCARs/vacancy_pairs/hBN" --POSCARs-in-input-list
+      --output-csv-cif "datasets/csv_cif/vacancy_pairs/hBN" --pristine-folder datasets/others/pristine_high_density
+    deps:
+    - path: datasets/POSCARs/vacancy_pairs/hBN
+      md5: be5de22a4aec11a4a306c2bb9e93b5fb.dir
+      size: 133373
+      nfiles: 17
+    - path: datasets/others/pristine_high_density
+      md5: 2d5e8d944914ac80b59959fde18d7fec.dir
+      size: 568
+      nfiles: 2
+    - path: datasets/raw_vasp/vacancy_pairs/hBN
+      md5: 696ef9a6cd25cc1b566c792c708787ce.dir
+      size: 31621996
+      nfiles: 225
+    - path: scripts/vasp_to_csv_cif.py
+      md5: 418a3ac216d3a0e1ed71fbc1aaa277e5
+      size: 8246
+    outs:
+    - path: datasets/csv_cif/vacancy_pairs/hBN
+      md5: 8c1af9d366fd14f68565bdfde8363fe1.dir
+      size: 4266
+      nfiles: 5
+  processed-vacancy-pairs@hBN:
+    cmd: python scripts/parse_csv_cif.py --input-name=vacancy_pairs/hBN --normalize-homo-lumo
+      --fill-missing-band-properties
+    deps:
+    - path: datasets/csv_cif/vacancy_pairs/hBN
+      md5: 8c1af9d366fd14f68565bdfde8363fe1.dir
+      size: 4266
+      nfiles: 5
+    - path: scripts/parse_csv_cif.py
+      md5: 7e6534049d1d278071e52d674b69f308
+      size: 13782
+    outs:
+    - path: datasets/processed/vacancy_pairs/hBN/data.pickle.gz
+      md5: 09c1b7887870465c323d52ffff6ca235
+      size: 10792
+    - path: datasets/processed/vacancy_pairs/hBN/targets.csv.gz
+      md5: aaca6abd39000152754ca08d1913ddfe
+      size: 1918
+  vacancy-pairs-configs@GaSe:
+    cmd: python scripts/defects_generation.py --output-path datasets/POSCARs/vacancy_pairs/GaSe
+      --config-path datasets/generation_configs/vacancy_pairs/GaSe.yaml
+    deps:
+    - path: datasets/generation_configs/vacancy_pairs/GaSe.yaml
+      md5: 434dc23e8d61fc1f777991a6fc034d04
+      size: 110
+    - path: defects_generation/molecules/GaSe.cif
+      md5: f2d9a4ac75ad2180f3025024ea26ab5a
+      size: 863
+    - path: scripts/defects_generation.py
+      md5: a0ef3e7bf9333c906845f32f3af48202
+      size: 13880
+    outs:
+    - path: datasets/POSCARs/vacancy_pairs/GaSe
+      md5: e6401d28e0bd984909e2f5f4077f5304.dir
+      size: 182300
+      nfiles: 20
+  vacancy-pairs-configs@InSe:
+    cmd: python scripts/defects_generation.py --output-path datasets/POSCARs/vacancy_pairs/InSe
+      --config-path datasets/generation_configs/vacancy_pairs/InSe.yaml
+    deps:
+    - path: datasets/generation_configs/vacancy_pairs/InSe.yaml
+      md5: 6701009ee9dfa108719ad6336c6d61c1
+      size: 110
+    - path: defects_generation/molecules/InSe.cif
+      md5: 955cc09801115eb803eb631560340cf0
+      size: 863
+    - path: scripts/defects_generation.py
+      md5: a0ef3e7bf9333c906845f32f3af48202
+      size: 13880
+    outs:
+    - path: datasets/POSCARs/vacancy_pairs/InSe
+      md5: 609d182d6fd30559f73400606b651562.dir
+      size: 182300
+      nfiles: 20
+  vacancy-pairs-configs@P:
+    cmd: python scripts/defects_generation.py --output-path datasets/POSCARs/vacancy_pairs/P
+      --config-path datasets/generation_configs/vacancy_pairs/P.yaml
+    deps:
+    - path: datasets/generation_configs/vacancy_pairs/P.yaml
+      md5: fb8f66be6cde9e0a91b87c1411f2fb9a
+      size: 99
+    - path: defects_generation/molecules/P.cif
+      md5: 768a72b84839a206daada19ad4e88a2c
+      size: 843
+    - path: scripts/defects_generation.py
+      md5: a0ef3e7bf9333c906845f32f3af48202
+      size: 13880
+    outs:
+    - path: datasets/POSCARs/vacancy_pairs/P
+      md5: 85037d61f9397705c19192c8589fc789.dir
+      size: 826616
+      nfiles: 85
+  processed-vacancy-pairs@GaSe:
+    cmd: python scripts/parse_csv_cif.py --input-name=vacancy_pairs/GaSe --normalize-homo-lumo
+      --fill-missing-band-properties
+    deps:
+    - path: datasets/csv_cif/vacancy_pairs/GaSe
+      md5: e01fa045b2f19827406be9299cf5ac6b.dir
+      size: 4994
+      nfiles: 5
+    - path: scripts/parse_csv_cif.py
+      md5: 7e6534049d1d278071e52d674b69f308
+      size: 13782
+    outs:
+    - path: datasets/processed/vacancy_pairs/GaSe/data.pickle.gz
+      md5: 4b71ae1f1ae7facff50f308ce0abaff3
+      size: 13601
+    - path: datasets/processed/vacancy_pairs/GaSe/targets.csv.gz
+      md5: 27dcc506e7bd9a43179784008ef695c7
+      size: 2201
+  processed-vacancy-pairs@InSe:
+    cmd: python scripts/parse_csv_cif.py --input-name=vacancy_pairs/InSe --normalize-homo-lumo
+      --fill-missing-band-properties
+    deps:
+    - path: datasets/csv_cif/vacancy_pairs/InSe
+      md5: d61b5495a22b298910552f4052551481.dir
+      size: 4960
+      nfiles: 5
+    - path: scripts/parse_csv_cif.py
+      md5: 7e6534049d1d278071e52d674b69f308
+      size: 13782
+    outs:
+    - path: datasets/processed/vacancy_pairs/InSe/data.pickle.gz
+      md5: 97dfd8a88aa3006c3c137bb579128c17
+      size: 13669
+    - path: datasets/processed/vacancy_pairs/InSe/targets.csv.gz
+      md5: bb7e2a31712e2de78d2ff9743b43656c
+      size: 2157
+  matminer@vacancy_pairs/hBN:
+    cmd: python scripts/compute_matminer_features.py --input-name vacancy_pairs/hBN
+      --n-proc=36
+    deps:
+    - path: datasets/csv_cif/vacancy_pairs/hBN
+      md5: 8c1af9d366fd14f68565bdfde8363fe1.dir
+      size: 4266
+      nfiles: 5
+    - path: scripts/compute_matminer_features.py
+      md5: 00cfa091f2d24ba71b10a34de66f2f34
+      size: 1817
+    outs:
+    - path: datasets/processed/vacancy_pairs/hBN/matminer.csv.gz
+      md5: 0bed5c0dd946fef7cb1669758d2e532b
+      size: 21123
+  matminer@vacancy_pairs/GaSe:
+    cmd: python scripts/compute_matminer_features.py --input-name vacancy_pairs/GaSe
+      --n-proc=36
+    deps:
+    - path: datasets/csv_cif/vacancy_pairs/GaSe
+      md5: e01fa045b2f19827406be9299cf5ac6b.dir
+      size: 4994
+      nfiles: 5
+    - path: scripts/compute_matminer_features.py
+      md5: 00cfa091f2d24ba71b10a34de66f2f34
+      size: 1817
+    outs:
+    - path: datasets/processed/vacancy_pairs/GaSe/matminer.csv.gz
+      md5: a344cbf92529b9c9274d87138b1836dd
+      size: 24534
+  matminer@vacancy_pairs/InSe:
+    cmd: python scripts/compute_matminer_features.py --input-name vacancy_pairs/InSe
+      --n-proc=36
+    deps:
+    - path: datasets/csv_cif/vacancy_pairs/InSe
+      md5: d61b5495a22b298910552f4052551481.dir
+      size: 4960
+      nfiles: 5
+    - path: scripts/compute_matminer_features.py
+      md5: 00cfa091f2d24ba71b10a34de66f2f34
+      size: 1817
+    outs:
+    - path: datasets/processed/vacancy_pairs/InSe/matminer.csv.gz
+      md5: 3297359d4585ad4d43bbeef4e688aa1a
+      size: 23843
+  vacancy-pairs-experiment:
+    cmd: python scripts/folds_from_config.py --experiment-name vacancy_pairs
+    deps:
+    - path: datasets/experiments/vacancy_pairs/config.yaml
+      md5: 64adde8a7888448d76c5abb9e991e7fa
+      size: 812
+    - path: scripts/folds_from_config.py
+      md5: aacbcad33b48c2fd3164c7d4b4c69a78
+      size: 1613
+    outs:
+    - path: datasets/experiments/vacancy_pairs/folds.csv.gz
+      md5: 926ef855677444e4cd2620fd17b8a22f
+      size: 120452

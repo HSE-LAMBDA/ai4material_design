@@ -1,0 +1,30 @@
+datasets:
+- high_density_defects/BP_spin_500
+- high_density_defects/GaSe_spin_500
+- high_density_defects/hBN_spin_500
+- high_density_defects/InSe_spin_500
+- high_density_defects/MoS2_500
+- high_density_defects/WSe2_500
+- low_density_defects/MoS2
+- low_density_defects/WSe2
+- vacancy_pairs/GaSe
+- vacancy_pairs/hBN
+- vacancy_pairs/InSe
+n-folds: 2
+strategy: train_test
+targets:
+- formation_energy_per_site
+# The dataset names are duplicated to preserve backwards compatibility
+train:
+- high_density_defects/BP_spin_500
+- high_density_defects/GaSe_spin_500
+- high_density_defects/hBN_spin_500
+- high_density_defects/InSe_spin_500
+- high_density_defects/MoS2_500
+- high_density_defects/WSe2_500
+- low_density_defects/MoS2
+- low_density_defects/WSe2
+test:
+- vacancy_pairs/GaSe
+- vacancy_pairs/hBN
+- vacancy_pairs/InSe
