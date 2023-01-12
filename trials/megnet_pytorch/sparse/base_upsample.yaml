@@ -1,5 +1,6 @@
 model: 'megnet_pytorch'
 representation: 'sparse'
+minority_class_upsampling: true
 model_params:
   model:
     add_eos_features: true

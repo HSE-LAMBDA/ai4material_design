@@ -1441,3 +1441,29 @@ stages:
     - path: datasets/experiments/vacancy_pairs/folds.csv.gz
       md5: 926ef855677444e4cd2620fd17b8a22f
       size: 120452
+  vacancy-pairs-experiments@vacancy_pairs_GaSe:
+    cmd: python scripts/folds_from_config.py --experiment-name vacancy_pairs_GaSe
+    deps:
+    - path: datasets/experiments/vacancy_pairs_GaSe/config.yaml
+      md5: 8893f95251fd7b2867c200c7e90df28e
+      size: 278
+    - path: scripts/folds_from_config.py
+      md5: aacbcad33b48c2fd3164c7d4b4c69a78
+      size: 1613
+    outs:
+    - path: datasets/experiments/vacancy_pairs_GaSe/folds.csv.gz
+      md5: 627f7b9bb68589d4b4a8ec60216e4b9b
+      size: 12813
+  vacancy-pairs-experiments@vacancy_pairs:
+    cmd: python scripts/folds_from_config.py --experiment-name vacancy_pairs
+    deps:
+    - path: datasets/experiments/vacancy_pairs/config.yaml
+      md5: 64adde8a7888448d76c5abb9e991e7fa
+      size: 812
+    - path: scripts/folds_from_config.py
+      md5: aacbcad33b48c2fd3164c7d4b4c69a78
+      size: 1613
+    outs:
+    - path: datasets/experiments/vacancy_pairs/folds.csv.gz
+      md5: 926ef855677444e4cd2620fd17b8a22f
+      size: 120452
