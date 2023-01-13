@@ -1,0 +1,53 @@
+model: gemnet
+model_params:
+  model:
+    activation: silu
+    cbf:
+      name: spherical_harmonics
+    cutoff: 5
+    direct_forces: false
+    emb_size_atom: 512
+    emb_size_bil_trip: 64
+    emb_size_cbf: 16
+    emb_size_edge: 128
+    emb_size_rbf: 16
+    emb_size_trip: 64
+    envelope:
+      exponent: 3
+      name: polynomial
+    max_neighbors: 50
+    num_after_skip: 2
+    num_atom: 3
+    num_before_skip: 1
+    num_blocks: 3
+    num_concat: 1
+    num_radial: 128
+    num_spherical: 7
+    num_targets: 1
+    output_init: HeOrthogonal
+    rbf:
+      name: gaussian
+    regress_forces: false
+  optim:
+    batch_size: 16
+    clip_grad_norm: 10
+    ema_decay: 0.999
+    energy_coefficient: 1
+    eval_batch_size: 32
+    eval_every: 5000
+    factor: 0.8
+    force_coefficient: 100
+    loss_energy: mae
+    loss_force: l2mae
+    lr_initial: 0.0005
+    max_epochs: 50
+    mode: min
+    num_workers: 2
+    optimizer: AdamW
+    optimizer_params:
+      amsgrad: true
+    patience: 3
+    scheduler: ReduceLROnPlateau
+name: gemnet
+representation: full
+minority_class_upsampling: true

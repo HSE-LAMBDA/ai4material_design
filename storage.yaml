@@ -3,6 +3,7 @@ processed: datasets/processed
 experiments: datasets/experiments
 predictions: datasets/predictions
 checkpoints: datasets/checkpoints
+poscars: datasets/POSCARs
 plots: datasets/plots
 trials: trials
 templates: templates

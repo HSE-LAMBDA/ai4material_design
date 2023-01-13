@@ -1,0 +1,6 @@
+base_material: "GaSe"
+supercell: [6, 6, 1]
+all_combinations: true
+defects:
+  Ga: ["Vacancy"]
+  Se: ["Vacancy"]

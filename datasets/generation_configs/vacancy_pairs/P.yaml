@@ -1,0 +1,5 @@
+base_material: "P"
+supercell: [6, 6, 1]
+all_combinations: true
+defects:
+  P: ["Vacancy", "Vacancy"]

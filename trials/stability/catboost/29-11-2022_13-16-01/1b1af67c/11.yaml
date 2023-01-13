@@ -1,0 +1,14 @@
+model: catboost
+model_params:
+  bootstrap_type: Bernoulli
+  border_count: 254
+  gpu_ram_part: 0.5
+  grow_policy: Depthwise
+  iterations: 1000
+  l2_leaf_reg: 5
+  learning_rate: 0.05
+  loss_function: MAE
+  min_child_samples: 5
+  verbose: true
+  random_seed: 52
+representation: matminer

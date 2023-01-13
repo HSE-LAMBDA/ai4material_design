@@ -1,0 +1,6 @@
+base_material: "MoS2"
+supercell: [8, 8, 1]
+all_combinations: true
+defects:
+  Mo: ["Vacancy"]
+  S: ["Vacancy"]

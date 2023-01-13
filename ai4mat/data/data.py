@@ -1,12 +1,12 @@
-from enum import Enum
+from typing import Union
 import logging
 import os
-import shutil
 from pathlib import Path
 import yaml
 import pandas as pd
 import ase.io
 import pymatgen.io.cif
+from ast import literal_eval
 from tqdm.auto import tqdm
 from collections import defaultdict
 import tarfile
@@ -245,10 +245,10 @@ def read_structures_descriptions(data_path) -> pd.DataFrame:
                            index_col=Columns()["structure"]["id"])
 
 
-def read_defects_descriptions(data_path:str):
+def read_defects_descriptions(data_path: Union[str, Path]) -> pd.DataFrame:
     return pd.read_csv(
         os.path.join(data_path, "descriptors.csv"), index_col="_id",
-        converters={"cell": lambda x: tuple(eval(x)), "defects": eval})
+        converters={"cell": lambda x: tuple(literal_eval(x)), "defects": literal_eval})
 
 
 def get_dichalcogenides_innopolis(data_path):
@@ -274,3 +274,16 @@ def get_dichalcogenides_innopolis(data_path):
     structures[Columns()["structure"]["unrelaxed"]] =  structures.apply(
         lambda row: initial_structures[row.name], axis=1)
     return structures, read_defects_descriptions(data_path)
+
+
+def read_experiment_datasets(experiment_name):
+    storage_resolver = StorageResolver()
+    experiment_path = storage_resolver["experiments"].joinpath(experiment_name)
+    with open(experiment_path.joinpath("config.yaml")) as experiment_file:
+        experiment = yaml.safe_load(experiment_file)
+    folds = pd.read_csv(storage_resolver["experiments"].joinpath(
+                        experiment_name).joinpath("folds.csv.gz"),
+                        index_col="_id")
+    datasets = pd.concat([pd.read_pickle(storage_resolver["processed"]/dataset/"data.pickle.gz") for dataset in experiment["datasets"]], axis=0)
+    defects = pd.concat([read_defects_descriptions(storage_resolver["csv_cif"]/dataset) for dataset in experiment["datasets"]], axis=0)
+    return experiment, folds, datasets, defects

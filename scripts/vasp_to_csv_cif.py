@@ -1,3 +1,4 @@
+from typing import Dict, List, Union
 import argparse
 import sys
 import numpy as np
@@ -17,7 +18,7 @@ sys.path.append('.')
 from ai4mat.data.data import read_structures_descriptions, copy_indexed_structures
 
 
-def get_E1(eigenvalues: dict[str, npt.NDArray], separate_spins: bool) -> list[float]:
+def get_E1(eigenvalues: Dict[str, npt.NDArray], separate_spins: bool) -> List[float]:
     """
     Extracts the energy of the lowest orbital from vasprun.xml.
     Args:
@@ -43,8 +44,8 @@ def get_E1(eigenvalues: dict[str, npt.NDArray], separate_spins: bool) -> list[fl
 
 def extract_data_from_vasp(
     vasprun_directory: Path,
-    band_occupancy_tolerence: float | None = None,
-    separate_spins: bool = False) -> dict[str, float]:
+    band_occupancy_tolerence: Union[float, None] = None,
+    separate_spins: bool = False) -> Dict[str, float]:
     """
     Extracts relevant fields from VASP output.
     """

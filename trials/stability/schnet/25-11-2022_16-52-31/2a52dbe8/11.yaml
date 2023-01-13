@@ -1,0 +1,22 @@
+minority_class_upsampling: true
+model: schnet
+model_params:
+  model:
+    cutoff: 10
+    hidden_channels: 128
+    max_num_neighbors: 32
+    num_filters: 32
+    num_gaussians: 40
+    num_interactions: 4
+  optim:
+    batch_size: 32
+    eval_batch_size: 32
+    lr_initial: 0.001
+    max_epochs: 50
+    max_lr: 0.005
+    minority_class_upsampling: true
+    num_workers: 2
+    optimizer: AdamW
+    optimizer_params:
+      amsgrad: true
+representation: full

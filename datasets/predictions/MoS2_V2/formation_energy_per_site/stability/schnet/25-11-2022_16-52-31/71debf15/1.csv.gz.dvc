@@ -1,0 +1,4 @@
+outs:
+- md5: ff6f33b6456e328abd6c008d7a069a0b
+  size: 240
+  path: 1.csv.gz

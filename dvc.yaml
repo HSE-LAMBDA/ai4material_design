@@ -33,6 +33,23 @@ stages:
         - scripts/vasp_to_csv_cif.py
       outs:
         - datasets/csv_cif/high_density_defects/${item}_spin_500
+  csv-cif-vacancy-pairs-no-spin:
+    foreach:
+      - GaSe
+      - InSe
+      - hBN
+    do:
+      cmd: python scripts/vasp_to_csv_cif.py --input-vasp datasets/raw_vasp/vacancy_pairs/${item}
+        --input-structures-list "datasets/POSCARs/vacancy_pairs/${item}" --POSCARs-in-input-list
+        --output-csv-cif "datasets/csv_cif/vacancy_pairs/${item}"
+        --pristine-folder datasets/others/pristine_high_density
+      deps:
+        - datasets/POSCARs/vacancy_pairs/${item}
+        - datasets/others/pristine_high_density
+        - datasets/raw_vasp/vacancy_pairs/${item}
+        - scripts/vasp_to_csv_cif.py
+      outs:
+        - datasets/csv_cif/vacancy_pairs/${item}
   csv-cif-spin-500-data-occu-tol-investigation:
     foreach:
       - material: BP
@@ -163,6 +180,19 @@ stages:
     outs:
       - datasets/processed/pilot/targets.csv.gz
       - datasets/processed/pilot/data.pickle.gz
+  processed-vacancy-pairs:
+    foreach:
+      - hBN
+      - GaSe
+      - InSe
+    do:
+      cmd: python scripts/parse_csv_cif.py --input-name=vacancy_pairs/${item} --normalize-homo-lumo --fill-missing-band-properties
+      deps:
+        - scripts/parse_csv_cif.py
+        - datasets/csv_cif/vacancy_pairs/${item}
+      outs:
+        - datasets/processed/vacancy_pairs/${item}/targets.csv.gz
+        - datasets/processed/vacancy_pairs/${item}/data.pickle.gz
   rolos-2d-materials-point-defects:
     cmd:
       ./scripts/pack_for_rolos.sh
@@ -184,6 +214,9 @@ stages:
       - high_density_defects/WSe2_500
       - low_density_defects/MoS2
       - low_density_defects/WSe2
+      - vacancy_pairs/hBN
+      - vacancy_pairs/GaSe
+      - vacancy_pairs/InSe
       - pilot
     do:
       cmd: python scripts/compute_matminer_features.py --input-name ${item} --n-proc=36
@@ -199,3 +232,36 @@ stages:
       - scripts/compute_matminer_features.py
     outs:
       - datasets/processed/pilot/matminer_dbg.csv.gz
+  vacancy-pairs-configs:
+    foreach:
+      - GaSe
+      - InSe
+      - MoS2
+      - P
+    do:
+      # No clean output as the UUIDs will be regenerated
+      cmd: python scripts/defects_generation.py --output-path datasets/POSCARs/vacancy_pairs/${item}
+           --config-path datasets/generation_configs/vacancy_pairs/${item}.yaml
+      deps:
+        - datasets/generation_configs/vacancy_pairs/${item}.yaml
+        - defects_generation/molecules/${item}.cif
+        - scripts/defects_generation.py
+      outs:
+        - datasets/POSCARs/vacancy_pairs/${item}
+  vacancy-pairs-configs-hBN:
+    cmd: python scripts/defects_generation.py --output-path datasets/POSCARs/vacancy_pairs/hBN
+           --config-path datasets/generation_configs/vacancy_pairs/hBN.yaml
+    deps:
+      - datasets/generation_configs/vacancy_pairs/hBN.yaml
+      - scripts/defects_generation.py
+      # And this BN/hBN difference is why we have a separate entity
+      - defects_generation/molecules/BN.cif
+    outs:
+      - datasets/POSCARs/vacancy_pairs/hBN
+  vacancy-pairs-experiment:
+    cmd: python scripts/folds_from_config.py --experiment-name vacancy_pairs
+    deps:
+      - scripts/folds_from_config.py
+      - datasets/experiments/vacancy_pairs/config.yaml
+    outs:
+      - datasets/experiments/vacancy_pairs/folds.csv.gz
