@@ -258,10 +258,14 @@ stages:
       - defects_generation/molecules/BN.cif
     outs:
       - datasets/POSCARs/vacancy_pairs/hBN
-  vacancy-pairs-experiment:
-    cmd: python scripts/folds_from_config.py --experiment-name vacancy_pairs
-    deps:
-      - scripts/folds_from_config.py
-      - datasets/experiments/vacancy_pairs/config.yaml
-    outs:
-      - datasets/experiments/vacancy_pairs/folds.csv.gz
+  vacancy-pairs-experiments:
+    foreach:
+      - vacancy_pairs
+      - vacancy_pairs_GaSe
+    do:
+      cmd: python scripts/folds_from_config.py --experiment-name ${item}
+      deps:
+        - scripts/folds_from_config.py
+        - datasets/experiments/${item}/config.yaml
+      outs:
+        - datasets/experiments/${item}/folds.csv.gz
