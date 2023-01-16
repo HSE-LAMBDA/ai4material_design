@@ -57,7 +57,7 @@ def main():
     parser.add_argument("--random-seed", type=int, default=42)
     parser.add_argument("--n-folds", type=int, default=8)
     parser.add_argument("--targets", type=str, nargs="+",
-                        default=["band_gap", "homo", "formation_energy_per_site"])
+                        default=["homo_lumo_gap_min", "formation_energy_per_site"])
     parser.add_argument("--drop-na", action="store_true",
                         help="Drop the ids for which fields are missing")
     parser.add_argument("--strategy", type=str, default="cv")

@@ -24,6 +24,6 @@ for i in $(seq 1 $REPEATS); do
     # Check if we have a batch of trials to process
     if [ $((i % BATCH_SIZE)) -eq 0 ]; then
         TRIALS_BATCH=$(seq -f stability/$TRIAL_NAME/%g $((i - BATCH_SIZE + 1)) $i)
-        qsub -v EXPERIMENT="$EXPERIMENT_NAME",TRIALS="$TRIALS_BATCH",TARGETS="$TARGET" $SCRIPTPATH/run_experiments_nscc.pbs
+#        qsub -v EXPERIMENT="$EXPERIMENT_NAME",TRIALS="$TRIALS_BATCH",TARGETS="$TARGET" $SCRIPTPATH/run_experiments_nscc.pbs
     fi
 done

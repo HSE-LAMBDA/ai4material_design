@@ -1,0 +1,12 @@
+datasets:
+- high_density_defects/GaSe_spin_500
+- vacancy_pairs/GaSe
+n-folds: 2
+strategy: train_test
+targets:
+- formation_energy_per_site
+# The dataset names are duplicated to preserve backwards compatibility
+train:
+- high_density_defects/GaSe_spin_500
+test:
+- vacancy_pairs/GaSe
