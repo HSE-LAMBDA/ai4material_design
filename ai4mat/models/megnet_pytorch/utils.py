@@ -17,6 +17,6 @@ class Scaler:
         return (data_copy - self.mean) / (self.std if abs(self.std) > 1e-7 else 1.)
 
     def inverse_transform(self, data):
-        data_copy = copy(data)
+        data_copy = data.detach().clone()
         std = self.std if abs(self.std) > 1e-7 else 1.0
         return data_copy * std + self.mean

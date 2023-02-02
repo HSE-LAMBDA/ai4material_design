@@ -33,8 +33,12 @@ class Columns(dict):
 
 class StorageResolver:
     def __init__(self,
-                 config_name=Path(__file__).parent.parent.parent.joinpath("storage.yaml")):
-        self.root_folder = config_name.parents[0].absolute()
+                 config_name=Path(__file__).parent.parent.parent.joinpath("storage.yaml"),
+                 root_folder=None):
+        if root_folder is None:
+            self.root_folder = config_name.parents[0].absolute()
+        else:
+            self.root_folder = root_folder
         with open(config_name) as config_file:
             self.config = yaml.safe_load(config_file)
 

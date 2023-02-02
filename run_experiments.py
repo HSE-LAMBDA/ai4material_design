@@ -37,6 +37,7 @@ def main():
                         help="Only run on these targets")
     parser.add_argument("--n-jobs", type=int, default=1,
                         help="Number of jobs for a training process to run. Not all models support this parameter.")
+    parser.add_argument("--output-folder", type=Path)
 
     args = parser.parse_args()
 
@@ -45,6 +46,8 @@ def main():
         os.environ["WANDB_RUN_GROUP"] = "2D-crystal-" + wandb.util.generate_id()
     if args.wandb_entity:
         os.environ["WANDB_ENTITY"] = args.wandb_entity
+    else:
+        os.environ["WANDB_ENTITY"] = ""
     if args.cpu:
         gpus = [None]
     else:
@@ -56,7 +59,7 @@ def main():
                        args.processes_per_unit,
                        args.targets,
                        args.n_jobs,
-                       )
+                       output_folder=args.output_folder)
 
 
 def run_experiment(experiment_name: str,
@@ -64,7 +67,8 @@ def run_experiment(experiment_name: str,
                    gpus: List[int],
                    processes_per_unit: int,
                    requested_targets: List[str] = None,
-                   n_jobs=1
+                   n_jobs=1,
+                   output_folder: Path = None,
                    ) -> None:
     """
     Runs an experiment.
@@ -144,12 +148,12 @@ def run_experiment(experiment_name: str,
             minority_class_upsampling=minority_class_upsampling,
         )
         predictions.rename(lambda target_name: f"predicted_{target_name}_test", axis=1, inplace=True)
-        save_path = storage_resolver["predictions"].joinpath(
+        save_path = StorageResolver(root_folder=output_folder)["predictions"].joinpath(
             get_prediction_path(experiment_name, str(target_name), this_trial_name)
         )
         save_path.parents[0].mkdir(exist_ok=True, parents=True)
         predictions.to_csv(save_path, index_label="_id")
-        print("Predictions has been saved!", save_path)
+        print("Predictions have been saved!", save_path)
 
 
 def cross_val_predict(
