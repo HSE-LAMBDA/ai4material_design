@@ -88,7 +88,7 @@ def read_results(folds_experiment_name: str,
     return results
 
 
-def print_table_paper(series,
+def print_table_paper(dataframe: pd.DataFrame,
                       trial_re,
                       model_names: OrderedDict):
     """
@@ -97,10 +97,10 @@ def print_table_paper(series,
     row_index = "dataset"
     column_index = "trial"
     separate_by = "target"
-    all_separators = series.index.get_level_values(separate_by).unique()
+    all_separators = dataframe.index.get_level_values(separate_by).unique()
     individual_dataset_parser = re.compile(r"(?P<density>.+)_density_defects/(?P<material>[a-zA-Z0-9]+)")
     for table_index in all_separators:
-        table_data = series.xs(table_index, level=separate_by)
+        table_data = dataframe.xs(table_index, level=separate_by)
         records = []
         for row_name in sorted(table_data.index.get_level_values(row_index).unique()):
             if row_name == "combined":
@@ -113,19 +113,24 @@ def print_table_paper(series,
                 records_per_dataset = {
                     "Material": '\ce{'+ material + '}',
                     "Density": match.group("density")}
-            for trial, data in table_data.xs(row_name, level=row_index).items():
+            for trial, data in table_data.xs(row_name, level=row_index).iterrows():
                 if trial_re is not None:
                     model_name = trial_re.match(trial).group("name").replace("_pytorch", "")
                 else:
                     model_name = trial
-                records_per_dataset[model_name] = data
+                records_per_dataset[model_name] = (data['mae'], data['std'])
+                #norm_model = "stability/megnet_pytorch/sparse/05-12-2022_19-50-53/d6b7ce45"
+                #norm_model = "stability/megnet_pytorch/sparse/05-12-2022_19-50-53/831cc496"
+                #norm = table_data.at[(row_name, norm_model), "mae"]
+                #records_per_dataset[model_name] = data['mae']/norm
             records.append(records_per_dataset)
         table = pd.DataFrame.from_records(records)
         table.set_index(["Material", "Density"], inplace=True)
         table = table[list(model_names.keys())]
         table.rename(columns=model_names, inplace=True)
-        #table = table[['SchNet', 'GemNet', 'MEGNet', 'CatBoost', 'Sparse (MEGNet)']]
-        print(table.style.to_latex(column_format="cc|ccccc", hrules=True))
+        # ties are to handled manually
+        styled_table = table.style.highlight_min(axis=1, props='bfseries: ;')#.format(partial(format_result, latex_siunitx=True))
+        print(styled_table.to_latex(column_format="cc|ccccc", hrules=True, siunitx=True))
 
 
 def print_tables(series, separate_by, column_format_re=None, row_format_re=None):
@@ -155,12 +160,19 @@ def print_tables(series, separate_by, column_format_re=None, row_format_re=None)
         print(mae_table)
 
 
-def format_result(row, latex=False):
-    digits = int(max(-np.log10(row['std']) + 1, 0))
-    if latex:
-        return f"${row['mae']:.{digits}f} \\pm {row['std']:.{digits}f}$"
+def format_result(row, latex_math=False, latex_siunitx=False):
+    if isinstance(row, pd.Series):
+        mae = row['mae']
+        std = row['std']
     else:
-        return f"{row['mae']:.{digits}f} ± {row['std']:.{digits}f}"
+        mae, std = row
+    digits = int(max(-np.log10(std) + 1, 0))
+    if latex_math:
+        return f"${mae:.{digits}f} \\pm {std:.{digits}f}$"
+    elif latex_siunitx:
+        return f"{mae:.{digits}f}({std:.{digits}f})"
+    else:
+        return f"{mae:.{digits}f} ± {std:.{digits}f}"
 
 
 def read_trial(experiment, trial, skip_missing_data, targets, return_predictions=False):
@@ -243,12 +255,7 @@ def main():
     results_pd = args.multiple * pd.concat(results, axis=0)
     if args.save_pandas:
         results_pd.to_pickle(args.save_pandas)
-    
-    if args.print_std:
-        print("Note, single trials std is computed over examples, but for stability trials it is computed over trials")
-        results_str = results_pd.apply(partial(format_result, latex=args.paper_results or args.paper_ablation_energy or args.paper_ablation_homo_lumo), axis=1)
-    else:   
-        results_str = results_pd.apply(lambda row: f"{row['mae']:.{4-int(np.log10(args.multiple))}f}", axis=1)
+        
 
     if args.paper_results:
         models=OrderedDict(
@@ -257,7 +264,7 @@ def main():
                 megnet="MEGNet",
                 catboost="CatBoost")
         models["megnet/sparse"] = "Sparse (MEGNet)"
-        print_table_paper(results_str, args.column_format_re, models)
+        print_table_paper(results_pd, args.column_format_re, models)
     elif args.paper_ablation_energy:
         models=OrderedDict()
         models["stability/megnet_pytorch/25-11-2022_11-38-18/1baefba7"] = "Full"
@@ -265,7 +272,7 @@ def main():
         models["stability/megnet_pytorch/ablation_study/d6b7ce45-sparse-z"] = "Sparse-Z"
         models["stability/megnet_pytorch/ablation_study/d6b7ce45-sparse-z-were"] = "Sparse-Z-Were"
         models["stability/megnet_pytorch/sparse/05-12-2022_19-50-53/d6b7ce45"] = "Sparse-Z-Were-EOS"
-        print_table_paper(results_str, args.column_format_re, models)
+        print_table_paper(results_pd, args.column_format_re, models)
     elif args.paper_ablation_homo_lumo:
         models=OrderedDict()
         models["stability/megnet_pytorch/25-11-2022_11-38-18/1baefba7"] = "Full"
@@ -273,8 +280,9 @@ def main():
         models["stability/megnet_pytorch/ablation_study/831cc496-sparse-z"] = "Sparse-Z"
         models["stability/megnet_pytorch/ablation_study/831cc496-sparse-z-were"] = "Sparse-Z-Were"
         models["stability/megnet_pytorch/sparse/05-12-2022_19-50-53/831cc496"] = "Sparse-Z-Were-EOS"
-        print_table_paper(results_str, args.column_format_re, models)
+        print_table_paper(results_pd, args.column_format_re, models)
     else:
+        results_str = results_pd.apply(lambda row: f"{row['mae']:.{4-int(np.log10(args.multiple))}f}", axis=1)
         print_tables(results_str, args.separate_by, args.column_format_re, args.row_format_re)
 
     if args.bootstrap_significance:

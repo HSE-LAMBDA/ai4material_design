@@ -19,6 +19,7 @@
 ```
 poetry install
 ```
+If it fails, try removing `poetry.lock`. We are forced to support multiple Python versions, so it's imposible to have a single lock file.
 4. [Install pytorch](https://pytorch.org/) according to your CUDA/virtualenv/conda situatoin
 5. [Install pytorch-geometric](https://pytorch-geometric.readthedocs.io/en/latest/notes/installation.html) according to your CUDA/virtualenv/conda situatoin
 6. [Log in to WanDB](https://docs.wandb.ai/ref/cli/wandb-login)
