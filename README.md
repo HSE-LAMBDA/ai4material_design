@@ -190,10 +190,10 @@ dvc pull trials/megnet_pytorch/09-11-2022_18-11-54.dvc
 ```
 ## Rolos demo
 ### Environment
-Follow the first section. If something is missing, please help us by adding it to `pyproject.toml`.
+Follow the corresponding section. If something is missing, please help us by adding it to `pyproject.toml`. CatBoost is not available for Python 3.11, but they [plan](https://github.com/catboost/catboost/issues/2213) to ship it before 03.02.2023.
 ### Get the data
 ```
-dvc pull processed-low-density processed-high-density experiments/combined_mixed_weighted_test experiments/MoS2_V2
+dvc pull processed-low-density processed-high-density datasets/experiments/combined_mixed_weighted_test datasets/experiments/MoS2_V2
 dvc pull -R trials
 ```
 ### Run the experiments
@@ -205,7 +205,7 @@ MoS2 E(distance):
 ```
 python run_experiments.py --experiments MoS2_V2 --targets formation_energy_per_site --trials schnet/25-11-2022_16-52-31/71debf15 catboost/29-11-2022_13-16-01/02e5eda9 gemnet/16-11-2022_20-05-04/b5723f85 megnet_pytorch/sparse/05-12-2022_19-50-53/d6b7ce45 megnet_pytorch/25-11-2022_11-38-18/1baefba7
 ```
-The trials in the commands have optimal hyperparameters. Split the trials over multiple invocations of run_experiments.py according to your exection environement. Modify the code to write in an accesible location.
+The trials in the commands have optimal hyperparameters. Split the trials over multiple invocations of run_experiments.py according to your exection environement. Modify the code to write in an accesible location. In case there are errors, you might need to re-run the last data processing step csv/cif -> pickle, follow `dvc.yaml` for that.
 ### Print the aggregate table
 ```
 python scripts/summary_table_lean.py --experiment combined_mixed_weighted_test --targets formation_energy_per_site --trials schnet/25-11-2022_16-52-31/71debf15 catboost/29-11-2022_13-16-01/02e5eda9 gemnet/16-11-2022_20-05-04/b5723f85 megnet_pytorch/sparse/05-12-2022_19-50-53/d6b7ce45 megnet_pytorch/25-11-2022_11-38-18/1baefba7 --separate-by target --column-format-re \(?P\<name\>.+\)\/.+/\.+
