@@ -187,29 +187,27 @@ dvc pull datasets/csv_cif/high_density_defects/{BP_spin,GaSe_spin,hBN_spin,InSe_
 dvc pull trials/megnet_pytorch/09-11-2022_18-11-54.dvc
 ./run_megnet_pytorch_experiments_nscc_paper.sh
 ```
-### Print the tables [obsolete]
+## Rolos demo
+### Environment
+Follow the first section. If something is missing, please help us by adding it to `pyproject.toml`.
+### Get the data
 ```
-python scripts/summary_table_lean.py --experiments high_density/{BP,hBN,InSe,GaSe}_spin_500 high_density/{MoS2,WSe2}_500 high_density/combined --combined-experiment high_density/combined --trials megnet_pytorch_paper/sparse{,-z,-z-were,-z-were-eos} --skip-missing --separate-by target --column-format-re megnet_pytorch_paper/\(?P\<name\>.+\) --row-format-re high_density/\(?P\<name\>.\*\)
-python scripts/summary_table_lean.py --experiments low_density/{MoS2,WSe2,combined} --combined-experiment low_density/combined --trials megnet_pytorch_paper/sparse{,-z,-z-were,-z-were-eos} --skip-missing --separate-by target --column-format-re megnet_pytorch_paper/\(?P\<name\>.+\) --row-format-re low_density/\(?P\<name\>.\*\)
-python scripts/summary_table_lean.py --experiments low_density/{MoS2,WSe2,combined} high_density/{BP,hBN,InSe,GaSe}_spin_500 high_density/{MoS2,WSe2}_500 high_density/combined low_high_combined --trials megnet_pytorch_paper/sparse{,-z,-z-were,-z-were-eos} --skip-missing --separate-by target --save-pandas datasets/others/megnet_sparse_analysis.pkl.gz
+dvc pull processed-low-density processed-high-density experiments/combined_mixed_weighted_test experiments/MoS2_V2
+dvc pull -R trials
 ```
-
-## Running on HSE HPC [obsolete]
-0. ssh to the cluster head node if you gonna run on a slurm cluster
-1. Load the module `module load Python/Anaconda_v11.2020`
-2. Install poetry ```curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -```
-3. create new conda enviroment ```conda create -n exp1 python=3.8``` then activate it `conda activate exp1`
-4. cd to project directory and run `poetry install` if you having internal poetry problem due to the fact you are already using poetry and didn't install it run ```pip install poetry```
-5. find out cuda version, then `export CUDA=cu113` replace the `cu113` with your version
-6. run
+### Run the experiments
+Aggregate:
 ```
-pip install torch==1.10.0+${CUDA} torchvision==0.11.1+${CUDA} torchaudio==0.10.0+${CUDA} -f https://download.pytorch.org/whl/${CUDA}/torch_stable.html
-pip install torch-scatter -f https://data.pyg.org/whl/torch-1.10.0+${CUDA}.html
-pip install torch-sparse -f https://data.pyg.org/whl/torch-1.10.0+${CUDA}.html
-pip install torch-geometric
+python run_experiments.py --experiments combined_mixed_weighted_test --targets formation_energy_per_site --trials schnet/25-11-2022_16-52-31/71debf15 catboost/29-11-2022_13-16-01/02e5eda9 gemnet/16-11-2022_20-05-04/b5723f85 megnet_pytorch/sparse/05-12-2022_19-50-53/d6b7ce45 megnet_pytorch/25-11-2022_11-38-18/1baefba7
 ```
-if you have error make sure to run and repeat the previous step
+MoS2 E(distance):
 ```
-pip uninstall torch-geometric torch-sparse torch-scatter torch-spline-conv torch-cluster
+python run_experiments.py --experiments MoS2_V2 --targets formation_energy_per_site --trials schnet/25-11-2022_16-52-31/71debf15 catboost/29-11-2022_13-16-01/02e5eda9 gemnet/16-11-2022_20-05-04/b5723f85 megnet_pytorch/sparse/05-12-2022_19-50-53/d6b7ce45 megnet_pytorch/25-11-2022_11-38-18/1baefba7
 ```
-this step is very ugly but this the fastest way to have a working enviroment
+The trials in the commands have optimal hyperparameters. Split the trials over multiple invocations of run_experiments.py according to your exection environement. Modify the code to write in an accesible location.
+### Print the aggregate table
+```
+python scripts/summary_table_lean.py --experiment combined_mixed_weighted_test --targets formation_energy_per_site --trials schnet/25-11-2022_16-52-31/71debf15 catboost/29-11-2022_13-16-01/02e5eda9 gemnet/16-11-2022_20-05-04/b5723f85 megnet_pytorch/sparse/05-12-2022_19-50-53/d6b7ce45 megnet_pytorch/25-11-2022_11-38-18/1baefba7 --separate-by target --column-format-re \(?P\<name\>.+\)\/.+/\.+
+```
+### Draw the E(distance) plot
+Modify `notebooks/MoS2_V2_plot.ipynb` to read the prediction from the correct Rolos location. Run the notebook.
