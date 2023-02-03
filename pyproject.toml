@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "2d-defects-potential-learning"
+name = "2d-defects-potential-learning-rolos"
 version = "0.5.1"
 description = "Sparse representation of defects in 2D materials: models, expeiments, and results."
 authors = ["Abdalaziz Rashid Al-Maeeni <al-maeeni@hse.ru>",

@@ -12,80 +12,9 @@ from collections import defaultdict, OrderedDict
 if __name__ == "__main__":
     import sys
     sys.path.append('.')
-    from ai4mat.data.data import StorageResolver, get_prediction_path, TEST_FOLD    
+    from ai4mat.data.data import StorageResolver, get_prediction_path, TEST_FOLD, read_trial
 else:
-    from ..ai4mat.data.data import StorageResolver, get_prediction_path, TEST_FOLD
-
-
-def read_results(folds_experiment_name: str,
-                 predictions_experiment_name: str,
-                 trial:str,
-                 skip_missing:bool,
-                 targets: List[str],
-                 return_predictions: bool = False) -> Dict[str, Dict[str, Dict[str, float]]]:
-    storage_resolver = StorageResolver()
-    with open(storage_resolver["experiments"].joinpath(folds_experiment_name).joinpath("config.yaml")) as experiment_file:
-        folds_yaml = yaml.safe_load(experiment_file)
-    folds_definition = pd.read_csv(storage_resolver["experiments"].joinpath(
-                        folds_experiment_name).joinpath("folds.csv.gz"),
-                        index_col="_id")
-    if folds_yaml['strategy'] == 'train_test':
-        folds_definition = folds_definition[folds_definition['fold'] == TEST_FOLD]
-
-    folds = folds_definition.loc[:, 'fold']
-    if "weight" in folds_definition.columns:
-        weights = folds_definition.loc[:, 'weight']
-    else:
-        weights = None
-    
-    experiment_path = storage_resolver["experiments"].joinpath(predictions_experiment_name)
-    with open(experiment_path.joinpath("config.yaml")) as experiment_file:
-        experiment = yaml.safe_load(experiment_file)
-
-    results = defaultdict(lambda: defaultdict(dict))
-    targets_per_dataset = [pd.read_csv(storage_resolver["processed"]/path/"targets.csv.gz",
-                                       index_col="_id",
-                                       usecols=["_id"] + experiment["targets"])
-                                       for path in experiment["datasets"]]
-    true_targets = pd.concat(targets_per_dataset, axis=0).reindex(index=folds.index)
-
-    for target_name in set(experiment["targets"]).intersection(targets):
-        try:
-            predictions = pd.read_csv(storage_resolver["predictions"].joinpath(
-                                      get_prediction_path(
-                                      predictions_experiment_name,
-                                      target_name,
-                                      trial
-                                      )), index_col="_id").squeeze("columns")
-        except FileNotFoundError:
-            if skip_missing:
-                logging.warning("No predictions for experiment %s; trial %s; target %s",
-                                predictions_experiment_name, trial, target_name)
-                continue
-            else:
-                raise
-        errors = np.abs(predictions - true_targets.loc[:, target_name])
-        mae = np.average(errors, weights=weights)
-        std = np.sqrt(np.cov(errors, aweights=weights))
-        results[target_name]['combined']['mae'] = mae
-        results[target_name]['combined']['std'] = std
-        results[target_name]['combined']['errors'] = errors
-        if return_predictions:
-            results[target_name]['combined']['predictions'] = predictions
-        if weights is not None:
-            results[target_name]['combined']['weights'] = weights
-        for dataset, targets in zip(experiment["datasets"], targets_per_dataset):
-            this_errors = errors.reindex(index=targets.index.intersection(errors.index))
-            # Assume the weight is the same for all structures in a dataset
-            results[target_name][dataset]['mae'] = this_errors.mean()
-            this_std = np.std(this_errors)
-            results[target_name][dataset]['std'] = this_std
-            results[target_name][dataset]['errors'] = this_errors.values
-            if return_predictions:
-                results[target_name][dataset]['predictions'] = predictions.reindex(index=this_errors.index)
-            if weights is not None:
-                results[target_name][dataset]['weights'] = weights.reindex(index=this_errors.index)
-    return results
+    from ..ai4mat.data.data import StorageResolver, get_prediction_path, TEST_FOLD, read_trial
 
 
 def print_table_paper(dataframe: pd.DataFrame,
@@ -173,28 +102,6 @@ def format_result(row, latex_math=False, latex_siunitx=False):
         return f"{mae:.{digits}f}({std:.{digits}f})"
     else:
         return f"{mae:.{digits}f} ± {std:.{digits}f}"
-
-
-def read_trial(experiment, trial, skip_missing_data, targets, return_predictions=False):
-    these_results_unwrapped = []
-    these_results = read_results(experiment, experiment, trial, skip_missing=skip_missing_data, targets=targets, return_predictions=return_predictions)
-    for target, target_results in these_results.items():
-        for dataset, mae_std in target_results.items():
-            these_results_unwrapped.append({
-                "trial": trial,
-                "target": target,
-                "dataset": dataset,
-                "mae": mae_std["mae"],
-                "std": mae_std["std"],
-                "errors": mae_std["errors"]})
-            if "weights" in mae_std:
-                these_results_unwrapped[-1]["weights"] = mae_std["weights"]
-            if return_predictions:
-                these_results_unwrapped[-1]["predictions"] = mae_std["predictions"]
-    these_results_pd = pd.DataFrame.from_records(these_results_unwrapped)
-    if len(these_results_pd) > 0:
-        these_results_pd.set_index(["target", "dataset", "trial"], inplace=True)
-    return these_results_pd
 
 
 def main():

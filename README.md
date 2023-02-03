@@ -205,7 +205,7 @@ WANDB_MODE=disabled python run_experiments.py --experiments combined_mixed_weigh
 ```
 MoS2 E(distance):
 ```
-WANDB_MODE=disabled python run_experiments.py --experiments MoS2_V2 --targets formation_energy_per_site --output-folder /output --trials schnet/25-11-2022_16-52-31/71debf15 catboost/29-11-2022_13-16-01/02e5eda9 gemnet/16-11-2022_20-05-04/b5723f85 megnet_pytorch/sparse/05-12-2022_19-50-53/d6b7ce45 megnet_pytorch/25-11-2022_11-38-18/1baefba7
+WANDB_MODE=disabled python run_experiments.py --experiments MoS2_V2 --targets formation_energy_per_site --output-folder /output --trials schnet/25-11-2022_16-52-31/71debf15 catboost/29-11-2022_13-16-01/02e5eda9 gemnet/16-11-2022_20-05-04/b5723f85 megnet_pytorch/sparse/d6b7ce45_no_resample megnet_pytorch/25-11-2022_11-38-18/1baefba7
 ```
 
 ### Print the aggregate table

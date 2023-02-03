@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, List, Optional, Dict
 import logging
 import os
 from pathlib import Path
@@ -10,6 +10,7 @@ from ast import literal_eval
 from tqdm.auto import tqdm
 from collections import defaultdict
 import tarfile
+import numpy as np
 
 
 TRAIN_FOLD = 0
@@ -291,3 +292,103 @@ def read_experiment_datasets(experiment_name):
     datasets = pd.concat([pd.read_pickle(storage_resolver["processed"]/dataset/"data.pickle.gz") for dataset in experiment["datasets"]], axis=0)
     defects = pd.concat([read_defects_descriptions(storage_resolver["csv_cif"]/dataset) for dataset in experiment["datasets"]], axis=0)
     return experiment, folds, datasets, defects
+
+
+def read_trial(experiment, trial, skip_missing_data, targets, return_predictions=False, storage_root=None):
+    these_results_unwrapped = []
+    these_results = read_results(experiment,
+                                 experiment,
+                                 trial,
+                                 skip_missing=skip_missing_data,
+                                 targets=targets,
+                                 return_predictions=return_predictions,
+                                 storage_root=storage_root)
+    for target, target_results in these_results.items():
+        for dataset, mae_std in target_results.items():
+            these_results_unwrapped.append({
+                "trial": trial,
+                "target": target,
+                "dataset": dataset,
+                "mae": mae_std["mae"],
+                "std": mae_std["std"],
+                "errors": mae_std["errors"]})
+            if "weights" in mae_std:
+                these_results_unwrapped[-1]["weights"] = mae_std["weights"]
+            if return_predictions:
+                these_results_unwrapped[-1]["predictions"] = mae_std["predictions"]
+    these_results_pd = pd.DataFrame.from_records(these_results_unwrapped)
+    if len(these_results_pd) > 0:
+        these_results_pd.set_index(["target", "dataset", "trial"], inplace=True)
+    return these_results_pd
+
+
+def read_results(folds_experiment_name: str,
+                 predictions_experiment_name: str,
+                 trial:str,
+                 skip_missing:bool,
+                 targets: List[str],
+                 return_predictions: bool = False,
+                 storage_root: Optional[Path] = None) -> Dict[str, Dict[str, Dict[str, float]]]:
+    storage_resolver = StorageResolver(root_folder=storage_root)
+    with open(storage_resolver["experiments"].joinpath(folds_experiment_name).joinpath("config.yaml")) as experiment_file:
+        folds_yaml = yaml.safe_load(experiment_file)
+    folds_definition = pd.read_csv(storage_resolver["experiments"].joinpath(
+                        folds_experiment_name).joinpath("folds.csv.gz"),
+                        index_col="_id")
+    if folds_yaml['strategy'] == 'train_test':
+        folds_definition = folds_definition[folds_definition['fold'] == TEST_FOLD]
+
+    folds = folds_definition.loc[:, 'fold']
+    if "weight" in folds_definition.columns:
+        weights = folds_definition.loc[:, 'weight']
+    else:
+        weights = None
+    
+    experiment_path = storage_resolver["experiments"].joinpath(predictions_experiment_name)
+    with open(experiment_path.joinpath("config.yaml")) as experiment_file:
+        experiment = yaml.safe_load(experiment_file)
+
+    results = defaultdict(lambda: defaultdict(dict))
+    targets_per_dataset = [pd.read_csv(storage_resolver["processed"]/path/"targets.csv.gz",
+                                       index_col="_id",
+                                       usecols=["_id"] + experiment["targets"])
+                                       for path in experiment["datasets"]]
+    true_targets = pd.concat(targets_per_dataset, axis=0).reindex(index=folds.index)
+
+    for target_name in set(experiment["targets"]).intersection(targets):
+        try:
+            predictions = pd.read_csv(storage_resolver["predictions"].joinpath(
+                                      get_prediction_path(
+                                      predictions_experiment_name,
+                                      target_name,
+                                      trial
+                                      )), index_col="_id").squeeze("columns")
+        except FileNotFoundError:
+            if skip_missing:
+                logging.warning("No predictions for experiment %s; trial %s; target %s",
+                                predictions_experiment_name, trial, target_name)
+                continue
+            else:
+                raise
+        errors = np.abs(predictions - true_targets.loc[:, target_name])
+        mae = np.average(errors, weights=weights)
+        std = np.sqrt(np.cov(errors, aweights=weights))
+        results[target_name]['combined']['mae'] = mae
+        results[target_name]['combined']['std'] = std
+        results[target_name]['combined']['errors'] = errors
+        if return_predictions:
+            results[target_name]['combined']['predictions'] = predictions
+        if weights is not None:
+            results[target_name]['combined']['weights'] = weights
+        for dataset, targets in zip(experiment["datasets"], targets_per_dataset):
+            this_errors = errors.reindex(index=targets.index.intersection(errors.index))
+            # Assume the weight is the same for all structures in a dataset
+            results[target_name][dataset]['mae'] = this_errors.mean()
+            this_std = np.std(this_errors)
+            results[target_name][dataset]['std'] = this_std
+            results[target_name][dataset]['errors'] = this_errors.values
+            if return_predictions:
+                results[target_name][dataset]['predictions'] = predictions.reindex(index=this_errors.index)
+            if weights is not None:
+                results[target_name][dataset]['weights'] = weights.reindex(index=this_errors.index)
+    return results
