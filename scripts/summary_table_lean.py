@@ -12,9 +12,9 @@ from collections import defaultdict, OrderedDict
 if __name__ == "__main__":
     import sys
     sys.path.append('.')
-    from ai4mat.data.data import StorageResolver, get_prediction_path, TEST_FOLD, read_trial
+    from ai4mat.data.data import read_trial
 else:
-    from ..ai4mat.data.data import StorageResolver, get_prediction_path, TEST_FOLD, read_trial
+    from ..ai4mat.data.data import read_trial
 
 
 def print_table_paper(dataframe: pd.DataFrame,
@@ -129,6 +129,7 @@ def main():
     paper_args.add_argument("--paper-results", action="store_true")
     paper_args.add_argument("--paper-ablation-energy", action="store_true")
     paper_args.add_argument("--paper-ablation-homo-lumo", action="store_true")
+    parser.add_argument("--storage-root", type=Path)
     args = parser.parse_args()
     
 
@@ -137,13 +138,14 @@ def main():
         results = []
         if args.trials is not None:
             for trial in args.trials:
-                results.append(read_trial(experiment, trial, args.skip_missing_data, args.targets))
+                results.append(read_trial(experiment, trial, args.skip_missing_data, args.targets, storage_root=args.storage_root))
         if args.stability_trials is not None:
             for trial_prefix in args.stability_trials:
                 results_for_stabiliy_family = []
                 for trial_index in range(1, 13):
                     trial = f"{trial_prefix}/{trial_index}"
-                    results_for_stabiliy_family.append(read_trial(experiment, trial, args.skip_missing_data, args.targets))
+                    results_for_stabiliy_family.append(
+                        read_trial(experiment, trial, args.skip_missing_data, args.targets, storage_root=args.storage_root))
                 these_results_pd = pd.concat(results_for_stabiliy_family, axis=0)
                 combined_results = []
                 for (target, dataset), stability_results in these_results_pd.groupby(level=["target", "dataset"]):
