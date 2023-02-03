@@ -198,7 +198,7 @@ dvc pull -R trials
 ```
 The data will need to be added to the Rolos LFS. DVC credentials currently in the repository will be invalidated when we open the code. In the interest of showcasig Rolos, you might want to `dvc pull` everything (~30 Gb) and push it git LFS.
 ### Run the experiments
-The trials in the commands have optimal hyperparameters. Split the trials over multiple invocations of run_experiments.py according to your exection environement. In case there are errors, you might need to re-run the last data processing step csv/cif -> pickle, follow `dvc.yaml` for that. For debug, you can use trial `megnet_pytorch/sparse/pilot`. To run on a single gpu, add `--gpus 0`, to run on CPU, add `--cpu`. Since we are running in train/test mode, run_experiments won't parallelize between multiple GPUs.
+The trials in the commands have optimal hyperparameters. Split the trials over multiple invocations of `run_experiments.py` according to your exection environement. IMHO, a workflow for each experiment, and a node for each trial. Table-printing script and plotting notebook expect that Rolos wrokflows are named `MoS2_V2` and `combined_mixed_weighted_test`, but it's trivial to change. In case there are pymatgen errors, you might need to re-run the last data processing step csv/cif -> pickle, follow `dvc.yaml` for that, something like `dvc repro -s --pull processed-low-density processed-high-density`. For debug, you can use trial `megnet_pytorch/sparse/pilot`. To run on a single gpu, add `--gpus 0`, to run on CPU, add `--cpu`. Since we are running in train/test mode, `run_experiments.py` won't parallelize between GPUs.
 Aggregate:
 ```
 WANDB_MODE=disabled python run_experiments.py --experiments combined_mixed_weighted_test --targets formation_energy_per_site --output-folder /output --trials schnet/25-11-2022_16-52-31/71debf15 catboost/29-11-2022_13-16-01/02e5eda9 gemnet/16-11-2022_20-05-04/b5723f85 megnet_pytorch/sparse/05-12-2022_19-50-53/d6b7ce45 megnet_pytorch/25-11-2022_11-38-18/1baefba7
@@ -211,11 +211,11 @@ WANDB_MODE=disabled python run_experiments.py --experiments MoS2_V2 --targets fo
 ### Print the aggregate table
 ASCII
 ```
-python scripts/summary_table_lean.py --experiment combined_mixed_weighted_test --targets formation_energy_per_site --trials schnet/25-11-2022_16-52-31/71debf15 catboost/29-11-2022_13-16-01/02e5eda9 gemnet/16-11-2022_20-05-04/b5723f85 megnet_pytorch/sparse/05-12-2022_19-50-53/d6b7ce45 megnet_pytorch/25-11-2022_11-38-18/1baefba7 --separate-by target --column-format-re \(?P\<name\>.+\)\/.+/\.+ --storage-root /tmp/rolos --multiple 1000
+python scripts/summary_table_lean.py --experiment combined_mixed_weighted_test --targets formation_energy_per_site --trials schnet/25-11-2022_16-52-31/71debf15 catboost/29-11-2022_13-16-01/02e5eda9 gemnet/16-11-2022_20-05-04/b5723f85 megnet_pytorch/sparse/05-12-2022_19-50-53/d6b7ce45 megnet_pytorch/25-11-2022_11-38-18/1baefba7 --separate-by target --column-format-re \(?P\<name\>.+\)\/.+/\.+ --storage-root /home/coder/project/rolos_workflow_data/MoS2_V2/current/data/combined_mixed_weighted_test --multiple 1000
 ```
 LaTeX
 ```
-python scripts/summary_table_lean.py --experiment combined_mixed_weighted_test --targets formation_energy_per_site --trials schnet/25-11-2022_16-52-31/71debf15 catboost/29-11-2022_13-16-01/02e5eda9 gemnet/16-11-2022_20-05-04/b5723f85 megnet_pytorch/sparse/05-12-2022_19-50-53/d6b7ce45 megnet_pytorch/25-11-2022_11-38-18/1baefba7 --separate-by target --column-format-re \(?P\<name\>.+\)\/.+/\.+ --storage-root /tmp/rolos --multiple 1000 --paper-results
+python scripts/summary_table_lean.py --experiment combined_mixed_weighted_test --targets formation_energy_per_site --trials schnet/25-11-2022_16-52-31/71debf15 catboost/29-11-2022_13-16-01/02e5eda9 gemnet/16-11-2022_20-05-04/b5723f85 megnet_pytorch/sparse/05-12-2022_19-50-53/d6b7ce45 megnet_pytorch/25-11-2022_11-38-18/1baefba7 --separate-by target --column-format-re \(?P\<name\>.+\)\/.+/\.+ --storage-root /tmp/rolos /home/coder/project/rolos_workflow_data/MoS2_V2/current/data/combined_mixed_weighted_test --multiple 1000 --paper-results
 ```
 ### Draw the E(distance) plot
-Modify `notebooks/MoS2_V2_plot.ipynb` to read the prediction from the correct Rolos location. Run the notebook.
+Run the notebook `notebooks/MoS2_V2_plot.ipynb`.
