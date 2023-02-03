@@ -211,11 +211,11 @@ WANDB_MODE=disabled python run_experiments.py --experiments MoS2_V2 --targets fo
 ### Print the aggregate table
 ASCII
 ```
-python scripts/summary_table_lean.py --experiment combined_mixed_weighted_test --targets formation_energy_per_site --trials schnet/25-11-2022_16-52-31/71debf15 catboost/29-11-2022_13-16-01/02e5eda9 gemnet/16-11-2022_20-05-04/b5723f85 megnet_pytorch/sparse/05-12-2022_19-50-53/d6b7ce45 megnet_pytorch/25-11-2022_11-38-18/1baefba7 --separate-by target --column-format-re \(?P\<name\>.+\)\/.+/\.+ --storage-root /home/coder/project/rolos_workflow_data/MoS2_V2/current/data/combined_mixed_weighted_test --multiple 1000
+python scripts/summary_table_lean.py --experiment combined_mixed_weighted_test --targets formation_energy_per_site --trials schnet/25-11-2022_16-52-31/71debf15 catboost/29-11-2022_13-16-01/02e5eda9 gemnet/16-11-2022_20-05-04/b5723f85 megnet_pytorch/sparse/05-12-2022_19-50-53/d6b7ce45 megnet_pytorch/25-11-2022_11-38-18/1baefba7 --separate-by target --column-format-re \(?P\<name\>.+\)\/.+/\.+ --storage-root /home/coder/project/rolos_workflow_data/combined_mixed_weighted_test/current/data --multiple 1000
 ```
 LaTeX
 ```
-python scripts/summary_table_lean.py --experiment combined_mixed_weighted_test --targets formation_energy_per_site --trials schnet/25-11-2022_16-52-31/71debf15 catboost/29-11-2022_13-16-01/02e5eda9 gemnet/16-11-2022_20-05-04/b5723f85 megnet_pytorch/sparse/05-12-2022_19-50-53/d6b7ce45 megnet_pytorch/25-11-2022_11-38-18/1baefba7 --separate-by target --column-format-re \(?P\<name\>.+\)\/.+/\.+ --storage-root /tmp/rolos /home/coder/project/rolos_workflow_data/MoS2_V2/current/data/combined_mixed_weighted_test --multiple 1000 --paper-results
+python scripts/summary_table_lean.py --experiment combined_mixed_weighted_test --targets formation_energy_per_site --trials schnet/25-11-2022_16-52-31/71debf15 catboost/29-11-2022_13-16-01/02e5eda9 gemnet/16-11-2022_20-05-04/b5723f85 megnet_pytorch/sparse/05-12-2022_19-50-53/d6b7ce45 megnet_pytorch/25-11-2022_11-38-18/1baefba7 --separate-by target --column-format-re \(?P\<name\>.+\)\/.+/\.+ --storage-root /tmp/rolos /home/coder/project/rolos_workflow_data/combined_mixed_weighted_test/current/data --multiple 1000 --paper-results
 ```
 ### Draw the E(distance) plot
 Run the notebook `notebooks/MoS2_V2_plot.ipynb`.
