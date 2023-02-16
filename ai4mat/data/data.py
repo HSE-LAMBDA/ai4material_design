@@ -294,7 +294,7 @@ def read_experiment_datasets(experiment_name):
     return experiment, folds, datasets, defects
 
 
-def read_trial(experiment, trial, skip_missing_data, targets, return_predictions=False, storage_root=None):
+def read_trial(experiment, trial, skip_missing_data, targets, return_predictions=False, prediction_storage_root=None):
     these_results_unwrapped = []
     these_results = read_results(experiment,
                                  experiment,
@@ -302,7 +302,7 @@ def read_trial(experiment, trial, skip_missing_data, targets, return_predictions
                                  skip_missing=skip_missing_data,
                                  targets=targets,
                                  return_predictions=return_predictions,
-                                 storage_root=storage_root)
+                                 prediction_storage_root=prediction_storage_root)
     for target, target_results in these_results.items():
         for dataset, mae_std in target_results.items():
             these_results_unwrapped.append({
@@ -328,11 +328,11 @@ def read_results(folds_experiment_name: str,
                  skip_missing:bool,
                  targets: List[str],
                  return_predictions: bool = False,
-                 storage_root: Optional[Path] = None) -> Dict[str, Dict[str, Dict[str, float]]]:
-    storage_resolver = StorageResolver(root_folder=storage_root)
-    with open(storage_resolver["experiments"].joinpath(folds_experiment_name).joinpath("config.yaml")) as experiment_file:
+                 prediction_storage_root: Optional[Path] = None) -> Dict[str, Dict[str, Dict[str, float]]]:
+    experiments_storage_resolver = StorageResolver()
+    with open(experiments_storage_resolver["experiments"].joinpath(folds_experiment_name).joinpath("config.yaml")) as experiment_file:
         folds_yaml = yaml.safe_load(experiment_file)
-    folds_definition = pd.read_csv(storage_resolver["experiments"].joinpath(
+    folds_definition = pd.read_csv(experiments_storage_resolver["experiments"].joinpath(
                         folds_experiment_name).joinpath("folds.csv.gz"),
                         index_col="_id")
     if folds_yaml['strategy'] == 'train_test':
@@ -344,20 +344,21 @@ def read_results(folds_experiment_name: str,
     else:
         weights = None
     
-    experiment_path = storage_resolver["experiments"].joinpath(predictions_experiment_name)
+    experiment_path = experiments_storage_resolver["experiments"].joinpath(predictions_experiment_name)
     with open(experiment_path.joinpath("config.yaml")) as experiment_file:
         experiment = yaml.safe_load(experiment_file)
 
     results = defaultdict(lambda: defaultdict(dict))
-    targets_per_dataset = [pd.read_csv(storage_resolver["processed"]/path/"targets.csv.gz",
+    targets_per_dataset = [pd.read_csv(experiments_storage_resolver["processed"]/path/"targets.csv.gz",
                                        index_col="_id",
                                        usecols=["_id"] + experiment["targets"])
                                        for path in experiment["datasets"]]
     true_targets = pd.concat(targets_per_dataset, axis=0).reindex(index=folds.index)
 
+    predictions_storage_resolver = StorageResolver(root_folder=prediction_storage_root)
     for target_name in set(experiment["targets"]).intersection(targets):
         try:
-            predictions = pd.read_csv(storage_resolver["predictions"].joinpath(
+            predictions = pd.read_csv(predictions_storage_resolver["predictions"].joinpath(
                                       get_prediction_path(
                                       predictions_experiment_name,
                                       target_name,

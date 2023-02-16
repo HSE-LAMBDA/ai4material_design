@@ -129,7 +129,7 @@ def main():
     paper_args.add_argument("--paper-results", action="store_true")
     paper_args.add_argument("--paper-ablation-energy", action="store_true")
     paper_args.add_argument("--paper-ablation-homo-lumo", action="store_true")
-    parser.add_argument("--storage-root", type=Path)
+    parser.add_argument("--prediction-storage-root", type=Path)
     args = parser.parse_args()
     
 
@@ -138,14 +138,16 @@ def main():
         results = []
         if args.trials is not None:
             for trial in args.trials:
-                results.append(read_trial(experiment, trial, args.skip_missing_data, args.targets, storage_root=args.storage_root))
+                results.append(read_trial(experiment, trial, args.skip_missing_data, args.targets,
+                                          prediction_storage_root=args.storage_root))
         if args.stability_trials is not None:
             for trial_prefix in args.stability_trials:
                 results_for_stabiliy_family = []
                 for trial_index in range(1, 13):
                     trial = f"{trial_prefix}/{trial_index}"
                     results_for_stabiliy_family.append(
-                        read_trial(experiment, trial, args.skip_missing_data, args.targets, storage_root=args.storage_root))
+                        read_trial(experiment, trial, args.skip_missing_data, args.targets,
+                                   prediction_storage_root=args.storage_root))
                 these_results_pd = pd.concat(results_for_stabiliy_family, axis=0)
                 combined_results = []
                 for (target, dataset), stability_results in these_results_pd.groupby(level=["target", "dataset"]):
