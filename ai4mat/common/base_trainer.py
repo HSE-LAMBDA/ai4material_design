@@ -65,7 +65,6 @@ class Trainer(ABC):
 
 
     def save_state_dict(self, step):
-        breakpoint()
         if self.checkpoint_path is not None:
             if not (checkpoint_path := Path(self.checkpoint_path).parent).exists():
                 checkpoint_path.mkdir(parents=True)
