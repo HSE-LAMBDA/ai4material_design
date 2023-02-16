@@ -139,7 +139,7 @@ def main():
         if args.trials is not None:
             for trial in args.trials:
                 results.append(read_trial(experiment, trial, args.skip_missing_data, args.targets,
-                                          prediction_storage_root=args.storage_root))
+                                          prediction_storage_root=args.prediction_storage_root))
         if args.stability_trials is not None:
             for trial_prefix in args.stability_trials:
                 results_for_stabiliy_family = []
@@ -147,7 +147,7 @@ def main():
                     trial = f"{trial_prefix}/{trial_index}"
                     results_for_stabiliy_family.append(
                         read_trial(experiment, trial, args.skip_missing_data, args.targets,
-                                   prediction_storage_root=args.storage_root))
+                                   prediction_storage_root=args.prediction_storage_root))
                 these_results_pd = pd.concat(results_for_stabiliy_family, axis=0)
                 combined_results = []
                 for (target, dataset), stability_results in these_results_pd.groupby(level=["target", "dataset"]):
