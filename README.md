@@ -20,11 +20,12 @@
 poetry install
 ```
 If it fails, try removing `poetry.lock`. We are forced to support multiple Python versions, so it's imposible to have a single lock file.
+
 4. [Install pytorch](https://pytorch.org/) according to your CUDA/virtualenv/conda situatoin
 5. [Install pytorch-geometric](https://pytorch-geometric.readthedocs.io/en/latest/notes/installation.html) according to your CUDA/virtualenv/conda situatoin
-6. [Log in to WanDB](https://docs.wandb.ai/ref/cli/wandb-login)
+6. [Log in to WanDB](https://docs.wandb.ai/ref/cli/wandb-login), or set `WANDB_MODE=disabled`
 
-## Running the pilot pipepline
+## Running the pilot NN model
 Below we descrbie a lightweight test run.
 
 0. Pull the inputs from DVC
@@ -85,36 +86,7 @@ python scripts/generate_trials_for_tuning.py --model-name megnet_pytorch --mode 
 python scripts/hyperparam_tuning.py --model-name megnet_pytorch --experiment pilot-plain-cv --wandb-entity hse_lambda --trials-folder {folder name from previous step}
 ```
 
-## Data transformation: DVC pipline
-### Getting the data
-The `.dvc` files are no longer there - but the data are!
-```
-dvc pull datasets/csv_cif/high_density_defects/{BP_spin,GaSe_spin,hBN_spin,InSe_spin,MoS2,WSe2}_500
-dvc pull datasets/processed/high_density_defects/{BP_spin,GaSe_spin,hBN_spin,InSe_spin,MoS2,WSe2}_500/{targets.csv,data.pickle}.gz
-dvc pull datasets/csv_cif/low_density_defects/{MoS2,WSe2}
-dvc pull datasets/processed/low_density_defects/{MoS2,WSe2}/{targets.csv,data.pickle}.gz
-```
-### Reproducing the pipeline
-VASP -> csv_cif -> processed -> Rolos has been implemented a [DVC pipeline](https://dvc.org/doc/start/data-management/data-pipelines). Processed datasets:
-```
-parallel --delay 3 -j6 dvc repro processed-high-density@{} ::: hBN_spin GaSe_spin BP_spin InSe_spin MoS2 WSe2
-parallel --delay 3 -j2 dvc repro processed-low-density@{} ::: MoS2 WSe2
-```
-Archives for Rolos with structutres and targets:
-```
-dvc repro rolos-2d-materials-point-defects
-```
-Note that unlike GNU Make DVC [currently](https://github.com/iterative/dvc/issues/755) doesn't internally parallelize execution, so we use GNU parallel. We also use `--delay 3` to avoid [DVC lock race](https://github.com/iterative/dvc/issues/755).
-## Running experiments with GNU parallel
-Single experiment family:
-```bash
-parallel -a datasets/experiments/MoS2_to_WSe2/family.txt -j4 python run_experiments.py --experiments {1} --trials megnet_pytorch-sparse-10 --gpus 0 --wandb-entity hse_lambda
-```
-Multiple families:
-```bash
-awk 1 datasets/experiments/MoS2_to_WSe2_4?/family.txt | WANDB_RUN_GROUP="MoS2_to_WSe2 $(date --rfc-3339=seconds)" parallel -j4 python run_experiments.py --experiments {} --trials megnet_pytorch-sparse-10 --gpus 0 --wandb-entity hse_lambda :::: -
-```
-## Running CatBoost on pilot
+## Running a pilot CatBoost model
 0. Pull the inputs from DVC
 ```
 dvc pull datasets/csv_cif/pilot datasets/experiments/matminer-test
@@ -145,23 +117,86 @@ python scripts/plot.py --experiments matminer-test --trials catboost-pilot
 ```
 This produces plots in `datasets/plots/matminer-test`
 
-## CatBoost for paper
-1. Data preprocessing
-Pull the csv/cif from dvc:
+## Sparse representation for machine learning the properties of defects in 2D materials (paper)
+Reproducing the paper requires roughly four stages. Intermidiate artifacts are saved in DVC, therefore stages can be reproduced selectively.
+## Data preprocessing: VASP -> csv/cif -> pickle
 ```
-dvc pull datasets/csv_cif/high_density_defects/{BP_spin,GaSe_spin,hBN_spin,InSe_spin,MoS2,WSe2}_500 datasets/csv_cif/low_density_defects/{MoS2,WSe2}
+dvc pull -R datasets/POSCARs datasets/raw_vasp/high_density_defects datasets/raw_vasp/dichalcogenides8x8_vasp_nus_202110 datasets/csv_cif/low_density_defects_Innopolis-v1
+parallel --delay 3 -j6 dvc repro processed-high-density@{} ::: hBN_spin GaSe_spin BP_spin InSe_spin MoS2 WSe2
+parallel --delay 3 -j2 dvc repro processed-low-density@{} ::: MoS2 WSe2
 ```
-then run the featuriser
+Note that unlike GNU Make DVC [currently](https://github.com/iterative/dvc/issues/755) doesn't internally parallelize execution, so we use GNU parallel. We also use `--delay 3` to avoid [DVC lock race](https://github.com/iterative/dvc/issues/755). Computing matmier features can easily take several days, you might want to parallelize it according to your computing setup.
 ```
-parallel -j8 --delay 5 dvc repro matminer@{} ::: high_density_defects/{BP_spin,GaSe_spin,hBN_spin,InSe_spin,MoS2,WSe2}_500 low_density_defects/{MoS2,WSe2}
+dvc repro matminer
 ```
-or, on ASPIRE 1
+## Hyperparameter optimisation
+### Get the data
 ```
-export SINGULARITYENV_PATH=/opt/conda/lib/python3.8/site-packages/torch_tensorrt/bin:/opt/conda/bin:/usr/local/mpi/bin:/usr/local/nvidia/bin:/usr/local/cuda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/ucx/bin:/opt/tensorrt/bin:/home/users/nus/kna/.local/bin 
-export IMAGE=/home/projects/ai/singularity/nvcr.io/nvidia/pytorch:22.04-py3.sif
-parallel -j8 --delay 10 singularity exec $IMAGE dvc repro matminer@{} ::: high_density_defects/{BP_spin,GaSe_spin,hBN_spin,InSe_spin,MoS2,WSe2}_500 low_density_defects/{MoS2,WSe2}
+dvc pull -R datasets/csv_cif/{high,low}_density_defects/ datasets/processed/{high,low}_density_defects datasets/experiments/combined_mixed_weighted_test.dvc datasets/experiments/combined_mixed_weighted_validation.dvc
 ```
-If DVC wants to recompute csv/cif, but you are sure it's not needed, you can add `--single-item` to the dvc arguments.
+### Generate the trials.
+```
+python scripts/generate_trials_for_tuning.py --model-name megnet_pytorch --mode random --n-steps 50
+python scripts/generate_trials_for_tuning.py --model-name megnet_pytorch/sparse --mode random --n-steps 50
+python scripts/generate_trials_for_tuning.py --model-name catboost --mode random --n-steps 50
+python scripts/generate_trials_for_tuning.py --model-name gemnet --mode random --n-steps 50
+python scripts/generate_trials_for_tuning.py --model-name schnet --mode random --n-steps 50
+```
+This will create `trials/<model_name>/<date>` folders with trials. Alternatively, you can pull our trials with `dvc pull -R trials`.
+### Run experiments on train/validation split
+The next step is running those trials combined with `combined_mixed_weighted_validation` experiment according to your compute environmet. For example, on a single GPU:
+```
+python run_experiments.py --experiments combined_mixed_weighted_validation --trials trials/megnet_pytorch/sparse/05-12-2022_19-34-37/0ff69f1c --gpus 0
+```
+or on a CPU:
+```
+python run_experiments.py --experiments combined_mixed_weighted_validation --trials trials/megnet_pytorch/sparse/05-12-2022_19-34-37/0ff69f1c --cpu
+```
+For running trials for a specific model on a single node, we have a script:
+```
+python scripts/hyperparam_tuning.py --model-name megnet_pytorch --experiment combined_mixed_weighted_validation --wandb-entity hse_lambda --trials-folder trials/megnet_pytorch/sparse/05-12-2022_19-34-37/
+```
+There is also script `scripts/ASPIRE-1/run_grid_search.sh`, for running on an HPC, but it is specific to our cluster.
+### Find the best trials
+Use `find_best_trial.py` for every model, e.g.:
+```
+python scripts/find_best_trial.py --experiment combined_mixed_weighted_validation --trials-folder megnet_pytorch/sparse/05-12-2022_19-50-53
+```
+### Run the experiment on train/test split
+Since some models (thankfully, not ours) exhibit instability, we repeat training several times for each model - with the same parameters and training data. To fit this into the infrastrucrure we copy the trials. This step was only done on ASPIRE-1, so it would requre some modifications to run on a different cluster (e. g. replace `qsub` with `sbatch`). Note that CatBoost by default is deterministic, so you need to change the random seed manually in the copies of the trials.
+```
+cd scripts/ASPIRE-1
+xargs -a stability_trials.txt -L1 ./run_stability_trials.sh 
+```
+Format of `stability_trials.txt`:
+
+```
+megnet_pytorch/sparse/05-12-2022_19-50-53/d6b7ce45 formation_energy_per_site 12 4 combined_mixed_weighted_test
+trial target total_repeats parallel_runs_per_GPU experiment
+```
+To obtain the data for E(distance) plots for MoS2:
+```
+xargs -a MoS2_V2_E.txt -L1 ./run_stability_trials.sh 
+```
+### Ablation study
+Manually prepare the model configurations (aka trials) in `trials/megnet_pytorch/ablation_study`. Put them into a `.txt` and run the experiments:
+```
+xargs ablation_stability.txt -L1 ./run_stability_trials.sh 
+```
+## Result analysis
+### Tables
+If you generated your own trials, you need to replace the trial names. Main results:
+```
+python scripts/summary_table_lean.py --experiment combined_mixed_weighted_test --targets formation_energy_per_site --stability-trials stability/schnet/25-11-2022_16-52-31/71debf15 stability/catboost/29-11-2022_13-16-01/02e5eda9 stability/gemnet/16-11-2022_20-05-04/b5723f85 stability/megnet_pytorch/sparse/05-12-2022_19-50-53/d6b7ce45 stability/megnet_pytorch/25-11-2022_11-38-18/1baefba7 --separate-by target --column-format-re stability\/\(?P\<name\>.+\)\/.+/\.+ --paper-results --multiple 1000
+python scripts/summary_table_lean.py --experiment combined_mixed_weighted_test --targets homo_lumo_gap_min --stability-trials stability/schnet/25-11-2022_16-52-31/2a52dbe8 stability/catboost/29-11-2022_13-16-01/1b1af67c stability/gemnet/16-11-2022_20-05-04/c366c47e stability/megnet_pytorch/sparse/05-12-2022_19-50-53/831cc496 stability/megnet_pytorch/25-11-2022_11-38-18/1baefba7 --separate-by target --column-format-re stability\/\(?P\<name\>.+\)\/.+/\.+ --paper-results --multiple 1000
+```
+Ablation:
+```
+python scripts/summary_table_lean.py --experiment combined_mixed_weighted_test --targets formation_energy_per_site --stability-trials stability/megnet_pytorch/sparse/05-12-2022_19-50-53/d6b7ce45 stability/megnet_pytorch/25-11-2022_11-38-18/1baefba7 stability/megnet_pytorch/ablation_study/d6b7ce45-sparse stability/megnet_pytorch/ablation_study/d6b7ce45-sparse-z stability/megnet_pytorch/ablation_study/d6b7ce45-sparse-z-were --separate-by target --print-std --paper-ablation-energy --multiple 1000
+python scripts/summary_table_lean.py --experiment combined_mixed_weighted_test --targets homo_lumo_gap_min --stability-trials stability/megnet_pytorch/sparse/05-12-2022_19-50-53/831cc496 stability/megnet_pytorch/25-11-2022_11-38-18/1baefba7 stability/megnet_pytorch/ablation_study/831cc496-sparse{,-z,-z-were} --separate-by target --print-std --paper-ablation-homo-lumo --multiple 1000
+```
+### E(distance) plots
+Run the notebook `notebooks/MoS2_V2_plot.ipynb` replacing the trial names with your own.
 ## Additional considerations
 ### `prepare_data_split.py`
 Generates data splits aka experiments. There is no need to do this step to run the existing experiments, the splits are available in DVC. Splits are by design shared between people, so don't overwrite them needlessly. Example:
@@ -171,23 +206,6 @@ python scripts/prepare_data_split.py --datasets=datasets/csv_cif/pilot --experim
 This creates the experiment definition in `datasets/experiments/pilot-plain-cv`
 
 It supports generating cross-validation and train/test splits.
-
-### `parse_csv_cif.py`
-For data computed without spin interaction, you might want to add `--fill-missing-band-properties` flag that would fill `{band_gap,homo,lumo}_{majority,minority}` from `{band_gap,homo,lumo}`. For old data you might also want to use the flag to fill `band_gap = lumo - homo` Example:
-```
-python scripts/parse_csv_cif.py --input-name high_density_defects/GaSe --fill-missing-band-properties
-```
-
-## Running random search for the paper
-Get the data
-```
-dvc pull datasets/csv_cif/high_density_defects/{BP_spin,GaSe_spin,hBN_spin,InSe_spin,MoS2,WSe2}_500 datasets/csv_cif/low_density_defects/{MoS2,WSe2} datasets/processed/high_density_defects/{BP_spin,GaSe_spin,hBN_spin,InSe_spin,MoS2,WSe2}_500/{data.pickle.gz,targets.csv.gz,matminer.csv.gz} datasets/processed/low_density_defects/{MoS2,WSe2}/{data.pickle.gz,targets.csv.gz,matminer.csv.gz} datasets/experiments/combined_mixed_weighted_test.dvc datasets/experiments/combined_mixed_weighted_validation.dvc
-```
-### megnet_pytorch_sparse
-```
-dvc pull trials/megnet_pytorch/09-11-2022_18-11-54.dvc
-./run_megnet_pytorch_experiments_nscc_paper.sh
-```
 ## Rolos demo
 ### Environment
 Follow the corresponding section. If something is missing, please help us by adding it to `pyproject.toml`. CatBoost is not available for Python 3.11, but they [plan](https://github.com/catboost/catboost/issues/2213) to ship it before 03.02.2023.
