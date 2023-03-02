@@ -49,18 +49,7 @@ class Trainer(ABC):
         else:
             self.device = 'cpu'
 
-        if self.checkpoint_path is not None:
-            if not (checkpoint_path := Path(self.checkpoint_path).parent).exists():
-                checkpoint_path.mkdir(parents=True)
-        else:
-            if self.run_dir and not Path(self.run_dir).exists:
-                self.run_dir = Path(self.run_dir).joinpath('checkpoints')
-                self.run_dir.mkdir(parents=True, exist_ok=True)
-            elif not self.run_dir:
-                self.run_dir = Path(str(datetime.datetime.now())).joinpath('checkpoints')
-                self.run_dir.mkdir(parents=True, exist_ok=True)
-
-
+        
         self.move_to_device()
         self.logged_params = {} 
 
@@ -76,6 +65,18 @@ class Trainer(ABC):
 
 
     def save_state_dict(self, step):
+        if self.checkpoint_path is not None:
+            if not (checkpoint_path := Path(self.checkpoint_path).parent).exists():
+                checkpoint_path.mkdir(parents=True)
+        else:
+            if self.run_dir and not Path(self.run_dir).exists:
+                self.run_dir = Path(self.run_dir).joinpath('checkpoints')
+                self.run_dir.mkdir(parents=True, exist_ok=True)
+            elif not self.run_dir:
+                self.run_dir = Path(str(datetime.datetime.now())).joinpath('checkpoints')
+                self.run_dir.mkdir(parents=True, exist_ok=True)
+
+
         state_dict = {
             'model' : self.model.state_dict(),
             'optimizers': self.optimizers.state_dict(),

@@ -12,83 +12,12 @@ from collections import defaultdict, OrderedDict
 if __name__ == "__main__":
     import sys
     sys.path.append('.')
-    from ai4mat.data.data import StorageResolver, get_prediction_path, TEST_FOLD    
+    from ai4mat.data.data import read_trial
 else:
-    from ..ai4mat.data.data import StorageResolver, get_prediction_path, TEST_FOLD
+    from ..ai4mat.data.data import read_trial
 
 
-def read_results(folds_experiment_name: str,
-                 predictions_experiment_name: str,
-                 trial:str,
-                 skip_missing:bool,
-                 targets: List[str],
-                 return_predictions: bool = False) -> Dict[str, Dict[str, Dict[str, float]]]:
-    storage_resolver = StorageResolver()
-    with open(storage_resolver["experiments"].joinpath(folds_experiment_name).joinpath("config.yaml")) as experiment_file:
-        folds_yaml = yaml.safe_load(experiment_file)
-    folds_definition = pd.read_csv(storage_resolver["experiments"].joinpath(
-                        folds_experiment_name).joinpath("folds.csv.gz"),
-                        index_col="_id")
-    if folds_yaml['strategy'] == 'train_test':
-        folds_definition = folds_definition[folds_definition['fold'] == TEST_FOLD]
-
-    folds = folds_definition.loc[:, 'fold']
-    if "weight" in folds_definition.columns:
-        weights = folds_definition.loc[:, 'weight']
-    else:
-        weights = None
-    
-    experiment_path = storage_resolver["experiments"].joinpath(predictions_experiment_name)
-    with open(experiment_path.joinpath("config.yaml")) as experiment_file:
-        experiment = yaml.safe_load(experiment_file)
-
-    results = defaultdict(lambda: defaultdict(dict))
-    targets_per_dataset = [pd.read_csv(storage_resolver["processed"]/path/"targets.csv.gz",
-                                       index_col="_id",
-                                       usecols=["_id"] + experiment["targets"])
-                                       for path in experiment["datasets"]]
-    true_targets = pd.concat(targets_per_dataset, axis=0).reindex(index=folds.index)
-
-    for target_name in set(experiment["targets"]).intersection(targets):
-        try:
-            predictions = pd.read_csv(storage_resolver["predictions"].joinpath(
-                                      get_prediction_path(
-                                      predictions_experiment_name,
-                                      target_name,
-                                      trial
-                                      )), index_col="_id").squeeze("columns")
-        except FileNotFoundError:
-            if skip_missing:
-                logging.warning("No predictions for experiment %s; trial %s; target %s",
-                                predictions_experiment_name, trial, target_name)
-                continue
-            else:
-                raise
-        errors = np.abs(predictions - true_targets.loc[:, target_name])
-        mae = np.average(errors, weights=weights)
-        std = np.sqrt(np.cov(errors, aweights=weights))
-        results[target_name]['combined']['mae'] = mae
-        results[target_name]['combined']['std'] = std
-        results[target_name]['combined']['errors'] = errors
-        if return_predictions:
-            results[target_name]['combined']['predictions'] = predictions
-        if weights is not None:
-            results[target_name]['combined']['weights'] = weights
-        for dataset, targets in zip(experiment["datasets"], targets_per_dataset):
-            this_errors = errors.reindex(index=targets.index.intersection(errors.index))
-            # Assume the weight is the same for all structures in a dataset
-            results[target_name][dataset]['mae'] = this_errors.mean()
-            this_std = np.std(this_errors)
-            results[target_name][dataset]['std'] = this_std
-            results[target_name][dataset]['errors'] = this_errors.values
-            if return_predictions:
-                results[target_name][dataset]['predictions'] = predictions.reindex(index=this_errors.index)
-            if weights is not None:
-                results[target_name][dataset]['weights'] = weights.reindex(index=this_errors.index)
-    return results
-
-
-def print_table_paper(series,
+def print_table_paper(dataframe: pd.DataFrame,
                       trial_re,
                       model_names: OrderedDict):
     """
@@ -97,10 +26,10 @@ def print_table_paper(series,
     row_index = "dataset"
     column_index = "trial"
     separate_by = "target"
-    all_separators = series.index.get_level_values(separate_by).unique()
+    all_separators = dataframe.index.get_level_values(separate_by).unique()
     individual_dataset_parser = re.compile(r"(?P<density>.+)_density_defects/(?P<material>[a-zA-Z0-9]+)")
     for table_index in all_separators:
-        table_data = series.xs(table_index, level=separate_by)
+        table_data = dataframe.xs(table_index, level=separate_by)
         records = []
         for row_name in sorted(table_data.index.get_level_values(row_index).unique()):
             if row_name == "combined":
@@ -113,19 +42,24 @@ def print_table_paper(series,
                 records_per_dataset = {
                     "Material": '\ce{'+ material + '}',
                     "Density": match.group("density")}
-            for trial, data in table_data.xs(row_name, level=row_index).items():
+            for trial, data in table_data.xs(row_name, level=row_index).iterrows():
                 if trial_re is not None:
                     model_name = trial_re.match(trial).group("name").replace("_pytorch", "")
                 else:
                     model_name = trial
-                records_per_dataset[model_name] = data
+                records_per_dataset[model_name] = (data['mae'], data['std'])
+                #norm_model = "stability/megnet_pytorch/sparse/05-12-2022_19-50-53/d6b7ce45"
+                #norm_model = "stability/megnet_pytorch/sparse/05-12-2022_19-50-53/831cc496"
+                #norm = table_data.at[(row_name, norm_model), "mae"]
+                #records_per_dataset[model_name] = data['mae']/norm
             records.append(records_per_dataset)
         table = pd.DataFrame.from_records(records)
         table.set_index(["Material", "Density"], inplace=True)
         table = table[list(model_names.keys())]
         table.rename(columns=model_names, inplace=True)
-        #table = table[['SchNet', 'GemNet', 'MEGNet', 'CatBoost', 'Sparse (MEGNet)']]
-        print(table.style.to_latex(column_format="cc|ccccc", hrules=True))
+        # ties are to handled manually
+        styled_table = table.style.highlight_min(axis=1, props='bfseries: ;')#.format(partial(format_result, latex_siunitx=True))
+        print(styled_table.to_latex(column_format="cc|ccccc", hrules=True, siunitx=True))
 
 
 def print_tables(series, separate_by, column_format_re=None, row_format_re=None):
@@ -155,34 +89,19 @@ def print_tables(series, separate_by, column_format_re=None, row_format_re=None)
         print(mae_table)
 
 
-def format_result(row, latex=False):
-    digits = int(max(-np.log10(row['std']) + 1, 0))
-    if latex:
-        return f"${row['mae']:.{digits}f} \\pm {row['std']:.{digits}f}$"
+def format_result(row, latex_math=False, latex_siunitx=False):
+    if isinstance(row, pd.Series):
+        mae = row['mae']
+        std = row['std']
     else:
-        return f"{row['mae']:.{digits}f} ± {row['std']:.{digits}f}"
-
-
-def read_trial(experiment, trial, skip_missing_data, targets, return_predictions=False):
-    these_results_unwrapped = []
-    these_results = read_results(experiment, experiment, trial, skip_missing=skip_missing_data, targets=targets, return_predictions=return_predictions)
-    for target, target_results in these_results.items():
-        for dataset, mae_std in target_results.items():
-            these_results_unwrapped.append({
-                "trial": trial,
-                "target": target,
-                "dataset": dataset,
-                "mae": mae_std["mae"],
-                "std": mae_std["std"],
-                "errors": mae_std["errors"]})
-            if "weights" in mae_std:
-                these_results_unwrapped[-1]["weights"] = mae_std["weights"]
-            if return_predictions:
-                these_results_unwrapped[-1]["predictions"] = mae_std["predictions"]
-    these_results_pd = pd.DataFrame.from_records(these_results_unwrapped)
-    if len(these_results_pd) > 0:
-        these_results_pd.set_index(["target", "dataset", "trial"], inplace=True)
-    return these_results_pd
+        mae, std = row
+    digits = int(max(-np.log10(std) + 1, 0))
+    if latex_math:
+        return f"${mae:.{digits}f} \\pm {std:.{digits}f}$"
+    elif latex_siunitx:
+        return f"{mae:.{digits}f}({std:.{digits}f})"
+    else:
+        return f"{mae:.{digits}f} ± {std:.{digits}f}"
 
 
 def main():
@@ -210,6 +129,7 @@ def main():
     paper_args.add_argument("--paper-results", action="store_true")
     paper_args.add_argument("--paper-ablation-energy", action="store_true")
     paper_args.add_argument("--paper-ablation-homo-lumo", action="store_true")
+    parser.add_argument("--prediction-storage-root", type=Path)
     args = parser.parse_args()
     
 
@@ -218,13 +138,16 @@ def main():
         results = []
         if args.trials is not None:
             for trial in args.trials:
-                results.append(read_trial(experiment, trial, args.skip_missing_data, args.targets))
+                results.append(read_trial(experiment, trial, args.skip_missing_data, args.targets,
+                                          prediction_storage_root=args.prediction_storage_root))
         if args.stability_trials is not None:
             for trial_prefix in args.stability_trials:
                 results_for_stabiliy_family = []
                 for trial_index in range(1, 13):
                     trial = f"{trial_prefix}/{trial_index}"
-                    results_for_stabiliy_family.append(read_trial(experiment, trial, args.skip_missing_data, args.targets))
+                    results_for_stabiliy_family.append(
+                        read_trial(experiment, trial, args.skip_missing_data, args.targets,
+                                   prediction_storage_root=args.prediction_storage_root))
                 these_results_pd = pd.concat(results_for_stabiliy_family, axis=0)
                 combined_results = []
                 for (target, dataset), stability_results in these_results_pd.groupby(level=["target", "dataset"]):
@@ -243,12 +166,7 @@ def main():
     results_pd = args.multiple * pd.concat(results, axis=0)
     if args.save_pandas:
         results_pd.to_pickle(args.save_pandas)
-    
-    if args.print_std:
-        print("Note, single trials std is computed over examples, but for stability trials it is computed over trials")
-        results_str = results_pd.apply(partial(format_result, latex=args.paper_results or args.paper_ablation_energy or args.paper_ablation_homo_lumo), axis=1)
-    else:   
-        results_str = results_pd.apply(lambda row: f"{row['mae']:.{4-int(np.log10(args.multiple))}f}", axis=1)
+        
 
     if args.paper_results:
         models=OrderedDict(
@@ -257,7 +175,7 @@ def main():
                 megnet="MEGNet",
                 catboost="CatBoost")
         models["megnet/sparse"] = "Sparse (MEGNet)"
-        print_table_paper(results_str, args.column_format_re, models)
+        print_table_paper(results_pd, args.column_format_re, models)
     elif args.paper_ablation_energy:
         models=OrderedDict()
         models["stability/megnet_pytorch/25-11-2022_11-38-18/1baefba7"] = "Full"
@@ -265,7 +183,7 @@ def main():
         models["stability/megnet_pytorch/ablation_study/d6b7ce45-sparse-z"] = "Sparse-Z"
         models["stability/megnet_pytorch/ablation_study/d6b7ce45-sparse-z-were"] = "Sparse-Z-Were"
         models["stability/megnet_pytorch/sparse/05-12-2022_19-50-53/d6b7ce45"] = "Sparse-Z-Were-EOS"
-        print_table_paper(results_str, args.column_format_re, models)
+        print_table_paper(results_pd, args.column_format_re, models)
     elif args.paper_ablation_homo_lumo:
         models=OrderedDict()
         models["stability/megnet_pytorch/25-11-2022_11-38-18/1baefba7"] = "Full"
@@ -273,8 +191,9 @@ def main():
         models["stability/megnet_pytorch/ablation_study/831cc496-sparse-z"] = "Sparse-Z"
         models["stability/megnet_pytorch/ablation_study/831cc496-sparse-z-were"] = "Sparse-Z-Were"
         models["stability/megnet_pytorch/sparse/05-12-2022_19-50-53/831cc496"] = "Sparse-Z-Were-EOS"
-        print_table_paper(results_str, args.column_format_re, models)
+        print_table_paper(results_pd, args.column_format_re, models)
     else:
+        results_str = results_pd.apply(lambda row: f"{row['mae']:.{4-int(np.log10(args.multiple))}f}", axis=1)
         print_tables(results_str, args.separate_by, args.column_format_re, args.row_format_re)
 
     if args.bootstrap_significance:
