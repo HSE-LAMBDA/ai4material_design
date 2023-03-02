@@ -117,6 +117,7 @@ def main():
             output_path = StorageResolver()["experiments"].joinpath(args.experiment_name + '_test')
             output_path.mkdir(exist_ok=True)
 
+            fold_val = fold_full.copy()
             fold_val['fold'] = np.where(fold_val['fold'] == TEST_FOLD, TEST_FOLD, TRAIN_FOLD)
             fold_val.to_csv(output_path.joinpath('folds.csv.gz'), index_label='_id')
 
