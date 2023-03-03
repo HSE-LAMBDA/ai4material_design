@@ -1467,3 +1467,57 @@ stages:
     - path: datasets/experiments/vacancy_pairs/folds.csv.gz
       md5: 926ef855677444e4cd2620fd17b8a22f
       size: 120452
+  MoS2-2Mo-structures@1_V_1W_Mo:
+    cmd: python scripts/defects_generation.py --output-path datasets/POSCARs/MoS2-2Mo/1_V_1W_Mo
+      --config-path datasets/generation_configs/MoS2-2Mo/1_V_1W_Mo.yaml
+    deps:
+    - path: datasets/generation_configs/MoS2-2Mo/1_V_1W_Mo.yaml
+      md5: e66f5c2a01e44a9b1d2ad14798fefa48
+      size: 97
+    - path: defects_generation/molecules/MoS2.cif
+      md5: 862c7fffd168aab0d56a8bbd17d324ad
+      size: 812
+    - path: scripts/defects_generation.py
+      md5: a0ef3e7bf9333c906845f32f3af48202
+      size: 13880
+    outs:
+    - path: datasets/POSCARs/MoS2-2Mo/1_V_1W_Mo
+      md5: a4217d9ca69f4e5184c891fd1bd0f2fd.dir
+      size: 187575
+      nfiles: 16
+  MoS2-2Mo-structures@2W_Mo:
+    cmd: python scripts/defects_generation.py --output-path datasets/POSCARs/MoS2-2Mo/2W_Mo
+      --config-path datasets/generation_configs/MoS2-2Mo/2W_Mo.yaml
+    deps:
+    - path: datasets/generation_configs/MoS2-2Mo/2W_Mo.yaml
+      md5: ecce4b729f8a7f68688d18145a804d05
+      size: 91
+    - path: defects_generation/molecules/MoS2.cif
+      md5: 862c7fffd168aab0d56a8bbd17d324ad
+      size: 812
+    - path: scripts/defects_generation.py
+      md5: a0ef3e7bf9333c906845f32f3af48202
+      size: 13880
+    outs:
+    - path: datasets/POSCARs/MoS2-2Mo/2W_Mo
+      md5: ededba72960a464db488397ab6d2b165.dir
+      size: 188592
+      nfiles: 16
+  MoS2-2Mo-structures@2V_Mo:
+    cmd: python scripts/defects_generation.py --output-path datasets/POSCARs/MoS2-2Mo/2V_Mo
+      --config-path datasets/generation_configs/MoS2-2Mo/2V_Mo.yaml
+    deps:
+    - path: datasets/generation_configs/MoS2-2Mo/2V_Mo.yaml
+      md5: 1e34021f8d7d55e201e8b2a62daa4905
+      size: 103
+    - path: defects_generation/molecules/MoS2.cif
+      md5: 862c7fffd168aab0d56a8bbd17d324ad
+      size: 812
+    - path: scripts/defects_generation.py
+      md5: a0ef3e7bf9333c906845f32f3af48202
+      size: 13880
+    outs:
+    - path: datasets/POSCARs/MoS2-2Mo/2V_Mo
+      md5: 3875e121cf22c582f192d103b43fe341.dir
+      size: 186408
+      nfiles: 16

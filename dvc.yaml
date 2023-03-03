@@ -232,6 +232,21 @@ stages:
       - scripts/compute_matminer_features.py
     outs:
       - datasets/processed/pilot/matminer_dbg.csv.gz
+  MoS2-2Mo-structures:
+    foreach:
+      - 1_V_1W_Mo
+      - 2V_Mo
+      - 2W_Mo
+    do:
+      # No clean output as the UUIDs will be regenerated
+      cmd: python scripts/defects_generation.py --output-path datasets/POSCARs/MoS2-2Mo/${item}
+           --config-path datasets/generation_configs/MoS2-2Mo/${item}.yaml
+      deps:
+        - datasets/generation_configs/MoS2-2Mo/${item}.yaml
+        - defects_generation/molecules/MoS2.cif
+        - scripts/defects_generation.py
+      outs:
+        - datasets/POSCARs/MoS2-2Mo/${item}
   vacancy-pairs-configs:
     foreach:
       - GaSe
