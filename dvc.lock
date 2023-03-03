@@ -1478,12 +1478,12 @@ stages:
       md5: 862c7fffd168aab0d56a8bbd17d324ad
       size: 812
     - path: scripts/defects_generation.py
-      md5: a0ef3e7bf9333c906845f32f3af48202
-      size: 13880
+      md5: cba24ae8144b9f9f333fbb317ac38710
+      size: 13903
     outs:
     - path: datasets/POSCARs/MoS2-2Mo/1_V_1W_Mo
-      md5: a4217d9ca69f4e5184c891fd1bd0f2fd.dir
-      size: 187575
+      md5: 4290cb4d244e12f39411fdaa0bb95f6e.dir
+      size: 187501
       nfiles: 16
   MoS2-2Mo-structures@2W_Mo:
     cmd: python scripts/defects_generation.py --output-path datasets/POSCARs/MoS2-2Mo/2W_Mo
@@ -1496,12 +1496,12 @@ stages:
       md5: 862c7fffd168aab0d56a8bbd17d324ad
       size: 812
     - path: scripts/defects_generation.py
-      md5: a0ef3e7bf9333c906845f32f3af48202
-      size: 13880
+      md5: cba24ae8144b9f9f333fbb317ac38710
+      size: 13903
     outs:
     - path: datasets/POSCARs/MoS2-2Mo/2W_Mo
-      md5: ededba72960a464db488397ab6d2b165.dir
-      size: 188592
+      md5: 7e46d034ebd9a8de8ab0899dfe2ea96f.dir
+      size: 188466
       nfiles: 16
   MoS2-2Mo-structures@2V_Mo:
     cmd: python scripts/defects_generation.py --output-path datasets/POSCARs/MoS2-2Mo/2V_Mo
@@ -1514,10 +1514,10 @@ stages:
       md5: 862c7fffd168aab0d56a8bbd17d324ad
       size: 812
     - path: scripts/defects_generation.py
-      md5: a0ef3e7bf9333c906845f32f3af48202
-      size: 13880
+      md5: cba24ae8144b9f9f333fbb317ac38710
+      size: 13903
     outs:
     - path: datasets/POSCARs/MoS2-2Mo/2V_Mo
-      md5: 3875e121cf22c582f192d103b43fe341.dir
+      md5: 1f11ca4d5ae6b8ecc852ad1798b85332.dir
       size: 186408
       nfiles: 16

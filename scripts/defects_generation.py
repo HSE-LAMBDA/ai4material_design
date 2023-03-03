@@ -242,7 +242,7 @@ def main():
                             two_defect_supercell.remove_sites([site_index])
                         else:
                             two_defect_supercell.replace(site_index, species=Element(replacement))
-                        structure_writer.write(two_defect_supercell, description)
+                        structure_writer.write(two_defect_supercell.get_sorted_structure(), description)
             else:
                 raise NotImplemented("Can't handle more than two defects yet")
         else:
