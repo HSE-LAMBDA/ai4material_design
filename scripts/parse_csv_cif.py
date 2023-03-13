@@ -183,6 +183,10 @@ def main():
     parser.add_argument("--normalize-homo-lumo", action="store_true")
     parser.add_argument("--skip-eos", action="store_true",
                         help="Don't add EOS indices")
+    parser.add_argument("--output-folder", type=Path,
+                        help="Path where to write the output. "
+                        "The usual directory structure 'datasets/processeds/<dataset_name>'"
+                        "will be created.")
     args = parser.parse_args()
 
     storage_resolver = StorageResolver()
@@ -300,7 +304,7 @@ def main():
             structures["total_mag"] = 0.
             logging.info("Setting total_mag = 0")
 
-    save_dir = storage_resolver["processed"].joinpath(dataset_name)
+    save_dir = StorageResolver(root_folder=args.output_folder)["processed"].joinpath(dataset_name)
     save_dir.mkdir(exist_ok=True, parents=True)
     structures.to_pickle(
         save_dir.joinpath("data.pickle.gz"))

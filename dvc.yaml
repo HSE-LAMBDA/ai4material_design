@@ -131,7 +131,7 @@ stages:
         python scripts/vasp_to_csv_cif.py --input-vasp "datasets/raw_vasp/dichalcogenides8x8_vasp_nus_202110/${item.material}_8x8_5933"
         --input-structures-list datasets/csv_cif/low_density_defects_Innopolis-v1/${item.material}
         --input-structures-csv-cif datasets/csv_cif/low_density_defects_Innopolis-v1/${item.material}
-        --output-csv-cif "${paths.output_folder_arg}/datasets/csv_cif/low_density_defects/${item.material}"
+        --output-csv-cif "${paths.datasets_root}/datasets/csv_cif/low_density_defects/${item.material}"
         --pristine-folder datasets/others/pristine_high_density
         --vasprun-glob-prefix poscar_??- &&
         sleep 5 &&
