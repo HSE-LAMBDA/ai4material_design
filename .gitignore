@@ -14,3 +14,4 @@ catboost_info
 **/*.sqlite3
 .idea
 ai4material_design*.o*
+params.yaml.bak

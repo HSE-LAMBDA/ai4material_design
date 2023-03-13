@@ -1,2 +1,2 @@
 #!/bin/bash
-python scripts/parse_csv_cif.py --input-name=high_density_defects/BP_spin_500 --normalize-homo-lumo --fill-missing-band-properties --output-folder /output
+python scripts/parse_csv_cif.py --input-name=low_density_defects/MoS2 --fill-missing-band-properties --normalize-homo-lumo --output-folder /output
