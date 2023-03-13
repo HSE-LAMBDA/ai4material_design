@@ -14,7 +14,7 @@ stages:
         - datasets/raw_vasp/high_density_defects/${item}_500
         - scripts/vasp_to_csv_cif.py
       outs:
-        - datasets/csv_cif/high_density_defects/${item}_500
+        - ${paths.datasets_root}/datasets/csv_cif/high_density_defects/${item}_500
   csv-cif-spin-500-data:
     foreach: 
       - BP
@@ -32,7 +32,7 @@ stages:
         - datasets/raw_vasp/high_density_defects/${item}_spin_500
         - scripts/vasp_to_csv_cif.py
       outs:
-        - datasets/csv_cif/high_density_defects/${item}_spin_500
+        - ${paths.datasets_root}/datasets/csv_cif/high_density_defects/${item}_spin_500
   csv-cif-vacancy-pairs-no-spin:
     foreach:
       - GaSe
@@ -49,7 +49,7 @@ stages:
         - datasets/raw_vasp/vacancy_pairs/${item}
         - scripts/vasp_to_csv_cif.py
       outs:
-        - datasets/csv_cif/vacancy_pairs/${item}
+        - ${paths.datasets_root}/datasets/csv_cif/vacancy_pairs/${item}
   csv-cif-spin-500-data-occu-tol-investigation:
     foreach:
       - material: BP
@@ -86,7 +86,7 @@ stages:
         - datasets/raw_vasp/high_density_defects/${item.material}_spin_500
         - scripts/vasp_to_csv_cif.py
       outs:
-        - datasets/csv_cif/high_density_defects/${item.material}_spin_500_occu_tol_${item.occu_tol}
+        - ${paths.datasets_root}/datasets/csv_cif/high_density_defects/${item.material}_spin_500_occu_tol_${item.occu_tol}
   csv-cif-low-density-8x8-Innopolis-v1:
     foreach:
       - WSe2
@@ -143,7 +143,7 @@ stages:
         - datasets/others/pristine_high_density
         - datasets/raw_vasp/dichalcogenides8x8_vasp_nus_202110/${item.tar_folder}_8x8_5933.tar.gz.index.sqlite
       outs:
-        - datasets/csv_cif/low_density_defects/${item.material}
+        - ${paths.datasets_root}/datasets/csv_cif/low_density_defects/${item.material}
   processed-low-density:
     foreach:
       - WSe2
@@ -154,8 +154,8 @@ stages:
         - datasets/csv_cif/low_density_defects/${item}
         - scripts/parse_csv_cif.py
       outs:
-        - datasets/processed/low_density_defects/${item}/data.pickle.gz
-        - datasets/processed/low_density_defects/${item}/targets.csv.gz
+        - ${paths.datasets_root}/datasets/processed/low_density_defects/${item}/data.pickle.gz
+        - ${paths.datasets_root}/datasets/processed/low_density_defects/${item}/targets.csv.gz
   processed-high-density:
     foreach: 
       - BP_spin
@@ -170,16 +170,16 @@ stages:
         - scripts/parse_csv_cif.py
         - datasets/csv_cif/high_density_defects/${item}_500
       outs:
-        - datasets/processed/high_density_defects/${item}_500/targets.csv.gz
-        - datasets/processed/high_density_defects/${item}_500/data.pickle.gz
+        - ${paths.datasets_root}/datasets/processed/high_density_defects/${item}_500/targets.csv.gz
+        - ${paths.datasets_root}/datasets/processed/high_density_defects/${item}_500/data.pickle.gz
   processed-pilot:
     cmd: python scripts/parse_csv_cif.py --input-name=pilot --fill-missing-band-properties ${paths.output_folder_arg}
     deps:
       - scripts/parse_csv_cif.py
       - datasets/csv_cif/pilot
     outs:
-      - datasets/processed/pilot/targets.csv.gz
-      - datasets/processed/pilot/data.pickle.gz
+      - ${paths.datasets_root}/datasets/processed/pilot/targets.csv.gz
+      - ${paths.datasets_root}/datasets/processed/pilot/data.pickle.gz
   processed-vacancy-pairs:
     foreach:
       - hBN
@@ -191,8 +191,8 @@ stages:
         - scripts/parse_csv_cif.py
         - datasets/csv_cif/vacancy_pairs/${item}
       outs:
-        - datasets/processed/vacancy_pairs/${item}/targets.csv.gz
-        - datasets/processed/vacancy_pairs/${item}/data.pickle.gz
+        - ${paths.datasets_root}/datasets/processed/vacancy_pairs/${item}/targets.csv.gz
+        - ${paths.datasets_root}/datasets/processed/vacancy_pairs/${item}/data.pickle.gz
   rolos-2d-materials-point-defects:
     cmd:
       ./scripts/pack_for_rolos.sh
@@ -224,14 +224,14 @@ stages:
         - datasets/csv_cif/${item}
         - scripts/compute_matminer_features.py
       outs:
-        - datasets/processed/${item}/matminer.csv.gz
+        - ${paths.datasets_root}/datasets/processed/${item}/matminer.csv.gz
   matminer-debug:
     cmd: python scripts/compute_matminer_features.py --input-name pilot --n-proc=2 --debug ${paths.output_folder_arg}
     deps:
       - datasets/csv_cif/pilot
       - scripts/compute_matminer_features.py
     outs:
-      - datasets/processed/pilot/matminer_dbg.csv.gz
+      - ${paths.datasets_root}/datasets/processed/pilot/matminer_dbg.csv.gz
   MoS2-2Mo-structures:
     foreach:
       - 1_V_1W_Mo
