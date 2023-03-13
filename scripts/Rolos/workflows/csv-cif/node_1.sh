@@ -1,2 +1,2 @@
 #!/bin/bash
-python scripts/separate_csv_cif.py --input-folder datasets/csv_cif/dichalcogenides_x1s6_202109 --output-folder /output/datasets/csv_cif/low_density_defects_Innopolis-v1/MoS2 --base-material MoS2 --supercell-size 8
+python scripts/vasp_to_csv_cif.py --input-vasp "datasets/raw_vasp/high_density_defects/hBN_spin_500" --input-structures-list "datasets/POSCARs/hBN" --POSCARs-in-input-list --output-csv-cif "/output/datasets/csv_cif/high_density_defects/hBN_spin_500" --pristine-folder datasets/others/pristine_high_density --separate-spins
