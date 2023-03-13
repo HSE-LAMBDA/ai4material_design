@@ -49,7 +49,7 @@ def get_train_val_test_split(length, val_size, test_size, random_state):
 
 
 def main():
-    parser = argparse.ArgumentParser("Prepares CV data splits")
+    parser = argparse.ArgumentParser("Prepares CV/train-test data splits")
     parser.add_argument("--datasets", nargs="+", required=True)
     parser.add_argument("--test-size", type=float)
     parser.add_argument("--validation-size", type=float)
@@ -73,7 +73,18 @@ def main():
     if any(map(indices_intersect, combinations(all_structures, 2))):
         raise ValueError("Structures contain duplicate indices")
 
+    config = {
+            "datasets": args.datasets,
+            "strategy": args.strategy,
+            "n-folds": args.n_folds,
+            "targets": args.targets
+    }
+
     if args.strategy == "train_test":
+        if args.drop_na:
+            raise NotImplementedError("Drop NA is not implemented for train_test")
+        if args.n_folds != 2:
+            raise ValueError("n_folds should be 2 for train_test")
         if args.test_size > 0:
             folds = np.concatenate([
                 get_train_val_test_split(
@@ -87,30 +98,20 @@ def main():
 
             all_structures = pd.concat(all_structures, axis=0)
             all_weights = np.concatenate(all_weights, axis=None)
-            if args.drop_na:
-                all_structures.dropna(inplace=True)
 
             output_path = StorageResolver()["experiments"].joinpath(args.experiment_name + '_validation')
             output_path.mkdir(exist_ok=True)
 
             fold_full = pd.DataFrame(
-                data={
+                data = {
                     'fold': folds,
                     'weight': all_weights
                 },
-                index=all_structures.index
-            )
-
+                index=all_structures.index)
             fold_val = fold_full[fold_full['fold'] != TEST_FOLD].copy()
             fold_val['fold'] = np.where(fold_val['fold'] == VALIDATION_FOLD, TEST_FOLD, TRAIN_FOLD)
             fold_val.to_csv(output_path.joinpath('folds.csv.gz'), index_label='_id')
 
-            config = {
-                "datasets": args.datasets,
-                "strategy": args.strategy,
-                "n-folds": args.n_folds,
-                "targets": args.targets
-            }
             with open(output_path.joinpath("config.yaml"), "wt") as config_file:
                 yaml.dump(config, config_file)
 
@@ -120,17 +121,26 @@ def main():
             fold_val = fold_full.copy()
             fold_val['fold'] = np.where(fold_val['fold'] == TEST_FOLD, TEST_FOLD, TRAIN_FOLD)
             fold_val.to_csv(output_path.joinpath('folds.csv.gz'), index_label='_id')
-
-            config = {
-                "datasets": args.datasets,
-                "strategy": args.strategy,
-                "n-folds": args.n_folds,
-                "targets": args.targets
-            }
             with open(output_path.joinpath("config.yaml"), "wt") as config_file:
                 yaml.dump(config, config_file)
-        else:
-            raise NotImplementedError
+        elif args.test_size == 0:
+            if args.validation_size:
+                raise NotImplementedError("Validation is not implemented for test_size == 0")
+            all_structures = pd.concat(all_structures, axis=0)
+            all_weights = np.concatenate(all_weights, axis=None)
+            folds = pd.DataFrame(
+                data = {
+                    'fold': TRAIN_FOLD,
+                    'weight': all_weights
+                },
+                index=all_structures.index
+            )
+            output_path = StorageResolver()["experiments"].joinpath(args.experiment_name)
+            output_path.mkdir(exist_ok=True)
+            with open(output_path.joinpath("config.yaml"), "wt") as config_file:
+                yaml.dump(config, config_file)
+            folds.to_csv(output_path.joinpath("folds.csv.gz"), index_label="_id")
+            
     elif args.strategy == 'cv':
         random_state = np.random.RandomState(args.random_seed)
 
@@ -140,13 +150,6 @@ def main():
         fold_full = pd.Series(data=folds,
                               index=all_structures.index, name="fold")
         fold_full.to_csv(output_path.joinpath("folds.csv.gz"), index_label="_id")
-
-        config = {
-            "datasets": args.datasets,
-            "strategy": args.strategy,
-            "n-folds": args.n_folds,
-            "targets": args.targets
-        }
         with open(output_path.joinpath("config.yaml"), "wt") as config_file:
             yaml.dump(config, config_file)
 

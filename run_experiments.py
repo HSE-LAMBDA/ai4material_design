@@ -212,8 +212,8 @@ def cross_val_predict(
                             wandb_config=wandb_config,
                             checkpoint_path=checkpoint_path,
                             n_jobs=n_jobs,
-                            minority_class_upsampling=minority_class_upsampling
-                            save_checkpointssave_checkpoints
+                            minority_class_upsampling=minority_class_upsampling,
+                            save_checkpoints=save_checkpoints
                             ),
                     zip(test_fold_generator, cycle(gpus)),
                     chunksize=1,

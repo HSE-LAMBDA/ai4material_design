@@ -1,7 +1,7 @@
 from typing import List, Optional
 from itertools import groupby
 from operator import attrgetter
-from functools import partial
+from pathlib import Path
 
 import torch
 import numpy as np
@@ -43,9 +43,11 @@ class MEGNetPyTorchTrainer(Trainer):
             save_checkpoint: bool,
             n_jobs: int = -1,
             minority_class_upsampling: bool = False,
+            checkpoint_path: Optional[Path] = None,
     ):
         self.config = configs
         self.minority_class_upsampling = minority_class_upsampling
+        self.ema = False
 
         if self.config["model"]["add_z_bond_coord"]:
             bond_converter = FlattenGaussianDistanceConverter(
@@ -107,6 +109,7 @@ class MEGNetPyTorchTrainer(Trainer):
                 lr=self.config["optim"]["lr_initial"],
             ),
             use_gpus=gpu_id,  # must be changed ol local notebook !!!
+            checkpoint_path=checkpoint_path
         )
         self.save_checkpoint = save_checkpoint
 
@@ -121,7 +124,6 @@ class MEGNetPyTorchTrainer(Trainer):
             )
 
     def train(self):
-
         wandb.define_metric("epoch")
         wandb.define_metric(f"{self.target_name} test_loss_per_epoch", step_metric='epoch')
         wandb.define_metric(f"{self.target_name} train_loss_per_epoch", step_metric='epoch')
@@ -181,7 +183,10 @@ class MEGNetPyTorchTrainer(Trainer):
                         ).to('cpu').data.numpy()
                     )
 
-            cur_test_loss = sum(total) / len(self.test_structures)
+            if len(self.test_structures) > 0:
+                cur_test_loss = sum(total) / len(self.test_structures)
+            else:
+                cur_test_loss = None
             cur_train_loss = sum(total_train) / len(self.train_structures)
             self.scheduler.step(cur_train_loss)
 

@@ -284,3 +284,21 @@ stages:
         - datasets/experiments/${item}/config.yaml
       outs:
         - datasets/experiments/${item}/folds.csv.gz
+  train-only-split:
+    cmd: python scripts/prepare_data_split.py
+         --datasets high_density_defects/{BP_spin_500,GaSe_spin_500,hBN_spin_500,InSe_spin_500,MoS2_500,WSe2_500}
+         low_density_defects/{MoS2,WSe2} --test-size 0 --experiment-name combined_mixed_all_train --n-folds 2
+         --targets homo_lumo_gap_min formation_energy_per_site --strategy train_test
+    deps:
+      - scripts/prepare_data_split.py
+      - datasets/csv_cif/high_density_defects/BP_spin_500
+      - datasets/csv_cif/high_density_defects/GaSe_spin_500
+      - datasets/csv_cif/high_density_defects/hBN_spin_500
+      - datasets/csv_cif/high_density_defects/InSe_spin_500
+      - datasets/csv_cif/high_density_defects/MoS2_500
+      - datasets/csv_cif/high_density_defects/WSe2_500
+      - datasets/csv_cif/low_density_defects/MoS2
+      - datasets/csv_cif/low_density_defects/WSe2
+    outs:
+      - datasets/experiments/combined_mixed_all_train/folds.csv.gz
+      - datasets/experiments/combined_mixed_all_train/config.yaml

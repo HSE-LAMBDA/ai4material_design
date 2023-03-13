@@ -1521,3 +1521,51 @@ stages:
       md5: 1f11ca4d5ae6b8ecc852ad1798b85332.dir
       size: 186408
       nfiles: 16
+  train-only-split:
+    cmd: python scripts/prepare_data_split.py --datasets high_density_defects/{BP_spin_500,GaSe_spin_500,hBN_spin_500,InSe_spin_500,MoS2_500,WSe2_500}
+      low_density_defects/{MoS2,WSe2} --test-size 0 --experiment-name combined_mixed_all_train
+      --n-folds 2 --targets homo_lumo_gap_min formation_energy_per_site --strategy
+      train_test
+    deps:
+    - path: datasets/csv_cif/high_density_defects/BP_spin_500
+      md5: a4e333c05b0aca73103df29ed416778f.dir
+      size: 200980
+      nfiles: 5
+    - path: datasets/csv_cif/high_density_defects/GaSe_spin_500
+      md5: c6f312abd729b98037a3453302afecf3.dir
+      size: 311908
+      nfiles: 5
+    - path: datasets/csv_cif/high_density_defects/InSe_spin_500
+      md5: 7e402a43158b671d97818d511fab4e04.dir
+      size: 302288
+      nfiles: 5
+    - path: datasets/csv_cif/high_density_defects/MoS2_500
+      md5: 290d73714cd685fbcb691021206d7406.dir
+      size: 400566
+      nfiles: 6
+    - path: datasets/csv_cif/high_density_defects/WSe2_500
+      md5: 4361e7306690c8f98ffbe24d665b00ec.dir
+      size: 390774
+      nfiles: 6
+    - path: datasets/csv_cif/high_density_defects/hBN_spin_500
+      md5: 15ffbeaf570a720ffc5140e954ef80dd.dir
+      size: 211367
+      nfiles: 5
+    - path: datasets/csv_cif/low_density_defects/MoS2
+      md5: aed2687937cf76f490ff628e4898bde1.dir
+      size: 2370927
+      nfiles: 7
+    - path: datasets/csv_cif/low_density_defects/WSe2
+      md5: 1ec2db571d69850769ab2fa44eb4548f.dir
+      size: 2157751
+      nfiles: 7
+    - path: scripts/prepare_data_split.py
+      md5: c92406d5b52a7264b30d4716750c47b7
+      size: 6428
+    outs:
+    - path: datasets/experiments/combined_mixed_all_train/config.yaml
+      md5: 861019590c94385318a276cd23cf5620
+      size: 362
+    - path: datasets/experiments/combined_mixed_all_train/folds.csv.gz
+      md5: 9911c2326085417112dc60ecb1270007
+      size: 122122
