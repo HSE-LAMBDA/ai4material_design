@@ -6,7 +6,7 @@ stages:
     do:
       cmd: python scripts/vasp_to_csv_cif.py --input-vasp "datasets/raw_vasp/high_density_defects/${item}_500"
         --input-structures-list "datasets/POSCARs/${item}" --POSCARs-in-input-list
-        --output-csv-cif "datasets/csv_cif/high_density_defects/${item}_500"
+        --output-csv-cif "${paths.datasets_root}/datasets/csv_cif/high_density_defects/${item}_500"
         --pristine-folder datasets/others/pristine_high_density
       deps:
         - datasets/POSCARs/${item}
@@ -24,7 +24,7 @@ stages:
     do:
       cmd: python scripts/vasp_to_csv_cif.py --input-vasp "datasets/raw_vasp/high_density_defects/${item}_spin_500"
         --input-structures-list "datasets/POSCARs/${item}" --POSCARs-in-input-list
-        --output-csv-cif "datasets/csv_cif/high_density_defects/${item}_spin_500"
+        --output-csv-cif "${paths.datasets_root}/datasets/csv_cif/high_density_defects/${item}_spin_500"
         --pristine-folder datasets/others/pristine_high_density --separate-spins
       deps:
         - datasets/POSCARs/${item}
@@ -41,7 +41,7 @@ stages:
     do:
       cmd: python scripts/vasp_to_csv_cif.py --input-vasp datasets/raw_vasp/vacancy_pairs/${item}
         --input-structures-list "datasets/POSCARs/vacancy_pairs/${item}" --POSCARs-in-input-list
-        --output-csv-cif "datasets/csv_cif/vacancy_pairs/${item}"
+        --output-csv-cif "${paths.datasets_root}/datasets/csv_cif/vacancy_pairs/${item}"
         --pristine-folder datasets/others/pristine_high_density
       deps:
         - datasets/POSCARs/vacancy_pairs/${item}
@@ -78,7 +78,7 @@ stages:
         occu_tol: 0.1
     do:
       cmd: python scripts/vasp_to_csv_cif.py --input-vasp "datasets/raw_vasp/high_density_defects/${item.material}_spin_500"
-        --input-structures "datasets/POSCARs/${item.material}" --output-csv-cif "datasets/csv_cif/high_density_defects/${item.material}_spin_500_occu_tol_${item.occu_tol}"
+        --input-structures "datasets/POSCARs/${item.material}" --output-csv-cif "${paths.datasets_root}/datasets/csv_cif/high_density_defects/${item.material}_spin_500_occu_tol_${item.occu_tol}"
         --pristine-folder datasets/others/pristine_high_density --separate-spins --band-occupancy-tolerence ${item.occu_tol}
       deps:
         - datasets/POSCARs/${item.material}
@@ -93,7 +93,7 @@ stages:
       - MoS2
     do:
       cmd: python scripts/separate_csv_cif.py --input-folder datasets/csv_cif/dichalcogenides_x1s6_202109
-        --output-folder datasets/csv_cif/low_density_defects_Innopolis-v1/${item} --base-material ${item}
+        --output-folder ${paths.datasets_root}/datasets/csv_cif/low_density_defects_Innopolis-v1/${item} --base-material ${item}
         --supercell-size 8
       deps:
         - datasets/csv_cif/dichalcogenides_x1s6_202109
@@ -131,7 +131,7 @@ stages:
         python scripts/vasp_to_csv_cif.py --input-vasp "datasets/raw_vasp/dichalcogenides8x8_vasp_nus_202110/${item.material}_8x8_5933"
         --input-structures-list datasets/csv_cif/low_density_defects_Innopolis-v1/${item.material}
         --input-structures-csv-cif datasets/csv_cif/low_density_defects_Innopolis-v1/${item.material}
-        --output-csv-cif "datasets/csv_cif/low_density_defects/${item.material}"
+        --output-csv-cif "${paths.output_folder_arg}/datasets/csv_cif/low_density_defects/${item.material}"
         --pristine-folder datasets/others/pristine_high_density
         --vasprun-glob-prefix poscar_??- &&
         sleep 5 &&
@@ -149,7 +149,7 @@ stages:
       - WSe2
       - MoS2
     do:
-      cmd: python scripts/parse_csv_cif.py --input-name=low_density_defects/${item} --fill-missing-band-properties --normalize-homo-lumo
+      cmd: python scripts/parse_csv_cif.py --input-name=low_density_defects/${item} --fill-missing-band-properties --normalize-homo-lumo ${paths.output_folder_arg}
       deps:
         - datasets/csv_cif/low_density_defects/${item}
         - scripts/parse_csv_cif.py
@@ -165,7 +165,7 @@ stages:
       - MoS2
       - WSe2
     do:
-      cmd: python scripts/parse_csv_cif.py --input-name=high_density_defects/${item}_500 --normalize-homo-lumo --fill-missing-band-properties
+      cmd: python scripts/parse_csv_cif.py --input-name=high_density_defects/${item}_500 --normalize-homo-lumo --fill-missing-band-properties ${paths.output_folder_arg}
       deps:
         - scripts/parse_csv_cif.py
         - datasets/csv_cif/high_density_defects/${item}_500
@@ -173,7 +173,7 @@ stages:
         - datasets/processed/high_density_defects/${item}_500/targets.csv.gz
         - datasets/processed/high_density_defects/${item}_500/data.pickle.gz
   processed-pilot:
-    cmd: python scripts/parse_csv_cif.py --input-name=pilot --fill-missing-band-properties
+    cmd: python scripts/parse_csv_cif.py --input-name=pilot --fill-missing-band-properties ${paths.output_folder_arg}
     deps:
       - scripts/parse_csv_cif.py
       - datasets/csv_cif/pilot
@@ -186,7 +186,7 @@ stages:
       - GaSe
       - InSe
     do:
-      cmd: python scripts/parse_csv_cif.py --input-name=vacancy_pairs/${item} --normalize-homo-lumo --fill-missing-band-properties
+      cmd: python scripts/parse_csv_cif.py --input-name=vacancy_pairs/${item} --normalize-homo-lumo --fill-missing-band-properties ${paths.output_folder_arg}
       deps:
         - scripts/parse_csv_cif.py
         - datasets/csv_cif/vacancy_pairs/${item}
@@ -219,14 +219,14 @@ stages:
       - vacancy_pairs/InSe
       - pilot
     do:
-      cmd: python scripts/compute_matminer_features.py --input-name ${item} --n-proc=36
+      cmd: python scripts/compute_matminer_features.py --input-name ${item} --n-proc=36 ${paths.output_folder_arg}
       deps:
         - datasets/csv_cif/${item}
         - scripts/compute_matminer_features.py
       outs:
         - datasets/processed/${item}/matminer.csv.gz
   matminer-debug:
-    cmd: python scripts/compute_matminer_features.py --input-name pilot --n-proc=2 --debug
+    cmd: python scripts/compute_matminer_features.py --input-name pilot --n-proc=2 --debug ${paths.output_folder_arg}
     deps:
       - datasets/csv_cif/pilot
       - scripts/compute_matminer_features.py

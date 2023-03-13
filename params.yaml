@@ -1,0 +1,3 @@
+paths:
+    datasets_root: "."
+    output_folder_arg: ""
