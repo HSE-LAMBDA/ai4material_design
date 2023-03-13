@@ -1,5 +1,6 @@
 from lib2to3.pytree import convert
 from typing import Union
+from pathlib import Path
 import pandas as pd
 from ai4mat.models.megnet_pytorch.megnet_pytorch_trainer import MEGNetPyTorchTrainer
 import os
@@ -20,9 +21,10 @@ def get_megnet_pytorch_predictions(
         target_is_intensive: bool,
         model_params: dict,
         gpu: int,
-        checkpoint_path,
+        checkpoint_path: Path,
         n_jobs,
-        minority_class_upsampling: bool):
+        minority_class_upsampling: bool,
+        save_checkpoints: bool,):
     if not target_is_intensive:
         raise NotImplementedError
     os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu)
@@ -42,7 +44,8 @@ def get_megnet_pytorch_predictions(
         target_name,
         configs=model_params,
         gpu_id=gpu,
-        save_checkpoint=False,
+        save_checkpoint=save_checkpoints,
+        checkpoint_path = checkpoint_path,
         n_jobs=n_jobs,
         minority_class_upsampling=minority_class_upsampling,
     )

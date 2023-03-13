@@ -37,7 +37,11 @@ def main():
                         help="Only run on these targets")
     parser.add_argument("--n-jobs", type=int, default=1,
                         help="Number of jobs for a training process to run. Not all models support this parameter.")
-    parser.add_argument("--output-folder", type=Path)
+    parser.add_argument("--save-checkpoints", action="store_true", help="Save checkpoints for the trained models.")
+    parser.add_argument("--output-folder", type=Path, help="Path where to write the output. "
+                        "The usual directory structure "
+                        "'datasets/predictions/<experiments>/<target>/<trial>.csv.gz'"
+                        "will be created.")
 
     args = parser.parse_args()
 
@@ -59,7 +63,8 @@ def main():
                        args.processes_per_unit,
                        args.targets,
                        args.n_jobs,
-                       output_folder=args.output_folder)
+                       output_folder=args.output_folder,
+                       save_checkpoints=args.save_checkpoints)
 
 
 def run_experiment(experiment_name: str,
@@ -69,6 +74,7 @@ def run_experiment(experiment_name: str,
                    requested_targets: List[str] = None,
                    n_jobs=1,
                    output_folder: Path = None,
+                   save_checkpoints: bool = False
                    ) -> None:
     """
     Runs an experiment.
@@ -141,11 +147,12 @@ def run_experiment(experiment_name: str,
             gpus,
             processes_per_unit,
             wandb_config,
-            checkpoint_path=storage_resolver["checkpoints"].joinpath(experiment_name, str(target_name),
-                                                                     this_trial_name),
+            checkpoint_path=StorageResolver(root_folder=output_folder)["checkpoints"].joinpath(
+                experiment_name, str(target_name), this_trial_name),
             n_jobs=n_jobs,
             strategy=experiment['strategy'],
             minority_class_upsampling=minority_class_upsampling,
+            save_checkpoints=save_checkpoints
         )
         predictions.rename(lambda target_name: f"predicted_{target_name}_test", axis=1, inplace=True)
         save_path = StorageResolver(root_folder=output_folder)["predictions"].joinpath(
@@ -174,6 +181,7 @@ def cross_val_predict(
         n_jobs,
         strategy="cv",
         minority_class_upsampling=False,
+        save_checkpoints=False
 ):
     assert data.index.equals(targets.index)
     assert data.index.equals(folds.index)
@@ -187,7 +195,7 @@ def cross_val_predict(
         raise ValueError('Unknown split strategy')
     assert set(folds.unique()) == set(range(n_folds))
     if strategy == "cv":
-        # Not necessary, but makes debug easier
+        # Not necessary, but makes debugging easier
         n_processes = len(gpus) * processes_per_unit
         if n_processes > 1:
             with get_context('spawn').Pool(n_processes, maxtasksperchild=1) as pool:
@@ -205,6 +213,7 @@ def cross_val_predict(
                             checkpoint_path=checkpoint_path,
                             n_jobs=n_jobs,
                             minority_class_upsampling=minority_class_upsampling
+                            save_checkpointssave_checkpoints
                             ),
                     zip(test_fold_generator, cycle(gpus)),
                     chunksize=1,
@@ -223,14 +232,11 @@ def cross_val_predict(
                         wandb_config=wandb_config,
                         checkpoint_path=checkpoint_path,
                         n_jobs=n_jobs,
-                        minority_class_upsampling=minority_class_upsampling
+                        minority_class_upsampling=minority_class_upsampling,
+                        save_checkpoints=save_checkpoints
                         ),
                 zip(test_fold_generator, cycle(gpus)),
             )
-
-
-    # TODO(kazeevn)
-    # Should we add explicit Structure -> graph preprocessing with results shared?
     elif strategy == "train_test":
         predictions = predict_on_fold(
             test_fold=TEST_FOLD,
@@ -246,7 +252,8 @@ def cross_val_predict(
             wandb_config=wandb_config,
             checkpoint_path=checkpoint_path,
             n_jobs=n_jobs,
-            minority_class_upsampling=minority_class_upsampling
+            minority_class_upsampling=minority_class_upsampling,
+            save_checkpoints=save_checkpoints
         )
     # TODO(kazeevn)
     # Should we add explicit Structure -> graph preprocessing with results shared?
@@ -291,6 +298,7 @@ def predict_on_fold(
         checkpoint_path,
         n_jobs,
         minority_class_upsampling,
+        save_checkpoints
 ):
     train_folds = set(range(n_folds)) - set((test_fold,))
     train_ids = folds[folds.isin(train_folds)]
@@ -319,6 +327,7 @@ def predict_on_fold(
             checkpoint_path=checkpoint_path.joinpath('_'.join(map(str, train_folds))),
             n_jobs=n_jobs,
             minority_class_upsampling=minority_class_upsampling,
+            save_checkpoints=save_checkpoints
         )
 
 

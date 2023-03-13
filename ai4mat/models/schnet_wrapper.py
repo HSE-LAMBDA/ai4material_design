@@ -18,7 +18,8 @@ def get_schnet_predictions(
         gpu: Optional[int],
         checkpoint_path: Optional[str],
         n_jobs: Optional[int],
-        minority_class_upsampling: bool) -> np.ndarray:
+        minority_class_upsampling: bool,
+        save_checkpoints: bool) -> np.ndarray:
     """
     Computes SchNet predictions.
     Args:

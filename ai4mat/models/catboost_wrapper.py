@@ -1,5 +1,4 @@
 import logging
-import pandas as pd
 from catboost import CatBoostRegressor, Pool
 from wandb.catboost import WandbCallback, log_summary
 
@@ -11,7 +10,8 @@ def get_catboost_predictions(
     gpu,
     checkpoint_path,
     n_jobs=None,
-    minority_class_upsampling=False):
+    minority_class_upsampling = False,
+    save_checkpoints: bool = False):
     specific_params = model_params.copy()
     if checkpoint_path is not None:
         logging.warning("Checkpoint path is not supported for CatBoost")
@@ -39,5 +39,7 @@ def get_catboost_predictions(
               callbacks=callbacks,
               use_best_model=False)
     log_summary(model, save_model_checkpoint=False)
+    if save_checkpoints:
+        model.save_model(f"{checkpoint_path}.cbm")
     predictions = model.predict(x_test)
     return predictions.reshape(-1, 1)

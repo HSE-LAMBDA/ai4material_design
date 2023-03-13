@@ -16,6 +16,7 @@ def get_gemnet_predictions(
         checkpoint_path,
         n_jobs=1,
         minority_class_upsampling=False,
+        save_checkpoints: bool = True,
         **kwargs
         ):
     os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu)
@@ -27,13 +28,11 @@ def get_gemnet_predictions(
         train_targets,
         test_structures,
         test_targets,
-        configs=model_params,
-        save_checkpoint=True,
-        checkpoint_path=checkpoint_path,
-        gpu_id=gpu,
-        verbose=1,
-        )
-   
+        configs = model_params,
+        save_checkpoint = save_checkpoints,
+        checkpoint_path = checkpoint_path,
+        gpu_id = gpu,
+        verbose = 1)
         # We use the same test for monitoring, but do no early stopping
     model.train()
     print('========== predicting ==============')
