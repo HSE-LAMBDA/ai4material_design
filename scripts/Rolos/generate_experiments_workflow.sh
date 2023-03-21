@@ -35,6 +35,6 @@ for i in $(seq 1 $REPEATS); do
         echo "#!/bin/bash" > $THIS_SCRIPT_PATH
         echo "cd ai4material_design" >> $THIS_SCRIPT_PATH
         echo "export WANDB_API_KEY=ae457f48d5eb86299f2fe9c18497a281b029a295" >> $THIS_SCRIPT_PATH
-        echo "parallel -j ${BATCH_SIZE} python run_experiments.py --gpus 0 --processes-per-unit 1 --wandb-entity hse_lambda --targets ${TARGET} --experiments ${EXPERIMENT_NAME} --trials ::: ${TRIALS_BATCH//$'\n'/ }" >> $THIS_SCRIPT_PATH
+        echo "parallel -j ${BATCH_SIZE} python run_experiments.py --output-folder /output --gpus 0 --processes-per-unit 1 --wandb-entity hse_lambda --targets ${TARGET} --experiments ${EXPERIMENT_NAME} --trials ::: ${TRIALS_BATCH//$'\n'/ }" >> $THIS_SCRIPT_PATH
     fi
 done
