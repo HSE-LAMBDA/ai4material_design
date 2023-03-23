@@ -132,7 +132,7 @@ dvc repro matminer
 ## Hyperparameter optimisation
 ### Get the data
 ```
-dvc pull -R datasets/csv_cif/{high,low}_density_defects/ datasets/processed/{high,low}_density_defects datasets/experiments/combined_mixed_weighted_test.dvc datasets/experiments/combined_mixed_weighted_validation.dvc
+dvc pull -R processed-high-density processed-low-density datasets/processed/{high,low}_density_defects datasets/experiments/combined_mixed_weighted_test.dvc datasets/experiments/combined_mixed_weighted_validation.dvc
 ```
 ### Generate the trials.
 ```
