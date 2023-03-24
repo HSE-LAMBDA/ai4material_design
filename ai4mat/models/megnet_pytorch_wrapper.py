@@ -1,9 +1,11 @@
-from lib2to3.pytree import convert
 from typing import Union
 from pathlib import Path
-import pandas as pd
-from ai4mat.models.megnet_pytorch.megnet_pytorch_trainer import MEGNetPyTorchTrainer
 import os
+import pandas as pd
+import torch
+
+from ai4mat.models.megnet_pytorch.megnet_pytorch_trainer import MEGNetPyTorchTrainer
+
 
 
 def set_attr(structure, attr, name):
@@ -37,7 +39,8 @@ def get_megnet_pytorch_predictions(
     test_weights = test_weights.tolist()
     train_data = [set_attr(s, w, 'weight') for s, w in zip(train_data, train_weights)]
     test_data = [set_attr(s, w, "weight") for s, w in zip(test_data, test_weights)]
-
+    # torch.set_num_threads works globally, so it's debatable where is the best place to set it
+    torch.set_num_threads(n_jobs)
     model = MEGNetPyTorchTrainer(
         train_data,
         test_data,
