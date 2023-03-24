@@ -4,6 +4,7 @@ TARGET=$2
 REPEATS=$3
 BATCH_SIZE=$4
 EXPERIMENT_NAME=$5
+TOTAL_CPU_COUNT=8
 
 if [ -z "$TRIAL_NAME" -o -z "$TARGET" -o -z "$REPEATS" -o -z "$BATCH_SIZE" -o -z "$EXPERIMENT_NAME" ]; then
     echo "Usage: $0 TRIAL_NAME TARGET REPEATS BATCH_SIZE EXPERIMENT_NAME"
@@ -21,7 +22,7 @@ PROJECT_ROOT=$(realpath "$SCRIPTPATH/../../")
 
 TRIALS_PATH=$PROJECT_ROOT/"trials"
 mkdir -p $TRIALS_PATH/stability/$TRIAL_NAME
-THIS_WORKFLOW_PATH=$SCRIPTPATH/workflows/run_experiment/$EXPERIMENT_NAME/$TRIAL_NAME
+THIS_WORKFLOW_PATH=$SCRIPTPATH/workflows/run_experiments/$EXPERIMENT_NAME/$TARGET/$TRIAL_NAME
 mkdir -p $THIS_WORKFLOW_PATH
 for i in $(seq 1 $REPEATS); do
     # Since for CatBoost we manually change the random seed, don't overwrite the present files
@@ -35,6 +36,11 @@ for i in $(seq 1 $REPEATS); do
         echo "#!/bin/bash" > $THIS_SCRIPT_PATH
         echo "cd ai4material_design" >> $THIS_SCRIPT_PATH
         echo "export WANDB_API_KEY=ae457f48d5eb86299f2fe9c18497a281b029a295" >> $THIS_SCRIPT_PATH
-        echo "parallel -j ${BATCH_SIZE} python run_experiments.py --output-folder /output --gpus 0 --processes-per-unit 1 --wandb-entity hse_lambda --targets ${TARGET} --experiments ${EXPERIMENT_NAME} --trials ::: ${TRIALS_BATCH//$'\n'/ }" >> $THIS_SCRIPT_PATH
+        if [ $BATCH_SIZE -gt 1 ]; then
+            echo "parallel -j ${BATCH_SIZE} python run_experiments.py --n-jobs $((TOTAL_CPU_COUNT / BATCH_SIZE)) --output-folder /output --gpus 0 --processes-per-unit 1 --wandb-entity hse_lambda --targets ${TARGET} --experiments ${EXPERIMENT_NAME} --trials ::: ${TRIALS_BATCH//$'\n'/ }" >> $THIS_SCRIPT_PATH
+        else
+            echo "python run_experiments.py --n-jobs ${TOTAL_CPU_COUNT} --output-folder /output --gpus 0 --processes-per-unit 1 --wandb-entity hse_lambda --targets ${TARGET} --experiments ${EXPERIMENT_NAME} --trials ${TRIALS_BATCH//$'\n'/ }" >> $THIS_SCRIPT_PATH
+        fi
+        
     fi
 done

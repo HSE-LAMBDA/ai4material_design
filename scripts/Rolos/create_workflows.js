@@ -33,7 +33,7 @@ for (trial_group of trial_groups) {
 	  },
 	  "referrer": `https://my.rolos.com/projects/79a29e5d84da4e5680ed6d8c9f933748/workflows/${workflow_id}`,
 	  "referrerPolicy": "strict-origin-when-cross-origin",
-	  "body": `{\"type\":\"environment\",\"name\":\"${trial_group}_${i}\",\"file_id\":\"${trial_prefix}/${trial_group}/node_${i}.sh\",\"environment_template_id\":\"7341a7991fc14514a5e087f700699665\",\"cpu_count\":6,\"ram\":24,\"gpu\":true,\"x\":${46+i*10},\"y\":${50+i*10}}`,
+	  "body": `{\"type\":\"environment\",\"name\":\"${trial_group}_${i}\",\"file_id\":\"${trial_prefix}/${trial_group}/node_${i}.sh\",\"environment_template_id\":\"7341a7991fc14514a5e087f700699665\",\"cpu_count\":8,\"ram\":32,\"gpu\":true,\"x\":${46+i*10},\"y\":${50+i*10}}`,
 	  "method": "POST",
 	  "mode": "cors",
 	  "credentials": "include"
