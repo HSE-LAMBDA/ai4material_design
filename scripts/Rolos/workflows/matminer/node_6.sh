@@ -1,2 +1,3 @@
 #!/bin/bash
-python scripts/compute_matminer_features.py --input-name pilot --n-proc=36 --output-folder /output
+cd ai4material_design
+python scripts/compute_matminer_features.py --input-name high_density_defects/GaSe_spin_500 --n-proc=36 --output-folder /output

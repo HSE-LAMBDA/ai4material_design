@@ -26,6 +26,7 @@ for workflow in low-density-index csv-cif processed matminer; do
         echo "Generating script for $workflow node $node"
         filename=$WORKFLOWS_DIR/$workflow/"node_$node".sh
         echo "#!/bin/bash" > $filename
+        echo "cd ai4material_design" >> $filename
         awk -v NUM=$1 -v NODE=$node '(NR - 1) % NUM == NODE - 1' $WORKFLOWS_DIR/$workflow/commands.txt >> $filename
     done
 done
