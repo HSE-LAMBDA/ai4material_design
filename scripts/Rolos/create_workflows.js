@@ -1,18 +1,39 @@
-/* 
-const workflow_id = 'f7ef25e293394a1aa8ae2ba27b478e64';
-const trial_prefix = '/ai4material_design/scripts/Rolos/workflows/run_experiments/combined_mixed_weighted_test/schnet/25-11-2022_16-52-31/';
-const trial_groups = ['2a52dbe8', '71debf15'];
+// CatBoost
+const workflow_id = '6ab90a79599e42cc9843902238bd6305';
+const target = 'formation_energy_per_site';
+const trial_prefix = `ai4material_design/scripts/Rolos/workflows/run_experiments/combined_mixed_weighted_test/${target}/catboost/29-11-2022_13-16-01/`;
+const trial_groups = ['02e5eda9'];
+const n_nodes = 6;
 
-const workflow_id = '32de20e8eb174186a019f7c87b176bf2';
-const trial_prefix = '/ai4material_design/scripts/Rolos/workflows/run_experiments/combined_mixed_weighted_test/megnet_pytorch/sparse/05-12-2022_19-50-53/';
-const trial_groups = ['831cc496', 'd6b7ce45'];
-const n_nodes = 3
+const workflow_id = '6ab90a79599e42cc9843902238bd6305';
+const target = 'homo_lumo_gap_min';
+const trial_prefix = `ai4material_design/scripts/Rolos/workflows/run_experiments/combined_mixed_weighted_test/${target}/catboost/29-11-2022_13-16-01/`;
+const trial_groups = ['1b1af67c'];
+const n_nodes = 6;
 
-const workflow_id = 'e66fb0a25543458fb2bd9de46bed8a36';
-const trial_prefix = '/ai4material_design/scripts/Rolos/workflows/run_experiments/combined_mixed_weighted_test/catboost/29-11-2022_13-16-01/';
-const trial_groups = ['1b1af67c', '02e5eda9'];
-const n_nodes = 6
-*/
+// SchNet
+const workflow_id = '3df5b3925c5c4483a1722c7c55862e03';
+const n_nodes = 12;
+
+const target = 'formation_energy_per_site';
+const trial_prefix = 'ai4material_design/scripts/Rolos/workflows/run_experiments/combined_mixed_weighted_test/formation_energy_per_site/schnet/25-11-2022_16-52-31/';
+const trial_groups = ['71debf15'];
+
+const target = 'homo_lumo_gap_min';
+const trial_prefix = 'ai4material_design/scripts/Rolos/workflows/run_experiments/combined_mixed_weighted_test/homo_lumo_gap_min/schnet/25-11-2022_16-52-31/';
+const trial_groups = ['2a52dbe8'];
+
+// GemNet
+const workflow_id = '37faed757811498c90536129468c390e';
+const n_nodes = 12;
+
+const target = 'formation_energy_per_site';
+const trial_prefix = 'ai4material_design/scripts/Rolos/workflows/run_experiments/combined_mixed_weighted_test/formation_energy_per_site/gemnet/16-11-2022_20-05-04/';
+const trial_groups = ['b5723f85'];
+
+const target = 'homo_lumo_gap_min';
+const trial_prefix = 'ai4material_design/scripts/Rolos/workflows/run_experiments/combined_mixed_weighted_test/homo_lumo_gap_min/gemnet/16-11-2022_20-05-04/';
+const trial_groups = ['c366c47e']
 
 // MegNet Full
 const target = 'formation_energy_per_site';

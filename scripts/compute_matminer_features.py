@@ -18,16 +18,19 @@ def main():
     group.add_argument("--input-name", type=str)
     parser.add_argument("--debug", action="store_true")
     parser.add_argument("--n-proc", type=int, default=1)
+    parser.add_argument("--output-folder", type=Path,
+                        help="Path where to write the output. "
+                        "The usual directory structure 'datasets/processeds/<dataset_name>'"
+                        "will be created.")
     args = parser.parse_args()
 
-    storage_resolver = StorageResolver()
     if args.input_folder:
         raise NotImplementedError("Input folder")
         dataset_name = args.input_folder.name
         input_folder = args.input_folder
     else:
         dataset_name = args.input_name
-        input_folder = storage_resolver["csv_cif"].joinpath(dataset_name)
+        input_folder = StorageResolver()["csv_cif"].joinpath(dataset_name)
 
     print("============== Data Loading ==============")
     structures, _ = get_dichalcogenides_innopolis(input_folder)
@@ -44,7 +47,7 @@ def main():
         )
     features_df = pd.DataFrame(features, index=structures.index)
 
-    save_dir = storage_resolver["processed"].joinpath(dataset_name)
+    save_dir = StorageResolver(args.output_path)["processed"].joinpath(dataset_name)
     save_dir.mkdir(exist_ok=True)
     if args.debug:
         file_name = "matminer_dbg.csv.gz"
