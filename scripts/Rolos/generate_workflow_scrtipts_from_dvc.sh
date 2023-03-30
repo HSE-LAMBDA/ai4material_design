@@ -19,7 +19,7 @@ echo "Copied params-rolos-workflow.yaml to params.yaml"
 dump_dvc csv-cif-low-density-8x8-Innopolis-v1 low-density-index
 dump_dvc "csv-cif-no-spin-500-data csv-cif-spin-500-data csv-cif-low-density-8x8" csv-cif 
 dump_dvc "processed-low-density processed-high-density" processed
-dump_dvc matminer matminer
+dump_dvc "matminer@high_density_defects/BP_spin_500 matminer@high_density_defects/GaSe_spin_500 matminer@high_density_defects/hBN_spin_500 matminer@high_density_defects/InSe_spin_500 matminer@high_density_defects/MoS2_500 matminer@high_density_defects/WSe2_500 matminer@low_density_defects/MoS2 matminer@low_density_defects/WSe2" matminer
 
 for workflow in low-density-index csv-cif processed matminer; do
     for node in  $(seq 1 $1); do
