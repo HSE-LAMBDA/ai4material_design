@@ -27,7 +27,10 @@ for workflow in low-density-index csv-cif processed matminer; do
         filename=$WORKFLOWS_DIR/$workflow/"node_$node".sh
         echo "#!/bin/bash" > $filename
         echo "cd ai4material_design" >> $filename
+        echo "if [ ! -f scripts/Rolos/dry-run ]; then" >> $filename
+        if [ $workflow = 'matminer' ]; then echo 'pip install "numpy<1.24.0"' >> $filename; fi
         awk -v NUM=$1 -v NODE=$node '(NR - 1) % NUM == NODE - 1' $WORKFLOWS_DIR/$workflow/commands.txt >> $filename
+        echo "fi" >> $filename
     done
 done
 
