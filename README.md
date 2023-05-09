@@ -120,33 +120,33 @@ python scripts/plot.py --experiments matminer-test --trials catboost-pilot
 This produces plots in `datasets/plots/matminer-test`
 
 # Sparse representation for machine learning the properties of defects in 2D materials (paper)
-Reproducing the paper requires roughly four stages. Intermidiate artifacts are saved in DVC, therefore stages can be reproduced selectively.
+Intermidiate artifacts are saved in DVC, therefore stages can be reproduced selectively.
 
 ## Rolos important note
 After running a workflow, you need to grab the outputs from workflow and add them to git:
 ```bash
-# export WORKFLOW="Combined test MegNet sparse"
 export WORKFLOW="<workflow name>"
+# Example:
+# export WORKFLOW="Combined test MegNet sparse"
 cp -r "rolos_workflow_data/${WORKFLOW}/current/data/datasets" ai4material_design/
 git add ai4material_design/datasets
 git commit -m "Workflow ${WORKFLOW} results"
 git push
 ```
-## Data preprocessing: VASP -> csv/cif -> pickle
+## Data preprocessing: VASP -> csv/cif -> pickle & matminer
 ### Locally
-```
+```bash
 dvc pull -R datasets/POSCARs datasets/raw_vasp/high_density_defects datasets/raw_vasp/dichalcogenides8x8_vasp_nus_202110 datasets/csv_cif/low_density_defects_Innopolis-v1
 parallel --delay 3 -j6 dvc repro processed-high-density@{} ::: hBN_spin GaSe_spin BP_spin InSe_spin MoS2 WSe2
 parallel --delay 3 -j2 dvc repro processed-low-density@{} ::: MoS2 WSe2
 ```
 Note that unlike GNU Make DVC [currently](https://github.com/iterative/dvc/issues/755) doesn't internally parallelize execution, so we use GNU parallel. We also use `--delay 3` to avoid [DVC lock race](https://github.com/iterative/dvc/issues/755). Computing matmier features can easily take several days, you might want to parallelize it according to your computing setup.
-```
+```bash
 dvc repro matminer
 ```
 ### Rolos
 To reduce the repository size, raw VASP files are not stored in Rolos, you'll need to download them from DVC. Prior to that, you'll need to increase the project size, 100 Gb should be sufficient.
-
-```
+```bash
 dvc pull datasets/raw_vasp/high_density_defects/{BP,GaSe,hBN,InSe}_spin*.dvc
 dvc pull datasets/raw_vasp/high_density_defects/{MoS,WSe}2_500.dvc
 dvc pull datasets/raw_vasp/dichalcogenides8x8_vasp_nus_202110/*.tar.gz.dvc
@@ -157,6 +157,12 @@ git add datasets/raw_vasp/dichalcogenides8x8_vasp_nus_202110/*.tar.gz
 git commit -m "Add raw VASP files"
 git push
 ```
+Run the workflows in the following order. Don't forget to copy the files to git after each workflow.
+1. Low density index
+2. VASP to csv_cif
+3. csv_cif to dataframe
+4. Matminer
+
 ## Hyperparameter optimisation
 ### Get the data
 ```
@@ -190,7 +196,9 @@ Use `find_best_trial.py` for every model, e.g.:
 ```
 python scripts/find_best_trial.py --experiment combined_mixed_weighted_validation --trials-folder megnet_pytorch/sparse/05-12-2022_19-50-53
 ```
-### Run the experiment on train/test split
+### Rolos
+Not implemented. If you really want to redo the step and have a couple of GPU-months to spare, create workflows like in the next step.
+## Run the experiment on train/test split
 Since some models (thankfully, not ours) exhibit instability, we repeat training several times for each model - with the same parameters and training data. To fit this into the infrastrucrure we copy the trials. This step was only done on ASPIRE-1, so it would requre some modifications to run on a different cluster (e. g. replace `qsub` with `sbatch`). Note that CatBoost by default is deterministic, so you need to change the random seed manually in the copies of the trials.
 ```
 cd scripts/ASPIRE-1
@@ -206,11 +214,26 @@ To obtain the data for E(distance) plots for MoS2:
 ```
 xargs -a MoS2_V2_E.txt -L1 ./run_stability_trials.sh 
 ```
-### Ablation study
+### Rolos
+Run the following workflows:
+1. Combined test SchNet
+2. Combined test CatBoost
+3. Combined test MegNet full
+4. Combined test MegNet sparse
+They are independent, so you can copy the results to git once they all are done.
+## Ablation study
 Manually prepare the model configurations (aka trials) in `trials/megnet_pytorch/ablation_study`. Put them into a `.txt` and run the experiments:
+```bash
+cd scripts/ASPIRE-1
+xargs ablation_stability.txt -L1 ./run_stability_trials.sh
 ```
-xargs ablation_stability.txt -L1 ./run_stability_trials.sh 
+Not implemented on Rolos. If you really want to redo the step and have GPU to spare, create workflows like in the previous step.
+## MoS2 E(distance)
+```bash
+cd scripts/ASPIRE-1
+xargs MoS2_V2_E.txt -L1 ./run_stability_trials.sh
 ```
+Not implemented on Rolos. If you really want to redo the step and have GPU to spare, create workflows like in the previous step.
 ## Result analysis
 ### Tables
 If you generated your own trials, you need to replace the trial names. Main results:
