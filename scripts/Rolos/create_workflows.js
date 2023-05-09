@@ -24,7 +24,7 @@ const trial_prefix = 'ai4material_design/scripts/Rolos/workflows/run_experiments
 const trial_groups = ['2a52dbe8'];
 
 // GemNet
-const workflow_id = '37faed757811498c90536129468c390e';
+const workflow_id = 'c3f94ae2585041c59e11cb85b48317a6';
 const n_nodes = 12;
 
 const target = 'formation_energy_per_site';
@@ -40,7 +40,7 @@ const target = 'formation_energy_per_site';
 const workflow_id = 'da6fa82ca6d04c0b90700c6b1c8d242c';
 const trial_prefix = `ai4material_design/scripts/Rolos/workflows/run_experiments/combined_mixed_weighted_test/${target}/megnet_pytorch/25-11-2022_11-38-18/`;
 const trial_groups = ['1baefba7'];
-const n_nodes = 12
+const n_nodes = 12	
 
 const target = 'homo_lumo_gap_min';
 const workflow_id = 'da6fa82ca6d04c0b90700c6b1c8d242c';
@@ -70,4 +70,56 @@ for (trial_group of trial_groups) {
 	  "credentials": "include"
 	});
 	}
+}
+
+// VASP to csv/cif
+const workflow_id = '387b10086f374c9a9e6a96be0db100ee';
+const n_nodes = 8;
+
+for (let i = 1; i <= n_nodes; i++) {
+	fetch(`https://my.rolos.com/api/v1/workflows/${workflow_id}/nodes`, {
+  "headers": {
+	"accept": "*/*",
+	"accept-language": "en-GB,en-US;q=0.9,en;q=0.8",
+	"content-type": "application/json",
+	"sec-ch-ua": "\"Not A(Brand\";v=\"24\", \"Chromium\";v=\"110\"",
+	"sec-ch-ua-mobile": "?0",
+	"sec-ch-ua-platform": "\"Linux\"",
+	"sec-fetch-dest": "empty",
+	"sec-fetch-mode": "cors",
+	"sec-fetch-site": "same-origin"
+  },
+  "referrer": `https://my.rolos.com/projects/79a29e5d84da4e5680ed6d8c9f933748/workflows/${workflow_id}`,
+  "referrerPolicy": "strict-origin-when-cross-origin",
+  "body": `{\"type\":\"environment\",\"name\":\"${i}_node\",\"file_id\":\"ai4material_design/scripts/Rolos/workflows/csv-cif/node_${i}.sh\",\"environment_template_id\":\"7341a7991fc14514a5e087f700699665\",\"cpu_count\":2,\"ram\":8,\"gpu\":false,\"x\":${46+Math.random()*1000},\"y\":${50+Math.random()*600}}`,
+  "method": "POST",
+  "mode": "cors",
+  "credentials": "include"
+});
+}
+
+// csv/cif to dataframe
+const workflow_id = '4c17678444ce45e29ce1a0e0fefe7736';
+const n_nodes = 8;
+
+for (let i = 1; i <= n_nodes; i++) {
+	fetch(`https://my.rolos.com/api/v1/workflows/${workflow_id}/nodes`, {
+  "headers": {
+	"accept": "*/*",
+	"accept-language": "en-GB,en-US;q=0.9,en;q=0.8",
+	"content-type": "application/json",
+	"sec-ch-ua": "\"Not A(Brand\";v=\"24\", \"Chromium\";v=\"110\"",
+	"sec-ch-ua-mobile": "?0",
+	"sec-ch-ua-platform": "\"Linux\"",
+	"sec-fetch-dest": "empty",
+	"sec-fetch-mode": "cors",
+	"sec-fetch-site": "same-origin"
+  },
+  "referrer": `https://my.rolos.com/projects/79a29e5d84da4e5680ed6d8c9f933748/workflows/${workflow_id}`,
+  "referrerPolicy": "strict-origin-when-cross-origin",
+  "body": `{\"type\":\"environment\",\"name\":\"${i}_node\",\"file_id\":\"ai4material_design/scripts/Rolos/workflows/processed/node_${i}.sh\",\"environment_template_id\":\"7341a7991fc14514a5e087f700699665\",\"cpu_count\":2,\"ram\":8,\"gpu\":false,\"x\":${46+Math.random()*1000},\"y\":${50+Math.random()*600}}`,
+  "method": "POST",
+  "mode": "cors",
+  "credentials": "include"
+});
 }

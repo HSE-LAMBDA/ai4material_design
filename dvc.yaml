@@ -219,7 +219,7 @@ stages:
       - vacancy_pairs/InSe
       - pilot
     do:
-      cmd: python scripts/compute_matminer_features.py --input-name ${item} --n-proc=36 ${paths.output_folder_arg}
+      cmd: python scripts/compute_matminer_features.py --input-name ${item} --n-proc=${matminer_cpus} ${paths.output_folder_arg}
       deps:
         - datasets/csv_cif/${item}
         - scripts/compute_matminer_features.py

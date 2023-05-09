@@ -1,3 +1,4 @@
 paths:
     datasets_root: "/output/"
     output_folder_arg: "--output-folder /output/"
+matminer_cpus: 24

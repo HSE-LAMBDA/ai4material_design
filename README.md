@@ -5,6 +5,7 @@
 - Paper in [Overleaf](https://www.overleaf.com/project/61893015795e7b18e7979f53)
 
 ## Setting up the environment
+### Locally
 1. [Install Poetry](https://python-poetry.org/docs/#installation)
 2. Next steps depend on your setup
    - If you don't want to use vritualenv, for example to use system `torch`, run
@@ -24,7 +25,8 @@ If it fails, try removing `poetry.lock`. We are forced to support multiple Pytho
 4. [Install pytorch](https://pytorch.org/) according to your CUDA/virtualenv/conda situatoin
 5. [Install pytorch-geometric](https://pytorch-geometric.readthedocs.io/en/latest/notes/installation.html) according to your CUDA/virtualenv/conda situatoin
 6. [Log in to WanDB](https://docs.wandb.ai/ref/cli/wandb-login), or set `WANDB_MODE=disabled`
-
+### Rolos
+Should work out-of-the-box
 ## Running the pilot NN model
 Below we descrbie a lightweight test run.
 
@@ -119,7 +121,19 @@ This produces plots in `datasets/plots/matminer-test`
 
 # Sparse representation for machine learning the properties of defects in 2D materials (paper)
 Reproducing the paper requires roughly four stages. Intermidiate artifacts are saved in DVC, therefore stages can be reproduced selectively.
+
+## Rolos important note
+After running a workflow, you need to grab the outputs from workflow and add them to git:
+```bash
+# export WORKFLOW="Combined test MegNet sparse"
+export WORKFLOW="<workflow name>"
+cp -r "rolos_workflow_data/${WORKFLOW}/current/data/datasets" ai4material_design/
+git add ai4material_design/datasets
+git commit -m "Workflow ${WORKFLOW} results"
+git push
+```
 ## Data preprocessing: VASP -> csv/cif -> pickle
+### Locally
 ```
 dvc pull -R datasets/POSCARs datasets/raw_vasp/high_density_defects datasets/raw_vasp/dichalcogenides8x8_vasp_nus_202110 datasets/csv_cif/low_density_defects_Innopolis-v1
 parallel --delay 3 -j6 dvc repro processed-high-density@{} ::: hBN_spin GaSe_spin BP_spin InSe_spin MoS2 WSe2
@@ -128,6 +142,20 @@ parallel --delay 3 -j2 dvc repro processed-low-density@{} ::: MoS2 WSe2
 Note that unlike GNU Make DVC [currently](https://github.com/iterative/dvc/issues/755) doesn't internally parallelize execution, so we use GNU parallel. We also use `--delay 3` to avoid [DVC lock race](https://github.com/iterative/dvc/issues/755). Computing matmier features can easily take several days, you might want to parallelize it according to your computing setup.
 ```
 dvc repro matminer
+```
+### Rolos
+To reduce the repository size, raw VASP files are not stored in Rolos, you'll need to download them from DVC. Prior to that, you'll need to increase the project size, 100 Gb should be sufficient.
+
+```
+dvc pull datasets/raw_vasp/high_density_defects/{BP,GaSe,hBN,InSe}_spin*.dvc
+dvc pull datasets/raw_vasp/high_density_defects/{MoS,WSe}2_500.dvc
+dvc pull datasets/raw_vasp/dichalcogenides8x8_vasp_nus_202110/*.tar.gz.dvc
+
+git add datasets/raw_vasp/high_density_defects/{BP,GaSe,hBN,InSe}_spin*
+git add datasets/raw_vasp/high_density_defects/{MoS,WSe}2_500
+git add datasets/raw_vasp/dichalcogenides8x8_vasp_nus_202110/*.tar.gz
+git commit -m "Add raw VASP files"
+git push
 ```
 ## Hyperparameter optimisation
 ### Get the data
@@ -206,34 +234,3 @@ python scripts/prepare_data_split.py --datasets=datasets/csv_cif/pilot --experim
 This creates the experiment definition in `datasets/experiments/pilot-plain-cv`
 
 It supports generating cross-validation and train/test splits.
-## Rolos demo
-### Environment
-Follow the corresponding section. If something is missing, please help us by adding it to `pyproject.toml`. CatBoost is not available for Python 3.11, but they [plan](https://github.com/catboost/catboost/issues/2213) to ship it before 03.02.2023.
-### Get the data
-```
-dvc pull processed-low-density processed-high-density datasets/experiments/combined_mixed_weighted_test datasets/experiments/MoS2_V2 matminer
-dvc pull -R trials
-```
-The data will need to be added to the Rolos LFS. DVC credentials currently in the repository will be invalidated when we open the code. In the interest of showcasig Rolos, you might want to `dvc pull` everything (~30 Gb) and push it git LFS.
-### Run the experiments
-The trials in the commands have optimal hyperparameters. Split the trials over multiple invocations of `run_experiments.py` according to your exection environement. IMHO, a workflow for each experiment, and a node for each trial. Table-printing script and plotting notebook expect that Rolos wrokflows are named `MoS2_V2` and `combined_mixed_weighted_test`, but it's trivial to change. In case there are pymatgen errors, you might need to re-run the last data processing step csv/cif -> pickle, follow `dvc.yaml` for that, something like `dvc repro -s --pull processed-low-density processed-high-density`. For debug, you can use trial `megnet_pytorch/sparse/pilot`. To run on a single gpu, add `--gpus 0`, to run on CPU, add `--cpu`. Since we are running in train/test mode, `run_experiments.py` won't parallelize between GPUs.
-Aggregate:
-```
-WANDB_MODE=disabled python run_experiments.py --experiments combined_mixed_weighted_test --targets formation_energy_per_site --output-folder /output --trials schnet/25-11-2022_16-52-31/71debf15 catboost/29-11-2022_13-16-01/02e5eda9 gemnet/16-11-2022_20-05-04/b5723f85 megnet_pytorch/sparse/05-12-2022_19-50-53/d6b7ce45 megnet_pytorch/25-11-2022_11-38-18/1baefba7
-```
-MoS2 E(distance):
-```
-WANDB_MODE=disabled python run_experiments.py --experiments MoS2_V2 --targets formation_energy_per_site --output-folder /output --trials schnet/25-11-2022_16-52-31/71debf15 catboost/29-11-2022_13-16-01/02e5eda9 gemnet/16-11-2022_20-05-04/b5723f85 megnet_pytorch/sparse/d6b7ce45_no_resample megnet_pytorch/25-11-2022_11-38-18/1baefba7
-```
-
-### Print the aggregate table
-ASCII
-```
-python scripts/summary_table_lean.py --experiment combined_mixed_weighted_test --targets formation_energy_per_site --trials schnet/25-11-2022_16-52-31/71debf15 catboost/29-11-2022_13-16-01/02e5eda9 gemnet/16-11-2022_20-05-04/b5723f85 megnet_pytorch/sparse/05-12-2022_19-50-53/d6b7ce45 megnet_pytorch/25-11-2022_11-38-18/1baefba7 --separate-by target --column-format-re \(?P\<name\>.+\)\/.+/\.+ --storage-root /home/coder/project/rolos_workflow_data/combined_mixed_weighted_test/current/data --multiple 1000
-```
-LaTeX
-```
-python scripts/summary_table_lean.py --experiment combined_mixed_weighted_test --targets formation_energy_per_site --trials schnet/25-11-2022_16-52-31/71debf15 catboost/29-11-2022_13-16-01/02e5eda9 gemnet/16-11-2022_20-05-04/b5723f85 megnet_pytorch/sparse/05-12-2022_19-50-53/d6b7ce45 megnet_pytorch/25-11-2022_11-38-18/1baefba7 --separate-by target --column-format-re \(?P\<name\>.+\)\/.+/\.+ --storage-root /tmp/rolos /home/coder/project/rolos_workflow_data/combined_mixed_weighted_test/current/data --multiple 1000 --paper-results
-```
-### Draw the E(distance) plot
-Run the notebook `notebooks/MoS2_V2_plot.ipynb`.
