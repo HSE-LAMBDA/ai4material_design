@@ -249,7 +249,7 @@ python scripts/summary_table_lean.py --experiment combined_mixed_weighted_test -
 #### E(distance) plots
 Run the notebook `notebooks/MoS2_V2_plot.ipynb` replacing the trial names with your own.
 ### Rolos
-Run the notebook `ai4material_design/notebooks/Rolos_publication.ipynb`
+Run the notebook `ai4material_design/notebooks/Rolos_publication.ipynb`. The notebooks are used as a source for Rolos publications, to update them, go to the "Publications" tab, click "Synchronize" and "Publish".
 ## Additional considerations
 ### `prepare_data_split.py`
 Generates data splits aka experiments. There is no need to do this step to run the existing experiments, the splits are available in DVC. Splits are by design shared between people, so don't overwrite them needlessly. Example:
