@@ -26,7 +26,7 @@ If it fails, try removing `poetry.lock`. We are forced to support multiple Pytho
 5. [Install pytorch-geometric](https://pytorch-geometric.readthedocs.io/en/latest/notes/installation.html) according to your CUDA/virtualenv/conda situatoin
 6. [Log in to WanDB](https://docs.wandb.ai/ref/cli/wandb-login), or set `WANDB_MODE=disabled`
 ### Rolos
-Should work out-of-the-box
+Should work out-of-the-box. The terminal commands assume the working folder `ai4material_design`, `cd` to it if needed.
 ## Running the pilot NN model
 Below we descrbie a lightweight test run.
 

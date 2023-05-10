@@ -1,4 +1,5 @@
 model: 'megnet_pytorch'
+minority_class_upsampling: true
 representation: 'sparse'
 model_params:
   model:
@@ -10,7 +11,11 @@ model_params:
     state_input_shape: 2
     cutoff: 15
     edge_embed_size: 10
+    embedding_size: 32
     add_eos_features: true
+    global_aggregation: max
+    nblocks: 4
+    vertex_aggregation: sum
   optim:
     factor: 0.5
     patience: 30
