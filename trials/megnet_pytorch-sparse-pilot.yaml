@@ -1,5 +1,5 @@
 model: 'megnet_pytorch'
-minority_class_upsampling: true
+minority_class_upsampling: false
 representation: 'sparse'
 model_params:
   model:
