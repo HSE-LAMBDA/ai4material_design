@@ -83,7 +83,7 @@ def run_experiment(experiment_name: str,
         trials_names: Names of the trials.
         gpus: List of GPUs to use.
         processes_per_unit: Number of processes to use per GPU.
-        targets: List of targets to run on. If None, run on all targets in the experiment.
+        requested_targets: List of targets to run on. If None, run on all targets in the experiment.
     Used files and fields:
         experiment - config file, path to the dataset, cv strategy, n folds and targets
         trial - config with model name, representation and model params

@@ -63,10 +63,8 @@ This produces plots in `datasets/plots/pilot-plain-cv`
 
 4. If you want to perform random hyperparameters search on pilot do next steps
 
-- change templates/megnet_pytorch/parameters_to_tune.yaml (if model is not megnet you need to create the directory with model name and two template files)
-
-example
-```
+- change `templates/megnet_pytorch/sparse/parameters_to_tune.yaml`, for example
+```yaml
 model_params:
   model:
     train_batch_size: ['int_min_max', 32, 256]
@@ -77,53 +75,60 @@ model_params:
 
 the first element in each list must be distribution, these three distributions are now available
 
-```
-python scripts/generate_trials_for_tuning.py --model-name megnet_pytorch --mode random --n-steps 5
+```bash
+python scripts/generate_trials_for_tuning.py --model-name megnet_pytorch/sparse --mode random --n-steps 5
 ```
 
 - it will produce folder with trials
-- if you want then to run them on hpc cluster you can use
+- if you want then to run them locally you can use
 
-```
-python scripts/hyperparam_tuning.py --model-name megnet_pytorch --experiment pilot-plain-cv --wandb-entity hse_lambda --trials-folder {folder name from previous step}
+```bash
+python scripts/hyperparam_tuning.py --model-name megnet_pytorch --experiment pilot-plain-cv --wandb-entity hse_lambda --trials-folder "<folder name from previous step>"
 ```
 
 ## Running a pilot CatBoost model
-0. Pull the inputs from DVC
+0. Pull the inputs from DVC. As usual, on Rolos they are alaready available.
 ```
-dvc pull datasets/csv_cif/pilot datasets/experiments/matminer-test
+dvc pull datasets/csv_cif/pilot datasets/experiments/pilot-plain-cv
 ```
 
-1. Prepare the targets and matminer features  
-Can be done with one of the two following commands:  
-Compute features on the machine (up to several minutes per structure on single core)
+1. Prepare the targets and matminer features
+```bash
+python scripts/parse_csv_cif.py --input-name=pilot --fill-missing-band-properties
 ```
-python scripts/compute_matminer_features.py --input-name=pilot --n-proc 8
-```
-OR load existing features
-```
+Computing matminer features takes several minutes per structure on single CPU core, and requires downgrading `numpy`, so you might want to just load the precomputed features (already done on Rolos):
+```bash
 dvc pull datasets/processed/pilot/matminer.csv.gz
 ```
-
+If you want to compute them yourself, run
+```bash
+pip install "numpy<1.24.0"
+python scripts/compute_matminer_features.py --input-name=pilot --n-proc 8
+```
 Both scenarios produce `datasets/processed/pilot/matminer.csv.gz`
 
 2. Run the experiments
+On 4 GPUs:
+```bash
+python run_experiments.py --experiments pilot-plain-cv --trials catboost/pilot --gpus 0 1 2 3 --wandb-entity hse_lambda
 ```
-python run_experiments.py --experiments matminer-test --trials catboost-pilot --gpus 0 1 2 3 --wandb-entity hse_lambda
+On 2 CPUs:
+```bash
+python run_experiments.py --experiments pilot-plain-cv --trials catboost/pilot --cpu --processes-per-unit 2 --wandb-entity hse_lambda
 ```
-This creates predictions in `datasets/predcitions/matminer-test`
+This creates predictions in `datasets/predictions/pilot-plain-cv/*/catboost`
 
 3. Plot the plots
-```
-python scripts/plot.py --experiments matminer-test --trials catboost-pilot
+```bash
+python scripts/plot.py --experiments pilot-plain-cv --trials catboost/pilot
 ```
 This produces plots in `datasets/plots/matminer-test`
 
 # Sparse representation for machine learning the properties of defects in 2D materials (paper)
-Intermidiate artifacts are saved in DVC, therefore stages can be reproduced selectively.
+Intermidiate artifacts are saved in DVC/Rolos, therefore stages can be reproduced selectively.
 
 ## Rolos important note
-After running a workflow, you need to grab the outputs from workflow and add them to git:
+After running a workflow, you need to grab the outputs from the workflow and add them to git:
 ```bash
 export WORKFLOW="<workflow name>"
 # Example:
@@ -179,39 +184,39 @@ python scripts/generate_trials_for_tuning.py --model-name schnet --mode random -
 This will create `trials/<model_name>/<date>` folders with trials. Alternatively, you can pull our trials with `dvc pull -R trials`.
 ### Run experiments on train/validation split
 The next step is running those trials combined with `combined_mixed_weighted_validation` experiment according to your compute environmet. For example, on a single GPU:
-```
+```bash
 python run_experiments.py --experiments combined_mixed_weighted_validation --trials trials/megnet_pytorch/sparse/05-12-2022_19-34-37/0ff69f1c --gpus 0
 ```
-or on a CPU:
-```
+or on CPU:
+```bash
 python run_experiments.py --experiments combined_mixed_weighted_validation --trials trials/megnet_pytorch/sparse/05-12-2022_19-34-37/0ff69f1c --cpu
 ```
 For running trials for a specific model on a single node, we have a script:
-```
+```bash
 python scripts/hyperparam_tuning.py --model-name megnet_pytorch --experiment combined_mixed_weighted_validation --wandb-entity hse_lambda --trials-folder trials/megnet_pytorch/sparse/05-12-2022_19-34-37/
 ```
 There is also script `scripts/ASPIRE-1/run_grid_search.sh`, for running on an HPC, but it is specific to our cluster.
 ### Find the best trials
 Use `find_best_trial.py` for every model, e.g.:
-```
+```bash
 python scripts/find_best_trial.py --experiment combined_mixed_weighted_validation --trials-folder megnet_pytorch/sparse/05-12-2022_19-50-53
 ```
 ### Rolos
 Not implemented. If you really want to redo the step and have a couple of GPU-months to spare, create workflows like in the next step.
 ## Run the experiment on train/test split
 Since some models (thankfully, not ours) exhibit instability, we repeat training several times for each model - with the same parameters and training data. To fit this into the infrastrucrure we copy the trials. This step was only done on ASPIRE-1, so it would requre some modifications to run on a different cluster (e. g. replace `qsub` with `sbatch`). Note that CatBoost by default is deterministic, so you need to change the random seed manually in the copies of the trials.
-```
+```bash
 cd scripts/ASPIRE-1
 xargs -a stability_trials.txt -L1 ./run_stability_trials.sh 
 ```
 Format of `stability_trials.txt`:
 
-```
+```bash
 megnet_pytorch/sparse/05-12-2022_19-50-53/d6b7ce45 formation_energy_per_site 12 4 combined_mixed_weighted_test
 trial target total_repeats parallel_runs_per_GPU experiment
 ```
 To obtain the data for E(distance) plots for MoS2:
-```
+```bash
 xargs -a MoS2_V2_E.txt -L1 ./run_stability_trials.sh 
 ```
 ### Rolos
@@ -227,13 +232,7 @@ Manually prepare the model configurations (aka trials) in `trials/megnet_pytorch
 cd scripts/ASPIRE-1
 xargs ablation_stability.txt -L1 ./run_stability_trials.sh
 ```
-Not implemented on Rolos. If you really want to redo the step and have GPU to spare, create workflows like in the previous step.
-## MoS2 E(distance)
-```bash
-cd scripts/ASPIRE-1
-xargs MoS2_V2_E.txt -L1 ./run_stability_trials.sh
-```
-Not implemented on Rolos. If you really want to redo the step and have GPU to spare, create workflows like in the previous step.
+Create workflows like in the previous step.
 ## Result analysis
 ### Tables
 If you generated your own trials, you need to replace the trial names. Main results:
