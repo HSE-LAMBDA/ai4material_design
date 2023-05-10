@@ -30,9 +30,9 @@ Should work out-of-the-box
 ## Running the pilot NN model
 Below we descrbie a lightweight test run.
 
-0. Pull the inputs from DVC
+0. Pull the inputs from DVC. On Rolos, they are already there.
 ```
-dvc pull datasets/csv_cif/pilot datasets/experiments/pilot-plain-cv datasets/processed/pilot
+dvc pull datasets/csv_cif/pilot datasets/experiments/pilot-plain-cv datasets/processed/pilot/{targets.csv,data.pickle}.gz
 ```
 
 1. Preprocess the data to get targets, pickled full and sparse structures
@@ -42,7 +42,7 @@ python scripts/parse_csv_cif.py --input-name=pilot --fill-missing-band-propertie
 This creates `datasets/processed/pilot/{data.pickle.gzip,targets.csv}`
 
 2. Run the experiments
-This step creates predictions in `datasets/predictions/pilot-plain-cv` and run information at [WanDB](https://wandb.ai/hse_lambda/ai4material_design). Make sure you are logged in to WanDB and use WanDB entity you have access to.
+This step creates predictions in `datasets/predictions/pilot-plain-cv` and run information at [WanDB](https://wandb.ai/hse_lambda/ai4material_design). Make sure you are logged in to WanDB and use WanDB entity you have access to, ot set `WANDB_MODE=disabled`.
 - GPU
    Adjust the `--gpus` and `--processes-per-unit` options to your GPU resources
 ```
