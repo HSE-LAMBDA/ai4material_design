@@ -227,11 +227,13 @@ Run the following workflows:
 4. Combined test MegNet sparse
 They are independent, so you can copy the results to git once they all are done.
 ## Ablation study
+### Local
 Manually prepare the model configurations (aka trials) in `trials/megnet_pytorch/ablation_study`. Put them into a `.txt` and run the experiments:
 ```bash
 cd scripts/ASPIRE-1
 xargs ablation_stability.txt -L1 ./run_stability_trials.sh
 ```
+### Rolos
 Create workflows like in the previous step.
 ## Result analysis
 ### Local
