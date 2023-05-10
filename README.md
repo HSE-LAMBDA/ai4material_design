@@ -236,9 +236,9 @@ xargs ablation_stability.txt -L1 ./run_stability_trials.sh
 ### Rolos
 Create workflows like in the previous step.
 ## Result analysis
-### Local
-#### Tables
-If you generated your own trials, you need to replace the trial names. Main results:
+### Tables
+If you generated your own trials, you need to replace the trial names.
+#### LaTeX tables:
 ```bash
 python scripts/summary_table_lean.py --experiment combined_mixed_weighted_test --targets formation_energy_per_site --stability-trials stability/schnet/25-11-2022_16-52-31/71debf15 stability/catboost/29-11-2022_13-16-01/02e5eda9 stability/gemnet/16-11-2022_20-05-04/b5723f85 stability/megnet_pytorch/sparse/05-12-2022_19-50-53/d6b7ce45 stability/megnet_pytorch/25-11-2022_11-38-18/1baefba7 --separate-by target --column-format-re stability\/\(?P\<name\>.+\)\/.+/\.+ --paper-results --multiple 1000
 python scripts/summary_table_lean.py --experiment combined_mixed_weighted_test --targets homo_lumo_gap_min --stability-trials stability/schnet/25-11-2022_16-52-31/2a52dbe8 stability/catboost/29-11-2022_13-16-01/1b1af67c stability/gemnet/16-11-2022_20-05-04/c366c47e stability/megnet_pytorch/sparse/05-12-2022_19-50-53/831cc496 stability/megnet_pytorch/25-11-2022_11-38-18/1baefba7 --separate-by target --column-format-re stability\/\(?P\<name\>.+\)\/.+/\.+ --paper-results --multiple 1000
@@ -248,10 +248,8 @@ Ablation:
 python scripts/summary_table_lean.py --experiment combined_mixed_weighted_test --targets formation_energy_per_site --stability-trials stability/megnet_pytorch/sparse/05-12-2022_19-50-53/d6b7ce45 stability/megnet_pytorch/25-11-2022_11-38-18/1baefba7 stability/megnet_pytorch/ablation_study/d6b7ce45-sparse stability/megnet_pytorch/ablation_study/d6b7ce45-sparse-z stability/megnet_pytorch/ablation_study/d6b7ce45-sparse-z-were --separate-by target --print-std --paper-ablation-energy --multiple 1000
 python scripts/summary_table_lean.py --experiment combined_mixed_weighted_test --targets homo_lumo_gap_min --stability-trials stability/megnet_pytorch/sparse/05-12-2022_19-50-53/831cc496 stability/megnet_pytorch/25-11-2022_11-38-18/1baefba7 stability/megnet_pytorch/ablation_study/831cc496-sparse{,-z,-z-were} --separate-by target --print-std --paper-ablation-homo-lumo --multiple 1000
 ```
-#### E(distance) plots
-Run the notebook `notebooks/MoS2_V2_plot.ipynb` replacing the trial names with your own.
-### Rolos
-Run the notebook `ai4material_design/notebooks/Rolos_publication.ipynb`. The notebooks are used as a source for Rolos publications, to update them, go to the "Publications" tab, click "Synchronize" and "Publish".
+### E(distance) plots
+Run the notebook `notebooks/MoS2_V2_plot.ipynb` replacing the trial names with your own. The notebook is used as a source for the Rolos [publication](https://rolos.com/open/quantum_oscillations/), to update it, go to the "Publications" tab, click "Synchronize" and "Publish".
 ## Additional considerations
 ### `prepare_data_split.py`
 Generates data splits aka experiments. There is no need to do this step to run the existing experiments, the splits are available in DVC. Splits are by design shared between people, so don't overwrite them needlessly. Example:
