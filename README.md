@@ -26,7 +26,7 @@ If it fails, try removing `poetry.lock`. We are forced to support multiple Pytho
 5. [Install pytorch-geometric](https://pytorch-geometric.readthedocs.io/en/latest/notes/installation.html) according to your CUDA/virtualenv/conda situation
 6. [Log in to WanDB](https://docs.wandb.ai/ref/cli/wandb-login), or set `WANDB_MODE=disabled`
 ### Rolos
-Should work out-of-the-box. The terminal commands assume the working folder `ai4material_design`, `cd` to it if needed.
+Should work out-of-the-box. The terminal commands assume the working folder `ai4material_design`, `cd` to it if needed. To enable WanDB in the workflow nodes, add your `scripts/Rolos/wandb_config.sh`
 ## Running the pilot NN model
 Below we descrbie a lightweight test run.
 
@@ -141,7 +141,7 @@ git push
 ## Data preprocessing: VASP -> csv/cif -> pickle & matminer
 ### Locally
 ```bash
-dvc pull -R datasets/POSCARs datasets/raw_vasp/high_density_defects datasets/raw_vasp/dichalcogenides8x8_vasp_nus_202110 datasets/csv_cif/low_density_defects_Innopolis-v1
+dvc pull -R datasets/POSCARs datasets/raw_vasp/high_density_defects datasets/raw_vasp/dichalcogenides8x8_vasp_nus_202110 datasets/csv_cif/low_density_defects_Innopolis-v1/{MoS2,WSe2}
 parallel --delay 3 -j6 dvc repro processed-high-density@{} ::: hBN_spin GaSe_spin BP_spin InSe_spin MoS2 WSe2
 parallel --delay 3 -j2 dvc repro processed-low-density@{} ::: MoS2 WSe2
 ```
