@@ -106,7 +106,7 @@ After running a workflow, you need to grab the outputs from the workflow and add
 ```bash
 export WORKFLOW="<workflow name>"
 # Example:
-# export WORKFLOW="Combined test MegNet sparse"
+# export WORKFLOW="4 Combined test MegNet sparse"
 cp -r "rolos_workflow_data/${WORKFLOW}/current/data/datasets" ai4material_design/
 git add ai4material_design/datasets
 git commit -m "Workflow ${WORKFLOW} results"
@@ -137,10 +137,10 @@ git commit -m "Add raw VASP files"
 git push
 ```
 Run the workflows in the following order. Don't forget to copy the files to git after each workflow.
-1. Low density index
-2. VASP to csv_cif
-3. csv_cif to dataframe
-4. Matminer
+1. 1 Low density index
+2. 2 VASP to csv_cif
+3. 3 csv_cif to dataframe
+4. 3 Matminer
 
 ## Hyperparameter optimisation
 ### Get the data
@@ -195,10 +195,10 @@ xargs -a MoS2_V2_E.txt -L1 ./run_stability_trials.sh
 ```
 ### Rolos
 Run the following workflows:
-1. Combined test SchNet
-2. Combined test CatBoost
-3. Combined test MegNet full
-4. Combined test MegNet sparse
+1. 4 Combined test SchNet
+2. 4 Combined test CatBoost
+3. 4 Combined test MegNet full
+4. 4 Combined test MegNet sparse
 
 They are independent, so you can copy the results to git once they all are done.
 ## Ablation study
