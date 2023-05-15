@@ -23,5 +23,7 @@ In general, follow the README. In the interest of both yours and computational t
 5. Run the experiment on train/test split - run the CatBoost workflow in the full, and any one node from the the other workflows
 6. Ablation study - skip
 7. Result analysis - full
+8. prepare_data_split.py - skip
+9. Random hyperparameters search example - skip
 # Troubleshooting
 In case you can't figure something out in more than 5 minutes, please write to [Nikita](https://t.me/kazeevn)
