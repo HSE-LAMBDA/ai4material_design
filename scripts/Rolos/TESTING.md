@@ -1,4 +1,4 @@
-Hello! The general objective of the test is to make sure that a user with no knowelage of the project or Rolos can reproduce the project.
+Hello! The general objective of the test is to make sure that a user with no knowelage of the project or Rolos can reproduce a meaningful part the project.
 # Preparation
 Remove the intermidiate files. The actual user will have them, of course, but we want to make sure that the user can produce them with Rolos if needed.
 ```bash
