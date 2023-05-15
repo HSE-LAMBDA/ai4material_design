@@ -26,7 +26,7 @@ If it fails, try removing `poetry.lock`. We are forced to support multiple Pytho
 5. [Install pytorch-geometric](https://pytorch-geometric.readthedocs.io/en/latest/notes/installation.html) according to your CUDA/virtualenv/conda situation
 6. [Log in to WanDB](https://docs.wandb.ai/ref/cli/wandb-login), or set `WANDB_MODE=disabled`
 ### Rolos
-Should work out-of-the-box. The terminal commands assume the working folder `ai4material_design`, `cd` to it if needed. To enable WanDB in the workflow nodes, add your `scripts/Rolos/wandb_config.sh`
+Packages are installed out-of-the-box. The terminal commands in the README assume the working folder to be `ai4material_design`, `cd` to it if needed. To enable WanDB in the workflow nodes, set you WanDB API key in `scripts/Rolos/wandb_config.sh`, commit and push. Note that if you add collaborators to your project, they will have access to your API key.
 ## Running the pilot NN model
 Below we descrbie a lightweight test run.
 
@@ -60,32 +60,6 @@ Modify `slurm-job.sh` with the desired argument and export the required envirome
 python scripts/plot.py --experiments pilot-plain-cv --trials megnet_pytorch-sparse-pilot
 ```
 This produces plots in `datasets/plots/pilot-plain-cv`
-
-4. If you want to perform random hyperparameters search on pilot do next steps
-
-- change `templates/megnet_pytorch/sparse/parameters_to_tune.yaml`, for example
-```yaml
-model_params:
-  model:
-    train_batch_size: ['int_min_max', 32, 256]
-    vertex_aggregation: ['grid', 'sum', 'max']
-  optim:
-    factor: ['float_min_max', 0.3, 0.9]
-```
-
-the first element in each list must be distribution, these three distributions are now available
-
-```bash
-python scripts/generate_trials_for_tuning.py --model-name megnet_pytorch/sparse --mode random --n-steps 5
-```
-
-- it will produce folder with trials
-- if you want then to run them locally you can use
-
-```bash
-python scripts/hyperparam_tuning.py --model-name megnet_pytorch --experiment pilot-plain-cv --wandb-entity hse_lambda --trials-folder "<folder name from previous step>"
-```
-
 ## Running a pilot CatBoost model
 0. Pull the inputs from DVC. As usual, on Rolos they are alaready available.
 ```
@@ -172,8 +146,8 @@ Run the workflows in the following order. Don't forget to copy the files to git 
 ### Get the data
 ```
 dvc pull -R processed-high-density processed-low-density datasets/processed/{high,low}_density_defects datasets/experiments/combined_mixed_weighted_test.dvc datasets/experiments/combined_mixed_weighted_validation.dvc
-```
-### Generate the trials.
+``` 
+### Generate the trials
 ```
 python scripts/generate_trials_for_tuning.py --model-name megnet_pytorch --mode random --n-steps 50
 python scripts/generate_trials_for_tuning.py --model-name megnet_pytorch/sparse --mode random --n-steps 50
@@ -225,6 +199,7 @@ Run the following workflows:
 2. Combined test CatBoost
 3. Combined test MegNet full
 4. Combined test MegNet sparse
+
 They are independent, so you can copy the results to git once they all are done.
 ## Ablation study
 ### Local
@@ -251,9 +226,8 @@ python scripts/summary_table_lean.py --experiment combined_mixed_weighted_test -
 #### E(distance) plots
 Run the notebook `notebooks/MoS2_V2_plot.ipynb` replacing the trial names with your own.
 ### Rolos
-Run the notebook `ai4material_design/notebooks/Rolos_publication.ipynb`. The notebooks are used as a source for Rolos publications, to update them, go to the "Publications" tab, click "Synchronize" and "Publish".
-## Additional considerations
-### `prepare_data_split.py`
+Run the notebooks `ai4material_design/notebooks/{Results tables,MoS2_V2_plot}.ipynb`. The notebooks are used as a source for Rolos publications, to update them, go to the "Publications" tab, click "Synchronize" and "Publish".
+## `prepare_data_split.py`
 Generates data splits aka experiments. There is no need to do this step to run the existing experiments, the splits are available in DVC. Splits are by design shared between people, so don't overwrite them needlessly. Example:
 ```
 python scripts/prepare_data_split.py --datasets=datasets/csv_cif/pilot --experiment-name=pilot-plain-cv --targets band_gap homo formation_energy_per_site
@@ -261,3 +235,28 @@ python scripts/prepare_data_split.py --datasets=datasets/csv_cif/pilot --experim
 This creates the experiment definition in `datasets/experiments/pilot-plain-cv`
 
 It supports generating cross-validation and train/test splits.
+
+## Random hyperparameters search example
+
+- change `templates/megnet_pytorch/sparse/parameters_to_tune.yaml`, for example
+```yaml
+model_params:
+  model:
+    train_batch_size: ['int_min_max', 32, 256]
+    vertex_aggregation: ['grid', 'sum', 'max']
+  optim:
+    factor: ['float_min_max', 0.3, 0.9]
+```
+
+the first element in each list must be distribution, these three distributions are now available
+
+```bash
+python scripts/generate_trials_for_tuning.py --model-name megnet_pytorch/sparse --mode random --n-steps 5
+```
+
+- it will produce folder with trials
+- if you want then to run them locally you can use
+
+```bash
+python scripts/hyperparam_tuning.py --model-name megnet_pytorch --experiment pilot-plain-cv --wandb-entity hse_lambda --trials-folder "<folder name from previous step>"
+```
