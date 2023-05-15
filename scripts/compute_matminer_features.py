@@ -47,7 +47,7 @@ def main():
         )
     features_df = pd.DataFrame(features, index=structures.index)
 
-    save_dir = StorageResolver(args.output_path)["processed"].joinpath(dataset_name)
+    save_dir = StorageResolver(args.output_folder)["processed"].joinpath(dataset_name)
     save_dir.mkdir(exist_ok=True)
     if args.debug:
         file_name = "matminer_dbg.csv.gz"
