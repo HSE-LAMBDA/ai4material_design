@@ -99,7 +99,7 @@ python scripts/plot.py --experiments pilot-plain-cv --trials catboost/pilot
 This produces plots in `datasets/plots/matminer-test`
 
 # Sparse representation for machine learning the properties of defects in 2D materials (paper)
-Intermidiate artifacts are saved in DVC/Rolos, therefore stages can be reproduced selectively.
+Intermediate artifacts are saved in DVC/Rolos, therefore stages can be reproduced selectively.
 
 ## Rolos important note
 After running a workflow, you need to grab the outputs from the workflow and add them to git:
@@ -136,11 +136,11 @@ git add datasets/raw_vasp/dichalcogenides8x8_vasp_nus_202110/*.tar.gz
 git commit -m "Add raw VASP files"
 git push
 ```
-Run the workflows in the following order. Don't forget to copy the files to git after each workflow.
-1. 1 Low density index
-2. 2 VASP to csv_cif
-3. 3 csv_cif to dataframe
-4. 3 Matminer
+Run the workflows in the following order. Same number means the workflows can be run concurrently. Don't forget to copy the files to git after each workflow.
+* 1 Low density index
+* 2 VASP to csv_cif
+* 3 csv_cif to dataframe
+* 3 Matminer
 
 ## Hyperparameter optimisation
 ### Get the data
@@ -195,10 +195,10 @@ xargs -a MoS2_V2_E.txt -L1 ./run_stability_trials.sh
 ```
 ### Rolos
 Run the following workflows:
-1. 4 Combined test SchNet
-2. 4 Combined test CatBoost
-3. 4 Combined test MegNet full
-4. 4 Combined test MegNet sparse
+* 4 Combined test SchNet
+* 4 Combined test CatBoost
+* 4 Combined test MegNet full
+* 4 Combined test MegNet sparse
 
 They are independent, so you can copy the results to git once they all are done.
 ## Ablation study
