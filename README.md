@@ -177,7 +177,7 @@ python scripts/find_best_trial.py --experiment combined_mixed_weighted_validatio
 ```
 ### Rolos
 Not implemented. If you really want to redo the step and have a couple of GPU-months to spare, create workflows like in the next step.
-## Run the experiment on train/test split
+## Run the experiments on train/test split
 Since some models (thankfully, not ours) exhibit instability, we repeat training several times for each model - with the same parameters and training data. To fit this into the infrastrucrure we copy the trials. This step was only done on ASPIRE-1, so it would requre some modifications to run on a different cluster (e. g. replace `qsub` with `sbatch`). Note that CatBoost by default is deterministic, so you need to change the random seed manually in the copies of the trials.
 ```bash
 cd scripts/ASPIRE-1
