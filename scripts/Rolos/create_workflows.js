@@ -48,6 +48,18 @@ const trial_prefix = `ai4material_design/scripts/Rolos/workflows/run_experiments
 const trial_groups = ['1baefba7'];
 const n_nodes = 12
 
+// MegNet sparse
+const target = 'formation_energy_per_site';
+const workflow_id = 'c28e4dac763c43d4a5e3db19dacafd58';
+const trial_prefix = `ai4material_design/scripts/Rolos/workflows/run_experiments/combined_mixed_weighted_test/${target}/megnet_pytorch/sparse/05-12-2022_19-50-53/`;
+const trial_groups = ['d6b7ce45'];
+const n_nodes = 3
+
+const target = 'homo_lumo_gap_min';
+const trial_prefix = `ai4material_design/scripts/Rolos/workflows/run_experiments/combined_mixed_weighted_test/${target}/megnet_pytorch/sparse/05-12-2022_19-50-53/`;
+const trial_groups = ['831cc496'];
+const n_nodes = 3
+
 for (trial_group of trial_groups) {
 	for (let i = 1; i <= n_nodes; i++) {
 	    fetch(`https://my.rolos.com/api/v1/workflows/${workflow_id}/nodes`, {
