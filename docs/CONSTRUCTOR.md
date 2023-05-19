@@ -1,4 +1,5 @@
 # Reproducing "Sparse representation for machine learning the properties of defects in 2D materials" on the Constructor Research Platform
+[Pubic project link](https://my.rolos.com/public/project/79a29e5d84da4e5680ed6d8c9f933748)
 ## Setting up the environment
 Packages are installed out-of-the-box. The terminal commands in the general documentation often assume the working folder to be `ai4material_design`, `cd` to it if needed. By default, WanDB integration is disabled, to optionally enable it, set you WanDB API key in [`scripts/Rolos/wandb_config.sh`](../scripts/Rolos/wandb_config.sh), commit and push. Note that if you add collaborators to your project, they will have access to your API key.
 ## Workflow important note
