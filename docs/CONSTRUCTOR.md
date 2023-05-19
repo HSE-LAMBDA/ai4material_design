@@ -55,7 +55,6 @@ The scripts and workflows are already on the platform. This sec
 ### Data preprocessing
 1. Generate the platform scripts from DVC
 ```bash
-cd scripts/Rolos
 ./scripts/Rolos/generate_workflow_scrtipts_from_dvc.sh 8
 ```
 2. Create the workflows
