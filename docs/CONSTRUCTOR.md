@@ -51,6 +51,7 @@ The notebooks are used as a source for Rolos publications, to update go to the "
 * Quantum oscillation predictions [`ai4material_design/notebooks/MoS2_V2_plot.ipynb`](../notebooks/MoS2_V2_plot.ipynb)
 
 ## Regenerating platform-specific scripts
+The scripts and workflows are already on the platform. This sec
 ### Data preprocessing
 1. Generate the platform scripts from DVC
 ```bash
@@ -58,9 +59,9 @@ cd scripts/Rolos
 ./scripts/Rolos/generate_workflow_scrtipts_from_dvc.sh 8
 ```
 2. Create the workflows
-2.1. Create the workflows manually using the UI
-2.2. Put your workflow and project ids to [`../scripts/Rolos/create_workflows.js`](../scripts/Rolos/create_workflows.js)
-2.3. Log in to the platform, open the browser console, paste the relevant parts from [`../scripts/Rolos/create_workflows.js`](../scripts/Rolos/create_workflows.js). You need to do it for each workflow.
+ - Create the workflows manually using the UI
+ - Put your workflow and project ids to [`../scripts/Rolos/create_workflows.js`](../scripts/Rolos/create_workflows.js)
+ - Log in to the platform, open the browser console, paste the relevant parts from [`../scripts/Rolos/create_workflows.js`](../scripts/Rolos/create_workflows.js). You need to do it for each workflow.
 ### Computational experiments
 1. Generate the scripts:
 ```bash
@@ -68,6 +69,6 @@ cd scripts/Rolos
 xargs -a stability_trials.txt -L1 ./generate_experiments_workflow.sh 
 ```
 2. Create the workflows
-2.1. Create the workflows manually using the UI
-2.2. Put your workflow and project ids to [`../scripts/Rolos/create_workflows.js`](../scripts/Rolos/create_workflows.js)
-2.3. Log in to the platform, open the browser console, paste the relevant parts from [`../scripts/Rolos/create_workflows.js`](../scripts/Rolos/create_workflows.js). You need to do it for each workflow.
+ -  Create the workflows manually using the UI
+ - Put your workflow and project ids to [`../scripts/Rolos/create_workflows.js`](../scripts/Rolos/create_workflows.js)
+ -  Log in to the platform, open the browser console, paste the relevant parts from [`../scripts/Rolos/create_workflows.js`](../scripts/Rolos/create_workflows.js). You need to do it for each workflow.
