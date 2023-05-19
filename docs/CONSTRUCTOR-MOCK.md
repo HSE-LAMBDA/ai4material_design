@@ -10,10 +10,9 @@ Run the following workflows, they can be ran concurrently:
 * `4 Combined test CatBoost`
 * `4 Combined test MegNet full`
 * `4 Combined test MegNet sparse`
-They train the models and produce predictions on the test dataset. Location: `ai4material_design/datasets/predictions/combined_mixed_weighted_test/**`
+
+They train the models and produce predictions on the test dataset. Training is done 12 times with different random seeds and initializations to estimate the uncertainty. Location: `ai4material_design/datasets/predictions/combined_mixed_weighted_test/**`
 # Results analysis
 The notebooks are used as a source for Rolos publications, to update go to the "Publications" tab, click "Synchronize" and "Publish"
-## Aggregate performance tables
-Run the notebook `ai4material_design/notebooks/Results tables.ipynb`
-## Quantum oscillation predictions
-Run the notebook `ai4material_design/notebooks/MoS2_V2_plot.ipynb`
+* Aggregate performance tables `ai4material_design/notebooks/Results tables.ipynb`
+* Quantum oscillation predictions `ai4material_design/notebooks/MoS2_V2_plot.ipynb`
