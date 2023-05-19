@@ -1,6 +1,6 @@
 # Data preprocessing: VASP -> csv/cif -> pickle & matminer
 Run the workflows in the following order. Same number means the workflows can be run concurrently.
-* `1 Low density index` creates technical files needed to preserve the historical structure indexing. Location: [`ai4material_design/datasets/csv_cif/low_density_defects_Innopolis-v1/{MoS2,WSe2}`](datasets/csv_cif/low_density_defects_Innopolis-v1).
+* `1 Low density index` creates technical files needed to preserve the historical structure indexing. Location: [`ai4material_design/datasets/csv_cif/low_density_defects_Innopolis-v1/{MoS2,WSe2}`](../datasets/csv_cif/low_density_defects_Innopolis-v1).
 * `2 VASP to csv_cif` extracts the energy and band gap information from the raw VASP output. Location: `ai4material_design/datasets/csv_cif/{high,low}_density_defects/*`
 * `3 csv_cif to dataframe` converts the structures from standard [CIF](https://www.iucr.org/resources/cif) format to a fast platform-specific. It also preprocesses the target values, e. g. computes the formation energy per atom. Finally, it produces the sparse defect-only representations. Location: `ai4material_design/datasets/processed/{high,low}_density_defects/*/{targets.csv,data.pickle}.gz`
 * `3 Matminer` computes [matminer](https://github.com/hackingmaterials/matminer) descriptors, to be used with [CatBoost](https://catboost.ai/). Location: `ai4material_design/datasets/processed/{high,low}_density_defects/*/matminer.csv.gz`
