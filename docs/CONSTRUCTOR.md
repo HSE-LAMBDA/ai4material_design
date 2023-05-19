@@ -34,7 +34,7 @@ Run the workflows in the following order.
 ### csv/cif -> dataframe
 Workflow `3 csv_cif to dataframe` converts the structures from standard [CIF](https://www.iucr.org/resources/cif) format to a fast platform-specific. It also preprocesses the target values, e. g. computes the formation energy per atom. Finally, it produces the sparse defect-only representations. Location: [`ai4material_design/datasets/processed/{high,low}_density_defects/*/{targets.csv,data.pickle}.gz`](../datasets/processed).
 ### csv/cif -> matminer
-Workflow `3 Matminer` computes [matminer](https://github.com/hackingmaterials/matminer) descriptors, to be used with [CatBoost](https://catboost.ai/). Location: [`ai4material_design/datasets/processed/{high,low}_density_defects/*/matminer.csv.gz`](../datasets/processed).
+Workflow `3 Matminer` computes [matminer](https://github.com/hackingmaterials/matminer) descriptors, to be used with [CatBoost](https://catboost.ai/). Assuming the resources are available, the step takes around 3 days, you can skip it if don't plan on running CatBoost. Location: [`ai4material_design/datasets/processed/{high,low}_density_defects/*/matminer.csv.gz`](../datasets/processed).
 ## Computational experiments
 We have prepared the the workflows that reproduce the tuned models evaluation. They train the models and produce predictions on the test dataset. Training is done 12 times with different random seeds and initializations to estimate the uncertainty. Run them concurrently:
 * `4 Combined test SchNet`
@@ -51,3 +51,23 @@ The notebooks are used as a source for Rolos publications, to update go to the "
 * Quantum oscillation predictions [`ai4material_design/notebooks/MoS2_V2_plot.ipynb`](../notebooks/MoS2_V2_plot.ipynb)
 
 ## Regenerating platform-specific scripts
+### Data preprocessing
+1. Generate the platform scripts from DVC
+```bash
+cd scripts/Rolos
+./scripts/Rolos/generate_workflow_scrtipts_from_dvc.sh 8
+```
+2. Create the workflows
+2.1. Create the workflows manually using the UI
+2.2. Put your workflow and project ids to [`../scripts/Rolos/create_workflows.js`](../scripts/Rolos/create_workflows.js)
+2.3. Log in to the platform, open the browser console, paste the relevant parts from [`../scripts/Rolos/create_workflows.js`](../scripts/Rolos/create_workflows.js). You need to do it for each workflow.
+### Computational experiments
+1. Generate the scripts:
+```bash
+cd scripts/Rolos
+xargs -a stability_trials.txt -L1 ./generate_experiments_workflow.sh 
+```
+2. Create the workflows
+2.1. Create the workflows manually using the UI
+2.2. Put your workflow and project ids to [`../scripts/Rolos/create_workflows.js`](../scripts/Rolos/create_workflows.js)
+2.3. Log in to the platform, open the browser console, paste the relevant parts from [`../scripts/Rolos/create_workflows.js`](../scripts/Rolos/create_workflows.js). You need to do it for each workflow.
