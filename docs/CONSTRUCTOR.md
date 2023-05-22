@@ -52,7 +52,7 @@ The notebooks are used as a source for Rolos publications, to update go to the "
 * Quantum oscillation predictions [`ai4material_design/notebooks/MoS2_V2_plot.ipynb`](../notebooks/MoS2_V2_plot.ipynb)
 
 ## Regenerating platform-specific scripts
-The scripts and workflows are already on the platform. This sec
+The scripts and workflows are already on the platform. This section is for reference only.
 ### Data preprocessing
 1. Generate the platform scripts from DVC
 ```bash
