@@ -35,4 +35,7 @@ git push
 ```bash
 rm README.md
 ln -s ai4material_design/docs/CONSTRUCTOR-MOCK.md README.md
+git add README.md
+git commit -m "Switch README to CONSTRUCTOR-MOCK"
+git push
 ```
