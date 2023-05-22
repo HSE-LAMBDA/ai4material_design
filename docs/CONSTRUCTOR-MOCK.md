@@ -19,3 +19,15 @@ They train the models and produce predictions on the test dataset. Training is d
 The notebooks are used as a source for Rolos publications, to update go to the "Publications" tab, click "Synchronize" and "Publish"
 * Aggregate performance tables [`ai4material_design/notebooks/Results tables.ipynb`](../notebooks/Results%20tables.ipynb)
 * Quantum oscillation predictions [`ai4material_design/notebooks/MoS2_V2_plot.ipynb`](../notebooks/MoS2_V2_plot.ipynb)
+## Generating the mock project from the real one
+The scripts and workflows are already on the platform. This section is for reference only.
+1. Duplicate the "Sparse representation for machine learning the properties of defects in 2D materials" project
+2. Install the [Chromium addon](https://github.com/kazeevn/mock-rolos-workflows/) for mocking workflows
+3. Open the workflow page of the duplicated project, run the addon. *Don't* check the the "Overwrite the scripts" box.
+4. Add `ai4material_design/scripts/Rolos/dry-run` to your project. Either through UI, or with terminal:
+```bash
+touch ai4material_design/scripts/Rolos/dry-run
+git add ai4material_design/scripts/Rolos/dry-run
+git commit -m "Add dry-run"
+git push
+```
