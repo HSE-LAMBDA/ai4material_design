@@ -214,4 +214,7 @@ class MEGNetPyTorchTrainer(Trainer):
                     batch.x, batch.edge_index, batch.edge_attr, batch.state, batch.batch, batch.bond_batch
                 )
                 results.append(self.scaler.inverse_transform(preds))
-        return torch.concat(results).to('cpu').data.numpy().reshape(-1, 1)
+        if len(results) > 0:
+            return torch.concat(results).to('cpu').data.numpy().reshape(-1, 1)
+        else:
+            return np.empty((0, 0))
