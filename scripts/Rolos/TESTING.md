@@ -15,12 +15,12 @@ git commit -m "Clean up the intermidiate files for testing"
 git push
 ```
 # Steps to reproduce
-In general, follow the README. In the interest of both yours and computational time, don't reproduce everything, but see the notes:
+In general, follow [CONSTRUCTOR.md](../../docs/CONSTRUCTOR.md) and [PILOT.md](../../docs/PILOT.md). In the interest of both yours and computational time, don't reproduce everything, but see the notes:
 1. Running the pilot NN model - full
 2. Running a pilot CatBoost model - don't recompute `matminer.csv.gz`
 3. Data preprocessing: VASP -> csv/cif -> pickle & matminer - run only one of the matminer nodes, any one with high_density_defects
 4. Hyperparameter optimisation - skip
-5. Run the experiment on train/test split - run the CatBoost workflow in the full, and any one node from the the other workflows
+5. Run the experiment on train/test split - run the CatBoost workflow in the full, and any one node from each of the other workflows
 6. Ablation study - skip
 7. Result analysis - full
 8. prepare_data_split.py - skip
