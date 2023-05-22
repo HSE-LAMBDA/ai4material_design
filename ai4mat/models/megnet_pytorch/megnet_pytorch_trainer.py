@@ -74,14 +74,14 @@ class MEGNetPyTorchTrainer(Trainer):
             vertex_aggregation=self.config["model"]["vertex_aggregation"],
             global_aggregation=self.config["model"]["global_aggregation"],
         )
-        self.Scaler = Scaler()
+        self.scaler = Scaler()
 
         print("converting data")
         self.train_structures = Parallel(n_jobs=n_jobs, backend='threading')(
             delayed(self.converter.convert)(s) for s in tqdm(train_data))
         self.test_structures = Parallel(n_jobs=n_jobs, backend='threading')(
             delayed(self.converter.convert)(s) for s in tqdm(test_data))
-        self.Scaler.fit(self.train_structures)
+        self.scaler.fit(self.train_structures)
         self.target_name = target_name
         self.trainloader = DataLoader(
             self.train_structures,
@@ -144,7 +144,7 @@ class MEGNetPyTorchTrainer(Trainer):
                 ).squeeze()
                 
                 loss = MSELoss(
-                    self.Scaler.transform(batch.y),
+                    self.scaler.transform(batch.y),
                     preds, 
                     weights=(None if self.minority_class_upsampling else batch.weight), 
                     reduction='mean'
@@ -157,7 +157,7 @@ class MEGNetPyTorchTrainer(Trainer):
                 batch_loss.append(loss.to("cpu").data.numpy())
                 total_train.append(
                     MAELoss(
-                        self.Scaler.inverse_transform(preds),
+                        self.scaler.inverse_transform(preds),
                         batch.y,
                         weights=(None if self.minority_class_upsampling else batch.weight), 
                         reduction='sum'
@@ -176,7 +176,7 @@ class MEGNetPyTorchTrainer(Trainer):
 
                     total.append(
                         MAELoss(
-                            self.Scaler.inverse_transform(preds),
+                            self.scaler.inverse_transform(preds),
                             batch.y,
                             weights=batch.weight, 
                             reduction='sum'
@@ -213,5 +213,5 @@ class MEGNetPyTorchTrainer(Trainer):
                 preds = self.model(
                     batch.x, batch.edge_index, batch.edge_attr, batch.state, batch.batch, batch.bond_batch
                 )
-                results.append(self.Scaler.inverse_transform(preds))
+                results.append(self.scaler.inverse_transform(preds))
         return torch.concat(results).to('cpu').data.numpy().reshape(-1, 1)
