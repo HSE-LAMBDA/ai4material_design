@@ -1,5 +1,6 @@
 #!/bin/bash
-# Trains the sparse MegNet model on all the data, saves the weights
+# Trains the sparse MegNet models with optimal parameters on all the data,
+# saves the weights to datasets/checkpoints/combined_mixed_all_train
 cd ai4material_design
 if [ ! -f scripts/Rolos/dry-run ]; then
 source scripts/Rolos/wandb_config.sh

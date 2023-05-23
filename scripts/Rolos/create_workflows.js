@@ -163,7 +163,6 @@ for (let i = 1; i <= n_nodes; i++) {
 
 // Training models for inference
 const workflow_id = "daa21a5b24a74109bddc8398a20068e5";
-const target = "formation_energy_per_site";
 
 fetch(`https://my.rolos.com/api/v1/workflows/${workflow_id}/nodes`, {
 	"headers": {
@@ -179,7 +178,7 @@ fetch(`https://my.rolos.com/api/v1/workflows/${workflow_id}/nodes`, {
 	},
 	"referrer": `https://my.rolos.com/projects/79a29e5d84da4e5680ed6d8c9f933748/workflows/${workflow_id}`,
 	"referrerPolicy": "strict-origin-when-cross-origin",
-	"body": `{\"type\":\"environment\",\"name\":\"${target}\",\"file_id\":\"ai4material_design/scripts/Rolos/workflows/final_training/${target}.sh\",\"environment_template_id\":\"7341a7991fc14514a5e087f700699665\",\"cpu_count\":4,\"ram\":8,\"gpu\":true,\"x\":${46+Math.random()*1000},\"y\":${50+Math.random()*600}}`,
+	"body": `{\"type\":\"environment\",\"name\":\"Train both models\",\"file_id\":\"ai4material_design/scripts/Rolos/workflows/final_training/train_both_targets.sh\",\"environment_template_id\":\"7341a7991fc14514a5e087f700699665\",\"cpu_count\":8,\"ram\":16,\"gpu\":true,\"x\":${46+Math.random()*1000},\"y\":${50+Math.random()*600}}`,
 	"method": "POST",
 	"mode": "cors",
 	"credentials": "include"

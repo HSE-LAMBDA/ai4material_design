@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from .layers import MegnetModule, ShiftedSoftplus
-from torch_geometric.nn import Set2Set
+from torch_geometric.nn.aggr import Set2Set
 
 
 ATOMIC_NUMBERS = 95
