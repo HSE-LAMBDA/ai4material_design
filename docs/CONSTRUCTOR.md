@@ -19,6 +19,7 @@ The results of all the steps are already available in the repository, you can se
 ### VASP -> csv/cif
 To reduce the repository size, raw VASP files are not stored on the platform, you need to download them from DVC. Prior to that, you need to increase the project size, 100 Gb should be sufficient.
 ```bash
+cd ai4material_design
 dvc pull datasets/raw_vasp/high_density_defects/{BP,GaSe,hBN,InSe}_spin*.dvc
 dvc pull datasets/raw_vasp/high_density_defects/{MoS,WSe}2_500.dvc
 dvc pull datasets/raw_vasp/dichalcogenides8x8_vasp_nus_202110/*.tar.gz.dvc
