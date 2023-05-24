@@ -10,10 +10,10 @@ git add ai4material_design/scripts/Rolos/dry-run
 git commit -m "Add dry-run"
 git push
 ```
-5. Update the README to the mock readme
+5. Update the README to the mock readme. Note: links inside it will be broken.
 ```bash
 rm README.md
-ln -s ai4material_design/docs/CONSTRUCTOR-MOCK.md README.md
+cp ai4material_design/docs/CONSTRUCTOR-MOCK.md README.md
 git add README.md
 git commit -m "Switch README to CONSTRUCTOR-MOCK"
 git push
