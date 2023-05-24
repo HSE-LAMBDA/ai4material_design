@@ -1,6 +1,6 @@
 # Reproducing "Sparse representation for machine learning the properties of defects in 2D materials"
 ## This is a mock project
-The workflows in this project are mock workflows for demonstration purposes. The code and data are real, of course. The version of the project with all the workflows enabled is [here](https://my.rolos.com/public/project/6c2567e07ce64037b6b6edd2895b27ee). It requires around 16 GPU days to run, so it is not feasible to execute it on a free trial account.
+The workflows in this project are mock workflows for demonstration purposes. The code and data are real, of course. The version of the project with all the workflows enabled is [here](https://my.rolos.com/public/project/6c2567e07ce64037b6b6edd2895b27ee). It requires around 16 GPU days to run, so it is not feasible to execute it on a free trial account. To upgrade your account, please contact support via question sign in the right bottom corner.
 ## Data preprocessing: VASP -> csv/cif -> pickle & matminer
 Run the workflows in the following order. Same number means the workflows can be run concurrently.
 * `1 Low density index` creates technical files needed to preserve the historical structure indexing. Location: [`ai4material_design/datasets/csv_cif/low_density_defects_Innopolis-v1/{MoS2,WSe2}`](../datasets/csv_cif/low_density_defects_Innopolis-v1).
