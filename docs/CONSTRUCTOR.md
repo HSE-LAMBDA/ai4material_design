@@ -1,8 +1,19 @@
-# Reproducing "Sparse representation for machine learning the properties of defects in 2D materials" on the Constructor Research Platform
-[Pubic project link](https://my.rolos.com/public/project/79a29e5d84da4e5680ed6d8c9f933748)
-## Setting up the environment
-Packages are installed out-of-the-box. The terminal commands in the general documentation often assume the working folder to be `ai4material_design`, `cd` to it if needed. By default, WanDB integration is disabled, to optionally enable it, set you WanDB API key in [`scripts/Rolos/wandb_config.sh`](../scripts/Rolos/wandb_config.sh), commit and push. Note that if you add collaborators to your project, they will have access to your API key.
-## Workflow important note
+# Sparse representation for machine learning the properties of defects in 2D materials
+[Pubic project link](https://my.rolos.com/public/project/6c2567e07ce64037b6b6edd2895b27ee)
+# Constructor Research Platform survival guide
+## Using terminal
+Open a terminal using the Desk menu
+
+![terminal menu](./constructor_pics/terminal.png)
+
+The commands in this guide assume the starting working directory to be [`/home/coder/project`](/home/coder/project) .
+## WanDB
+[WanDB](https://wandb.ai/) is a service for monitoring and recording machine learning experiments we use in the project. By default, WanDB integration is disabled. To optionally enable it, set you WanDB API key in [`scripts/Rolos/wandb_config.sh`](../scripts/Rolos/wandb_config.sh), commit and push. Note that if you add collaborators to your project, they will have access to your API key.
+## Using workflows
+Open the Workflow interface by clicking on the Workflow link in the top-right. You might want to open it in a new browser tab.
+
+![Workflow panel location](./constructor_pics/workflow.png)
+
 After running a workflow, you need to grab the outputs from the workflow and add them to git:
 ```bash
 export WORKFLOW="<workflow name>"
@@ -13,11 +24,24 @@ git add ai4material_design/datasets
 git commit -m "Workflow ${WORKFLOW} results"
 git push
 ```
-## Note: the data are already here
+## The data are already here
 The results of all the steps are already available in the repository, you can selectively reproduce the parts you want.
+# Reproducing the paper
+## Introduction
+In the paper we propose sparse representation as a way to reduce the computational cost and improve the accuracy of machine learning the properties of defects in 2D materials. The code in the project implements the method, and a rigorous comparison of its performance to the a set of baselines.
+
+The calculations in the paper occur in three stages. Firstly, we extract the relevant information about the structures and their properties from the VASP outputs, and prepare the sparse and vectorized representation of the structures. Secondly, we train the models and evaluate them on the test dataset. Finally, we analyze the results and produce the tables and plots.
 ## Data preprocessing
+Data preprocessing occurs in stages:
+1. VASP -> csv/cif extracts the computed energy and HOMO-LUMO gap values from the raw VASP output, and saves the unrelaxed structures in a uniform way.
+2. csv/cif -> dataframe converts the structures from standard [CIF](https://www.iucr.org/resources/cif) format to a fast platform-specific pickle storage. It also preprocesses the target values, e. g. computes the formation energy per atom. Finally, it produces the sparse defect-only representations.
+3. csv/cif -> matminer computes [matminer](https://github.com/hackingmaterials/matminer) descriptors, to be used with [CatBoost](https://catboost.ai/).
 ### VASP -> csv/cif
 To reduce the repository size, raw VASP files are not stored on the platform, you need to download them from DVC. Prior to that, you need to increase the project size, 100 Gb should be sufficient.
+To increase the project size, make sure you have a full, and not a trial account, then left-click on the environment name, "Material design environment (PyTorch)" in our case.
+![opening environment settings](./constructor_pics/env_settings.png)
+
+Use the following commands to download the data from DVC:
 ```bash
 cd ai4material_design
 dvc pull datasets/raw_vasp/high_density_defects/{BP,GaSe,hBN,InSe}_spin*.dvc
@@ -36,7 +60,7 @@ Run the workflows in the following order.
 ### csv/cif -> dataframe
 Workflow `3 csv_cif to dataframe` converts the structures from standard [CIF](https://www.iucr.org/resources/cif) format to a fast platform-specific. It also preprocesses the target values, e. g. computes the formation energy per atom. Finally, it produces the sparse defect-only representations. Location: [`ai4material_design/datasets/processed/{high,low}_density_defects/*/{targets.csv,data.pickle}.gz`](../datasets/processed).
 ### csv/cif -> matminer
-Workflow `3 Matminer` computes [matminer](https://github.com/hackingmaterials/matminer) descriptors, to be used with [CatBoost](https://catboost.ai/). Assuming the resources are available, the step takes around 3 days, you can skip it if don't plan on running CatBoost. Location: [`ai4material_design/datasets/processed/{high,low}_density_defects/*/matminer.csv.gz`](../datasets/processed).
+Workflow `3 Matminer` Assuming the resources are available, the step takes around 3 days, you can skip it if don't plan on running CatBoost. Location: [`ai4material_design/datasets/processed/{high,low}_density_defects/*/matminer.csv.gz`](../datasets/processed).
 ## Computational experiments
 We have prepared the the workflows that reproduce the tuned models evaluation. They train the models and produce predictions on the test dataset. Training is done 12 times with different random seeds and initializations to estimate the uncertainty. Run them concurrently:
 * `4 Combined test SchNet`
