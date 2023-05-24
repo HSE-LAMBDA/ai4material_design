@@ -1,6 +1,6 @@
 # Reproducing "Sparse representation for machine learning the properties of defects in 2D materials"
 ## This is a mock project
-The workflows in this project are mock workflows for demonstration purposes. The code and data are real, of course. The version of the project with all the workflows enabled is [here](https://my.rolos.com/public/project/79a29e5d84da4e5680ed6d8c9f933748). It requires around 16 GPU days to run, so it is not feasible to execute it on a free trial account.
+The workflows in this project are mock workflows for demonstration purposes. The code and data are real, of course. The version of the project with all the workflows enabled is [here](https://my.rolos.com/public/project/6c2567e07ce64037b6b6edd2895b27ee). It requires around 16 GPU days to run, so it is not feasible to execute it on a free trial account.
 ## Data preprocessing: VASP -> csv/cif -> pickle & matminer
 Run the workflows in the following order. Same number means the workflows can be run concurrently.
 * `1 Low density index` creates technical files needed to preserve the historical structure indexing. Location: [`ai4material_design/datasets/csv_cif/low_density_defects_Innopolis-v1/{MoS2,WSe2}`](../datasets/csv_cif/low_density_defects_Innopolis-v1).
@@ -19,23 +19,3 @@ They train the models and produce predictions on the test dataset. Training is d
 The notebooks are used as a source for Rolos publications, to update go to the "Publications" tab, click "Synchronize" and "Publish"
 * Aggregate performance tables [`ai4material_design/notebooks/Results tables.ipynb`](../notebooks/Results%20tables.ipynb)
 * Quantum oscillation predictions [`ai4material_design/notebooks/MoS2_V2_plot.ipynb`](../notebooks/MoS2_V2_plot.ipynb)
-## Generating the mock project from the real one
-The scripts and workflows are already on the platform. This section is for reference only.
-1. Duplicate the "Sparse representation for machine learning the properties of defects in 2D materials" project
-2. Install the [Chromium addon](https://github.com/kazeevn/mock-rolos-workflows/) for mocking workflows
-3. Open the workflow page of the duplicated project, run the addon. *Don't* check the the "Overwrite the scripts" box.
-4. Add `ai4material_design/scripts/Rolos/dry-run` to your project. Either through UI, or with terminal:
-```bash
-touch ai4material_design/scripts/Rolos/dry-run
-git add ai4material_design/scripts/Rolos/dry-run
-git commit -m "Add dry-run"
-git push
-```
-5. Update the README to the mock readme
-```bash
-rm README.md
-ln -s ai4material_design/docs/CONSTRUCTOR-MOCK.md README.md
-git add README.md
-git commit -m "Switch README to CONSTRUCTOR-MOCK"
-git push
-```
