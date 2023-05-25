@@ -4,10 +4,7 @@
 
 ## Table of content
 
-- [Sparse representation for machine learning the properties of defects in 2D materials](#sparse-representation-for-machine-learning-the-properties-of-defects-in-2d-materials)
-  - [Table of content](#table-of-content)
-- [Reproducing the paper](#reproducing-the-paper)
-  - [Introduction](#introduction)
+- [Introduction](#introduction)
 - [General pipeline](#general-pipeline)
   - [Data preprocessing: VASP -\> csv/cif -\> pickle \& matminer](#data-preprocessing-vasp---csvcif---pickle--matminer)
     - [1. Low density index](#1-low-density-index)
