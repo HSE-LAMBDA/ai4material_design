@@ -20,3 +20,9 @@ xargs -a stability_trials.txt -L1 ./generate_experiments_workflow.sh
  -  Create the workflows manually using the UI
  - Put your workflow and project ids to [`../scripts/Rolos/create_workflows.js`](../scripts/Rolos/create_workflows.js)
  -  Log in to the platform, open the browser console, paste the relevant parts from [`../scripts/Rolos/create_workflows.js`](../scripts/Rolos/create_workflows.js). You need to do it for each workflow.
+ ## README
+ 5. Add the global README, update the relative links.
+```bash
+cp ai4material_design/docs/CONSTRUCTOR-MOCK.md README.md
+sed -i -E 's|(\[[^]]+]\()([^/h)][^)]+\))|\1ai4material_design/docs/\2|g' README.md 
+```
