@@ -63,10 +63,11 @@ Workflow `3 csv_cif to dataframe` converts the structures from standard [CIF](ht
 Workflow `3 Matminer` . Assuming the resources are available, the step takes around 3 days, you can skip it if don't plan on running CatBoost. Location: [`ai4material_design/datasets/processed/{high,low}_density_defects/*/matminer.csv.gz`](../datasets/processed).
 ## Computational experiments
 We have prepared the the workflows that reproduce the tuned models evaluation. They train the models and produce predictions on the test dataset. Training is done 12 times with different random seeds and initializations to estimate the uncertainty. Run them concurrently:
-* `4 Combined test SchNet`
-* `4 Combined test CatBoost`
-* `4 Combined test MegNet full`
-* `4 Combined test MegNet sparse`
+* `4a Combined test SchNet`
+* `4c Combined test CatBoost`
+* `4d Combined test MegNet full`
+* `4e Combined test MegNet sparse`
+* `4b Combined test GemNet`
 
 Location: [`ai4material_design/datasets/predictions/combined_mixed_weighted_test/**`](../datasets/predictions/combined_mixed_weighted_test).
 

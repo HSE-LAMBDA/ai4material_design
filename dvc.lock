@@ -45,11 +45,11 @@ stages:
       size: 471477275
       nfiles: 7000
     - path: scripts/vasp_to_csv_cif.py
-      md5: afe30fb9804d0fe98b516bab29cfd3e0
-      size: 8203
+      md5: 418a3ac216d3a0e1ed71fbc1aaa277e5
+      size: 8246
     outs:
     - path: datasets/csv_cif/high_density_defects/InSe_spin_500
-      md5: 7e402a43158b671d97818d511fab4e04.dir
+      md5: 3f5384684bbd6aa64a765e07c60149fd.dir
       size: 302288
       nfiles: 5
   processed-high-density-spin@GaSe:
@@ -163,22 +163,22 @@ stages:
       md5: f7459912d799b2ce79c0661775cab4e2
       size: 71636
   processed-high-density@InSe_spin:
-    cmd: python scripts/parse_csv_cif.py --input-name=high_density_defects/InSe_spin_500
-      --normalize-homo-lumo --fill-missing-band-properties
+    cmd: 'python scripts/parse_csv_cif.py --input-name=high_density_defects/InSe_spin_500
+      --normalize-homo-lumo --fill-missing-band-properties '
     deps:
     - path: datasets/csv_cif/high_density_defects/InSe_spin_500
-      md5: 7e402a43158b671d97818d511fab4e04.dir
+      md5: 3f5384684bbd6aa64a765e07c60149fd.dir
       size: 302288
       nfiles: 5
     - path: scripts/parse_csv_cif.py
-      md5: 170a8f8ad3827e1a871f7d4e5f59a374
-      size: 13765
+      md5: 35310b0234c429c57e96eeb8fb45aa4a
+      size: 8004
     outs:
     - path: datasets/processed/high_density_defects/InSe_spin_500/data.pickle.gz
-      md5: 63ad8fbbf8aa39b11073ed5eadcd2071
-      size: 379458
+      md5: c2b4cac351a0bbd368ff26fddc5dff79
+      size: 379469
     - path: datasets/processed/high_density_defects/InSe_spin_500/targets.csv.gz
-      md5: 3d187cfd964947db0f3cce5759e1fd71
+      md5: 7f8696e2bf626e8c5feabddf9643e129
       size: 70541
   csv-cif-no-spin-500-data@MoS2:
     cmd: python scripts/vasp_to_csv_cif.py --input-vasp "datasets/raw_vasp/high_density_defects/MoS2_500"
@@ -956,21 +956,21 @@ stages:
       md5: ae14070c03dc678af09362dac27235e9
       size: 1095038
   processed-pilot:
-    cmd: python scripts/parse_csv_cif.py --input-name=pilot --fill-missing-band-properties
+    cmd: 'python scripts/parse_csv_cif.py --input-name=pilot --fill-missing-band-properties '
     deps:
     - path: datasets/csv_cif/pilot
       md5: 244155e13a4dbccd0a5b1336b764c6e9.dir
       size: 142919
       nfiles: 7
     - path: scripts/parse_csv_cif.py
-      md5: 7e6534049d1d278071e52d674b69f308
-      size: 13782
+      md5: 35310b0234c429c57e96eeb8fb45aa4a
+      size: 8004
     outs:
     - path: datasets/processed/pilot/data.pickle.gz
-      md5: c24aa667df9260185311d5176b2e08e3
-      size: 148416
+      md5: fd72bef2620d33c03f4669347962b37e
+      size: 148530
     - path: datasets/processed/pilot/targets.csv.gz
-      md5: aa2c4646cd06b57d8256407dd186d7b9
+      md5: 21dd0acca1f4f99115331cf9ef956f45
       size: 10925
   matminer@high_density_defects/GaSe_spin_500:
     cmd: python scripts/compute_matminer_features.py --input-name high_density_defects/GaSe_spin_500
