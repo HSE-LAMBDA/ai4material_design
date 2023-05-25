@@ -6,7 +6,7 @@ Open a terminal using the Desk menu
 
 ![terminal menu](./constructor_pics/terminal.png)
 
-The commands in this guide assume the starting working directory to be [`/home/coder/project`](/home/coder/project) .
+The commands in this guide assume the starting working directory to be `/home/coder/project` .
 ## WanDB
 [WanDB](https://wandb.ai/) is a service for monitoring and recording machine learning experiments we use in the project. By default, WanDB integration is disabled. To optionally enable it, set you WanDB API key in [`scripts/Rolos/wandb_config.sh`](../scripts/Rolos/wandb_config.sh), commit and push. Note that if you add collaborators to your project, they will have access to your API key.
 ## Using workflows
