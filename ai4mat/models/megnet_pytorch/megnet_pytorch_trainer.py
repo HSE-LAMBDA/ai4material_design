@@ -11,9 +11,7 @@ import wandb
 
 from tqdm import trange, tqdm
 from ai4mat.common.base_trainer import Trainer
-from ai4mat.models.megnet_pytorch.megnet_pytorch import MEGNet
-from ai4mat.models.megnet_pytorch.struct2graph import SimpleCrystalConverter, GaussianDistanceConverter
-from ai4mat.models.megnet_pytorch.struct2graph import FlattenGaussianDistanceConverter, AtomFeaturesExtractor
+from ai4mat.models.megnet_pytorch.megnet_on_structures import MEGNetOnStructures
 from torch_geometric.loader import DataLoader
 from torch_geometric.data import Data
 
@@ -49,39 +47,21 @@ class MEGNetPyTorchTrainer(Trainer):
         self.minority_class_upsampling = minority_class_upsampling
         self.ema = False
 
-        if self.config["model"]["add_z_bond_coord"]:
-            bond_converter = FlattenGaussianDistanceConverter(
-                centers=np.linspace(0, self.config['model']['cutoff'], self.config['model']['edge_embed_size'])
-            )
+        if gpu_id is None:
+            device = 'cpu'
         else:
-            bond_converter = GaussianDistanceConverter(
-                centers=np.linspace(0, self.config['model']['cutoff'], self.config['model']['edge_embed_size'])
-            )
-        atom_converter = AtomFeaturesExtractor(self.config["model"]["atom_features"])
-        self.converter = SimpleCrystalConverter(
-            bond_converter=bond_converter,
-            atom_converter=atom_converter,
-            cutoff=self.config["model"]["cutoff"],
-            add_z_bond_coord=self.config["model"]["add_z_bond_coord"],
-            add_eos_features=(use_eos := self.config["model"].get("add_eos_features", False)),
-        )
-        self.model = MEGNet(
-            edge_input_shape=bond_converter.get_shape(eos=use_eos),
-            node_input_shape=atom_converter.get_shape(),
-            embedding_size=self.config['model']['embedding_size'],
-            n_blocks=self.config['model']['nblocks'],
-            state_input_shape=self.config["model"]["state_input_shape"],
-            vertex_aggregation=self.config["model"]["vertex_aggregation"],
-            global_aggregation=self.config["model"]["global_aggregation"],
-        )
-        self.Scaler = Scaler()
+            device = f'cuda:{gpu_id}'
+        self.megnet = MEGNetOnStructures(self.config, n_jobs=n_jobs, device=device)
+        self.model = self.megnet.model
+        self.converter = self.megnet.converter
+        self.scaler = self.megnet.scaler
 
         print("converting data")
         self.train_structures = Parallel(n_jobs=n_jobs, backend='threading')(
             delayed(self.converter.convert)(s) for s in tqdm(train_data))
         self.test_structures = Parallel(n_jobs=n_jobs, backend='threading')(
             delayed(self.converter.convert)(s) for s in tqdm(test_data))
-        self.Scaler.fit(self.train_structures)
+        self.scaler.fit(self.train_structures)
         self.target_name = target_name
         self.trainloader = DataLoader(
             self.train_structures,
@@ -144,7 +124,7 @@ class MEGNetPyTorchTrainer(Trainer):
                 ).squeeze()
                 
                 loss = MSELoss(
-                    self.Scaler.transform(batch.y),
+                    self.scaler.transform(batch.y),
                     preds, 
                     weights=(None if self.minority_class_upsampling else batch.weight), 
                     reduction='mean'
@@ -157,7 +137,7 @@ class MEGNetPyTorchTrainer(Trainer):
                 batch_loss.append(loss.to("cpu").data.numpy())
                 total_train.append(
                     MAELoss(
-                        self.Scaler.inverse_transform(preds),
+                        self.scaler.inverse_transform(preds),
                         batch.y,
                         weights=(None if self.minority_class_upsampling else batch.weight), 
                         reduction='sum'
@@ -176,7 +156,7 @@ class MEGNetPyTorchTrainer(Trainer):
 
                     total.append(
                         MAELoss(
-                            self.Scaler.inverse_transform(preds),
+                            self.scaler.inverse_transform(preds),
                             batch.y,
                             weights=batch.weight, 
                             reduction='sum'
@@ -213,5 +193,8 @@ class MEGNetPyTorchTrainer(Trainer):
                 preds = self.model(
                     batch.x, batch.edge_index, batch.edge_attr, batch.state, batch.batch, batch.bond_batch
                 )
-                results.append(self.Scaler.inverse_transform(preds))
-        return torch.concat(results).to('cpu').data.numpy().reshape(-1, 1)
+                results.append(self.scaler.inverse_transform(preds))
+        if len(results) > 0:
+            return torch.concat(results).to('cpu').data.numpy().reshape(-1, 1)
+        else:
+            return np.empty((0, 0))

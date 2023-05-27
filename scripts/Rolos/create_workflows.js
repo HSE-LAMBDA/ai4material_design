@@ -48,6 +48,18 @@ const trial_prefix = `ai4material_design/scripts/Rolos/workflows/run_experiments
 const trial_groups = ['1baefba7'];
 const n_nodes = 12
 
+// MegNet sparse
+const target = 'formation_energy_per_site';
+const workflow_id = 'c28e4dac763c43d4a5e3db19dacafd58';
+const trial_prefix = `ai4material_design/scripts/Rolos/workflows/run_experiments/combined_mixed_weighted_test/${target}/megnet_pytorch/sparse/05-12-2022_19-50-53/`;
+const trial_groups = ['d6b7ce45'];
+const n_nodes = 3
+
+const target = 'homo_lumo_gap_min';
+const trial_prefix = `ai4material_design/scripts/Rolos/workflows/run_experiments/combined_mixed_weighted_test/${target}/megnet_pytorch/sparse/05-12-2022_19-50-53/`;
+const trial_groups = ['831cc496'];
+const n_nodes = 3
+
 for (trial_group of trial_groups) {
 	for (let i = 1; i <= n_nodes; i++) {
 	    fetch(`https://my.rolos.com/api/v1/workflows/${workflow_id}/nodes`, {
@@ -148,3 +160,26 @@ for (let i = 1; i <= n_nodes; i++) {
   "credentials": "include"
 });
 }
+
+// Training models for inference
+const workflow_id = "daa21a5b24a74109bddc8398a20068e5";
+
+fetch(`https://my.rolos.com/api/v1/workflows/${workflow_id}/nodes`, {
+	"headers": {
+	  "accept": "*/*",
+	  "accept-language": "en-GB,en-US;q=0.9,en;q=0.8",
+	  "content-type": "application/json",
+	  "sec-ch-ua": "\"Not A(Brand\";v=\"24\", \"Chromium\";v=\"110\"",
+	  "sec-ch-ua-mobile": "?0",
+	  "sec-ch-ua-platform": "\"Linux\"",
+	  "sec-fetch-dest": "empty",
+	  "sec-fetch-mode": "cors",
+	  "sec-fetch-site": "same-origin"
+	},
+	"referrer": `https://my.rolos.com/projects/79a29e5d84da4e5680ed6d8c9f933748/workflows/${workflow_id}`,
+	"referrerPolicy": "strict-origin-when-cross-origin",
+	"body": `{\"type\":\"environment\",\"name\":\"Train both models\",\"file_id\":\"ai4material_design/scripts/Rolos/workflows/final_training/train_both_targets.sh\",\"environment_template_id\":\"7341a7991fc14514a5e087f700699665\",\"cpu_count\":8,\"ram\":16,\"gpu\":true,\"x\":${46+Math.random()*1000},\"y\":${50+Math.random()*600}}`,
+	"method": "POST",
+	"mode": "cors",
+	"credentials": "include"
+  });

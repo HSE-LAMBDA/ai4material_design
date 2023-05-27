@@ -277,8 +277,11 @@ def cross_val_predict(
             test_mask = folds == test_fold
             predictions_pd[test_mask] = this_predictions
     elif strategy == "train_test":
-        predictions_pd = pd.DataFrame(index=folds[folds == TEST_FOLD].index,
-                                      columns=[targets.name], data=predictions)
+        if len(predictions) > 0:
+            predictions_pd = pd.DataFrame(index=folds[folds == TEST_FOLD].index,
+                                          columns=[targets.name], data=predictions)
+        else:
+            predictions_pd = pd.DataFrame(columns=[targets.name])
 
     return predictions_pd
 

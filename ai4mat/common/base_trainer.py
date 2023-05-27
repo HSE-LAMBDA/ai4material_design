@@ -81,6 +81,9 @@ class Trainer(ABC):
             'optimizers': self.optimizers.state_dict(),
             'logged_params': self.logged_params
         }
+        if hasattr(self, 'scaler'):
+            state_dict['scaler'] = self.scaler.state_dict()
+
         if self.ema:
             state_dict['ema'] = self.ema.state_dict()
         if self.checkpoint_path is not None:

@@ -45,7 +45,11 @@ def print_table_paper(dataframe: pd.DataFrame,
                     model_name = trial_re.match(trial).group("name").replace("_pytorch", "")
                 else:
                     model_name = trial
-                records_per_dataset[model_name] = (data['mae'], data['std'])
+                if format_ == "pandas_separate_std":
+                    records_per_dataset[model_name] = data['mae']
+                    records_per_dataset[f"{model_name}_std"] = data['std']
+                else:
+                    records_per_dataset[model_name] = (data['mae'], data['std'])
                 #norm_model = "stability/megnet_pytorch/sparse/05-12-2022_19-50-53/d6b7ce45"
                 #norm_model = "stability/megnet_pytorch/sparse/05-12-2022_19-50-53/831cc496"
                 #norm = table_data.at[(row_name, norm_model), "mae"]
@@ -53,13 +57,20 @@ def print_table_paper(dataframe: pd.DataFrame,
             records.append(records_per_dataset)
         table = pd.DataFrame.from_records(records)
         table.set_index(["Material", "Density"], inplace=True)
-        table = table[list(model_names.keys())]
-        table.rename(columns=model_names, inplace=True)
+        if format_ == "pandas_separate_std":
+            augmented_model_names = dict()
+            for short_name, long_name in model_names.items():
+                augmented_model_names[short_name] = f"{long_name} MAE"
+                augmented_model_names[f"{short_name}_std"] = f"{long_name} std"
+        else:
+            augmented_model_names = model_names
+        table = table[list(augmented_model_names.keys())]
+        table.rename(columns=augmented_model_names, inplace=True)
         # ties are to handled manually
         if format_ == "latex":
             styled_table = table.style.highlight_min(axis=1, props='bfseries: ;')#.format(partial(format_result, latex_siunitx=True))
             print(styled_table.to_latex(column_format="cc|ccccc", hrules=True, siunitx=True))
-        elif format_ == "pandas":
+        elif format_ in {"pandas", "pandas_separate_std"}:
             return table
         else:
             raise ValueError("Unknown format")
@@ -132,10 +143,11 @@ def get_argparser():
     paper_args.add_argument("--paper-ablation-energy", action="store_true")
     paper_args.add_argument("--paper-ablation-homo-lumo", action="store_true")
     parser.add_argument("--prediction-storage-root", type=Path)
+    parser.add_argument("--format", type=str, default="latex")
     return parser
 
 
-def do_table(args, format_="latex"):
+def do_table(args):
     results = []
     for experiment in args.experiments:
         results = []
@@ -178,7 +190,7 @@ def do_table(args, format_="latex"):
                 megnet="MEGNet",
                 catboost="CatBoost")
         models["megnet/sparse"] = "Sparse (MEGNet)"
-        return print_table_paper(results_pd, args.column_format_re, models, format_=format_)
+        return print_table_paper(results_pd, args.column_format_re, models, format_=args.format)
     elif args.paper_ablation_energy:
         models=OrderedDict()
         models["stability/megnet_pytorch/25-11-2022_11-38-18/1baefba7"] = "Full"
@@ -186,7 +198,7 @@ def do_table(args, format_="latex"):
         models["stability/megnet_pytorch/ablation_study/d6b7ce45-sparse-z"] = "Sparse-Z"
         models["stability/megnet_pytorch/ablation_study/d6b7ce45-sparse-z-were"] = "Sparse-Z-Were"
         models["stability/megnet_pytorch/sparse/05-12-2022_19-50-53/d6b7ce45"] = "Sparse-Z-Were-EOS"
-        return print_table_paper(results_pd, args.column_format_re, models, format_=format_)
+        return print_table_paper(results_pd, args.column_format_re, models, format_=args.format)
     elif args.paper_ablation_homo_lumo:
         models=OrderedDict()
         models["stability/megnet_pytorch/25-11-2022_11-38-18/1baefba7"] = "Full"
@@ -194,7 +206,7 @@ def do_table(args, format_="latex"):
         models["stability/megnet_pytorch/ablation_study/831cc496-sparse-z"] = "Sparse-Z"
         models["stability/megnet_pytorch/ablation_study/831cc496-sparse-z-were"] = "Sparse-Z-Were"
         models["stability/megnet_pytorch/sparse/05-12-2022_19-50-53/831cc496"] = "Sparse-Z-Were-EOS"
-        return print_table_paper(results_pd, args.column_format_re, models, format_=format_)
+        return print_table_paper(results_pd, args.column_format_re, models, format_=args.format)
     else:
         results_str = results_pd.apply(lambda row: f"{row['mae']:.{4-int(np.log10(args.multiple))}f}", axis=1)
         print_tables(results_str, args.separate_by, args.column_format_re, args.row_format_re)
