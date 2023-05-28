@@ -67,4 +67,4 @@ This creates predictions in `datasets/predictions/pilot-plain-cv/*/catboost`
 ```bash
 python scripts/plot.py --experiments pilot-plain-cv --trials catboost/pilot
 ```
-This produces plots in `datasets/plots/matminer-test`
+This produces plots in `datasets/plots/pilot-plain-cv/*/catboost/pilot.pdf`
