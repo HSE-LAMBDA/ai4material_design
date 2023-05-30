@@ -1,10 +1,5 @@
 [core]
-    remote = virtuozzo
+    remote = mys3http
     autostage = true
-['remote "virtuozzo"']
-    url = s3://ai4materialdesign/dvc
-    endpointurl = https://eu1-s3.virtuozzo.com
-    access_key_id = 924edec3206ca933W8NW
-    secret_access_key = BmqPBOHbWP1ErzFoepW5Tjyr2MZKDLHLCBW3mGQE
 ['remote "mys3http"']
     url = https://eu1-s3.virtuozzo.com/ai4materialdesign/dvc
