@@ -5,9 +5,8 @@ import logging
 import pandas as pd
 
 from pymatgen.core.periodic_table import Element
-from pymatgen.io.cif import CifParser
-from csv_cif_parsing_utils.eos import EOS
-from csv_cif_parsing_utils.sparse_representation import get_sparse_defect
+from ai4mat.common.eos import EOS
+from ai4mat.common.sparse_representation import get_sparse_defect
 
 import sys
 
@@ -16,7 +15,8 @@ sys.path.append('.')
 from ai4mat.data.data import (
     get_dichalcogenides_innopolis,
     StorageResolver,
-    Columns
+    Columns,
+    get_unit_cell
 )
 
 
@@ -29,18 +29,9 @@ def parse_csv_cif(input_folder, args, dataset_name):
         structures["homo_lumo_gap"] = structures["lumo"] - structures["homo"]
 
     materials = defects.base.unique()
-    unit_cells = {}
-    for material in materials:
-        try:
-            unit_cells[material] = CifParser(
-                input_folder / "unit_cells" / f"{material}.cif").get_structures(primitive=False)[0]
-        except FileNotFoundError:
-            logging.warning(f"Unit cell for {material} not found in the dataset folder, using the global one")
-            unit_cells[material] = CifParser(str(Path(
-                "defects_generation",
-                "molecules",
-                f"{material}.cif"))).get_structures(primitive=False)[0]
-        if not args.skip_eos:
+    unit_cells = get_unit_cell(input_folder, materials)
+    if not args.skip_eos:
+        for material in materials:
             unit_cells[material] = EOS().get_augmented_struct(unit_cells[material])
 
     data_path = Path(input_folder)

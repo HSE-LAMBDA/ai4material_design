@@ -1,4 +1,5 @@
 from typing import Union, List, Optional, Dict
+from collections.abc import Iterable
 import logging
 import os
 from pathlib import Path
@@ -11,7 +12,7 @@ from tqdm.auto import tqdm
 from collections import defaultdict
 import tarfile
 import numpy as np
-
+from pymatgen.io.cif import CifParser
 
 TRAIN_FOLD = 0
 TEST_FOLD = 1
@@ -393,3 +394,20 @@ def read_results(folds_experiment_name: str,
             if weights is not None:
                 results[target_name][dataset]['weights'] = weights.reindex(index=this_errors.index)
     return results
+
+def get_unit_cell(csv_cif_folder: Path,
+                  materials: Iterable[str]):
+    unit_cells = {}
+    for material in materials:
+        try:
+            unit_cells[material] = CifParser(
+                csv_cif_folder / "unit_cells" / f"{material}.cif").get_structures(primitive=False)[0]
+        except FileNotFoundError:
+            logging.warning(f"Unit cell for {material} not found in the dataset folder, using the global one")
+            this_file_path = Path(__file__).parent.resolve()
+            unit_cells[material] = CifParser(str(Path(
+                this_file_path.parent.parent,
+                "defects_generation",
+                "molecules",
+                f"{material}.cif"))).get_structures(primitive=False)[0]
+    return unit_cells

@@ -43,8 +43,8 @@ class MEGNetOnStructures(torch.nn.Module):
         self.device = device
         self.scaler = Scaler()
     
-    def load(self, checkpoint_file_name):
-        checkpoint = torch.load(checkpoint_file_name)
+    def load(self, checkpoint_file_name, map_location=None):
+        checkpoint = torch.load(checkpoint_file_name, map_location=map_location)
         self.model.load_state_dict(checkpoint['model'])
         self.scaler.load_state_dict(checkpoint['scaler'])
     
