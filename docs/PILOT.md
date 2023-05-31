@@ -1,13 +1,14 @@
-# Running the pilot NN model
-Below we descrbie a lightweight test run.
+# Running the pilot models
+We have a small pilot dataset and pilot models with low number of iterations for development purposes. They still require [WanDB](https://wandb.ai/), login, or disable it with `export WANDB_MODE=disabled`.
+# MegNet sparse
 
-0. Pull the inputs from DVC. On Rolos, they are already there.
-```
+0. Pull the inputs from DVC. On Constructor Research Platform, they are already there, the step can be skipped.
+```bash
 dvc pull datasets/csv_cif/pilot datasets/experiments/pilot-plain-cv datasets/processed/pilot/{targets.csv,data.pickle}.gz
 ```
 
 1. Preprocess the data to get targets, pickled full and sparse structures
-```
+```bash
 python scripts/parse_csv_cif.py --input-name=pilot --fill-missing-band-properties
 ```
 This creates `datasets/processed/pilot/{data.pickle.gzip,targets.csv}`
@@ -16,24 +17,24 @@ This creates `datasets/processed/pilot/{data.pickle.gzip,targets.csv}`
 This step creates predictions in `datasets/predictions/pilot-plain-cv` and run information at [WanDB](https://wandb.ai/hse_lambda/ai4material_design). Make sure you are logged in to WanDB and use WanDB entity you have access to, ot set `WANDB_MODE=disabled`.
 - GPU
    Adjust the `--gpus` and `--processes-per-unit` options to your GPU resources
-```
+```bash
 python run_experiments.py --experiments pilot-plain-cv --trials megnet_pytorch-sparse-pilot --gpus 0 1 2 3 --processes-per-unit 2 --wandb-entity hse_lambda
 ```
 - CPU
-```
+```bash
 python run_experiments.py --experiments pilot-plain-cv --trials megnet_pytorch-sparse-pilot --cpu --processes-per-unit 8 --wandb-entity hse_lambda
 ```
 - slurm
 Modify `slurm-job.sh` with the desired argument and export the required enviroment variables then run `./slurm-job.sh`
 
 3. Plot the plots
-```
+```bash
 python scripts/plot.py --experiments pilot-plain-cv --trials megnet_pytorch-sparse-pilot
 ```
 This produces plots in `datasets/plots/pilot-plain-cv`
-# Running a pilot CatBoost model
-0. Pull the inputs from DVC. As usual, on Rolos they are alaready available.
-```
+# CatBoost
+0. Pull the inputs from DVC. On Constructor Research Platform, they are already there, the step can be skipped.
+```bash
 dvc pull datasets/csv_cif/pilot datasets/experiments/pilot-plain-cv
 ```
 

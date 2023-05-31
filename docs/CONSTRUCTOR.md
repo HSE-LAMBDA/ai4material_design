@@ -45,11 +45,11 @@ Data preprocessing occurs in stages:
 2. csv/cif -> dataframe converts the structures from standard [CIF](https://www.iucr.org/resources/cif) format to a fast platform-specific pickle storage. It also preprocesses the target values, e. g. computes the formation energy per atom. Finally, it produces the sparse defect-only representations.
 3. csv/cif -> matminer computes [matminer](https://github.com/hackingmaterials/matminer) descriptors, to be used with [CatBoost](https://catboost.ai/).
 ### VASP -> csv/cif
-To reduce the repository size, raw VASP files are not stored on the platform, you need to download them from DVC. Prior to that, you need to increase the project size, 100 Gb should be sufficient.
+To reduce the repository size, raw VASP files are not stored on the Constructor Research Platform, you need to download them from the external storage via [DVC](https://dvc.org/) and add them to [Git LFS](https://git-lfs.com/) which Constructor Research Platform uses to share the data with workflows and collaborators. Prior to that, you need to increase the project size, 100 Gb should be sufficient.
 To increase the project size, make sure you have a full, and not a trial account, then left-click on the environment name, "Material design environment (PyTorch)" in our case.
 ![opening environment settings](./constructor_pics/env_settings.png)
 
-Use the following commands to download the data from DVC:
+Due to the large size and number of files, the operation might take 10-20 minutes. Use the following commands:
 ```bash
 cd ai4material_design
 dvc pull datasets/raw_vasp/high_density_defects/{BP,GaSe,hBN,InSe}_spin*.dvc

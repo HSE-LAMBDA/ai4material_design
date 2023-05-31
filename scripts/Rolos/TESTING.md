@@ -16,11 +16,9 @@ git commit -m "Clean up the intermediate files for testing"
 git push
 ```
 # Steps to reproduce
-In general, follow [CONSTRUCTOR.md](../../docs/CONSTRUCTOR.md) and [PILOT.md](../../docs/PILOT.md). In the interest of both yours and computational time, don't reproduce everything, but see the notes:
-1. Running the pilot NN model - full
-2. Running a pilot CatBoost model - don't recompute `matminer.csv.gz`
-3. Data preprocessing: VASP -> csv/cif -> pickle & matminer - run only one of the matminer nodes, any one with high_density_defects
-4. Run the experiment on train/test split - run the CatBoost workflow in the full, and any one node from each of the other workflows
-5. Result analysis - full
+Follow [CONSTRUCTOR.md](../../docs/CONSTRUCTOR.md). In the interest of both yours and computational time, don't reproduce everything, but see the notes:
+1. Data preprocessing: VASP -> csv/cif -> pickle & matminer - run only one of the matminer nodes, any one with high_density_defects
+2. Run the experiment on train/test split - run the CatBoost workflow in the full, and any one node from each of the other workflows
+3. Result analysis - full
 # Troubleshooting
 In case you have problems, please write to [Nikita](https://t.me/kazeevn)
