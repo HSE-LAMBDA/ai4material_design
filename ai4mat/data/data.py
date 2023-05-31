@@ -396,7 +396,7 @@ def read_results(folds_experiment_name: str,
     return results
 
 def get_unit_cell(csv_cif_folder: Path,
-                  materials: Iterable[str]):
+                  materials: Iterable):
     unit_cells = {}
     for material in materials:
         try:
