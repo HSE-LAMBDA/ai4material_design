@@ -45,8 +45,7 @@ Data preprocessing occurs in stages:
 2. csv/cif -> dataframe converts the structures from standard [CIF](https://www.iucr.org/resources/cif) format to a fast platform-specific pickle storage. It also preprocesses the target values, e. g. computes the formation energy per atom. Finally, it produces the sparse defect-only representations.
 3. csv/cif -> matminer computes [matminer](https://github.com/hackingmaterials/matminer) descriptors, to be used with [CatBoost](https://catboost.ai/).
 ### VASP -> csv/cif
-To reduce the repository size, raw VASP files are not stored on the Constructor Research Platform, you need to download them from the external storage via [DVC](https://dvc.org/) and add them to [Git LFS](https://git-lfs.com/) which Constructor Research Platform uses to share the data with workflows and collaborators. Prior to that, you need to increase the project size, 100 Gb should be sufficient.
-To increase the project size, make sure you have a full, and not a trial account, then left-click on the environment name, "Material design environment (PyTorch)" in our case.
+To reduce the repository size, raw VASP files are not stored on the Constructor Research Platform, you need to download them from the external storage via [DVC](https://dvc.org/) and add them to [Git LFS](https://git-lfs.com/) which Constructor Research Platform uses to share the data with workflows and collaborators. Prior to that, you need to increase the project size (100 Gb), CPU cores (4), and RAM (16 Gb). Make sure you have a full, and not a trial account, then left-click on the environment name, "Material design environment (PyTorch)" in our case.
 ![opening environment settings](./constructor_pics/env_settings.png)
 
 Due to the large size and number of files, the operation might take 10-20 minutes. Use the following commands:
@@ -56,6 +55,7 @@ dvc pull datasets/raw_vasp/high_density_defects/{BP,GaSe,hBN,InSe}_spin*.dvc
 dvc pull datasets/raw_vasp/high_density_defects/{MoS,WSe}2_500.dvc
 dvc pull datasets/raw_vasp/dichalcogenides8x8_vasp_nus_202110/*.tar.gz.dvc
 
+git config --global pack.threads "4"
 git add datasets/raw_vasp/high_density_defects/{BP,GaSe,hBN,InSe}_spin*
 git add datasets/raw_vasp/high_density_defects/{MoS,WSe}2_500
 git add datasets/raw_vasp/dichalcogenides8x8_vasp_nus_202110/*.tar.gz
