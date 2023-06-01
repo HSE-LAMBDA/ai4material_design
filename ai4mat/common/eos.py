@@ -76,13 +76,14 @@ class EOS:
                 return i
 
     def get_augmented_struct(self, structure):
-        for center_idx, site in enumerate(structure):
+        structure_eos = structure.copy()
+        for center_idx, site in enumerate(structure_eos):
             # add center index
-            structure[center_idx].properties['center_index'] = center_idx
+            structure_eos[center_idx].properties['center_index'] = center_idx
             # get shells finder object
-            self.shells_obj = Shells(structure)
+            self.shells_obj = Shells(structure_eos)
             # get the shells
-            shells_sites = self.get_shell(structure, self.find_center_index(structure, center_idx), self.num_shells) + [
+            shells_sites = self.get_shell(structure_eos, self.find_center_index(structure_eos, center_idx), self.num_shells) + [
                 site]
             # remove all other species
             _struct = self.remove_other_species(Structure.from_sites(shells_sites), site)
@@ -91,5 +92,5 @@ class EOS:
             # delete the center index
             del site.properties['center_index']
 
-        assert all(map(lambda s: 'shells' in s.properties, structure))
-        return structure
+        assert all(map(lambda s: 'shells' in s.properties, structure_eos))
+        return structure_eos

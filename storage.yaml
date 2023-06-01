@@ -8,3 +8,4 @@ plots: datasets/plots
 trials: trials
 templates: templates
 materials: defects_generation/molecules
+others: datasets/others

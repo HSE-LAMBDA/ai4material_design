@@ -22,10 +22,11 @@ def strucure_to_dict(structure, precision=3):
 def get_sparse_defect(structure, unit_cell, supercell_size,
                       single_atom_energies):
     reference_species = set(unit_cell.species)
+    structure = structure.copy()
 
     reference_supercell = unit_cell.copy()
     reference_supercell.make_supercell(supercell_size)
-    reference_sites = get_frac_coords_set(reference_supercell)
+    # reference_sites = get_frac_coords_set(reference_supercell)
 
     defects = []
     full_were_species = []
