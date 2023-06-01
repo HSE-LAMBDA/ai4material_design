@@ -28,6 +28,8 @@ matminer = ">=0.7.3"
 ratarmount = ">=0.11.3"
 pyyaml = ">=6.0.0"
 prettytable = ">=3.5.0"
+ipympl = ">=0.9.3"
+ipywidgets = ">=8.0.4"
 
 [tool.poetry.dev-dependencies]
 yapf = ">=0.31.0"
