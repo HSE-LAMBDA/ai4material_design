@@ -127,8 +127,8 @@ stages:
       cmd:
         ratarmount -o modules=subdir,subdir=${item.tar_folder}_8x8_5933
           datasets/raw_vasp/dichalcogenides8x8_vasp_nus_202110/${item.tar_folder}_8x8_5933.tar.gz
-          datasets/raw_vasp/dichalcogenides8x8_vasp_nus_202110/${item.material}_8x8_5933/ &&
-        python scripts/vasp_to_csv_cif.py --input-vasp "datasets/raw_vasp/dichalcogenides8x8_vasp_nus_202110/${item.material}_8x8_5933"
+          ${paths.datasets_root}datasets/raw_vasp/dichalcogenides8x8_vasp_nus_202110/${item.material}_8x8_5933/ &&
+        python scripts/vasp_to_csv_cif.py --input-vasp "${paths.datasets_root}datasets/raw_vasp/dichalcogenides8x8_vasp_nus_202110/${item.material}_8x8_5933"
         --input-structures-list datasets/csv_cif/low_density_defects_Innopolis-v1/${item.material}
         --input-structures-csv-cif datasets/csv_cif/low_density_defects_Innopolis-v1/${item.material}
         --output-csv-cif "${paths.datasets_root}datasets/csv_cif/low_density_defects/${item.material}"
