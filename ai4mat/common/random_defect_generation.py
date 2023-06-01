@@ -11,6 +11,8 @@ class InconsistentDefectCount(ValueError):
 def generate_structure_with_random_defects(
     target_total_defects: int,
     max_defect_counts: dict[dict[int]],
+    # CRP has old Python
+    # max_defect_counts: dict[dict[int]],
     reference_supercell: Structure,
     rng: np.random.Generator,
     generate_innopolis_descritption: bool) -> Structure:
