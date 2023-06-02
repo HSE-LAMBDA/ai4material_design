@@ -3,15 +3,12 @@ from operator import methodcaller
 from pathlib import Path
 import logging
 import pandas as pd
-
 from pymatgen.core.periodic_table import Element
-from ai4mat.common.eos import EOS
-from ai4mat.common.sparse_representation import get_sparse_defect
 
 import sys
-
 sys.path.append('.')
-
+from ai4mat.common.eos import EOS
+from ai4mat.common.sparse_representation import get_sparse_defect
 from ai4mat.data.data import (
     get_dichalcogenides_innopolis,
     StorageResolver,
