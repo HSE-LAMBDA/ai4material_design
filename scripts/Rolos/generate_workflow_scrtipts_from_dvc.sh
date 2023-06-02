@@ -8,7 +8,7 @@ fi
 echo "Generating sctipts for $1 nodes"
 dump_dvc () {
     mkdir -p $WORKFLOWS_DIR/$2
-    dvc repro -s -f --dry $1 | grep "^> " | cut -c 3- > $WORKFLOWS_DIR/$2/commands.txt
+    dvc repro -s -f --dry $1 | grep -e '^>' -e  '\\' -A1 | grep -v -- "^--$" | sed 's/> //g' > $WORKFLOWS_DIR/$2/commands.txt
 }
 
 cp $SCRIPT_DIR/../../params.yaml params.yaml.bak
