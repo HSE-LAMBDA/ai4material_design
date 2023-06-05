@@ -106,7 +106,7 @@ python scripts/summary_table_lean.py --experiment combined_mixed_weighted_test -
 ```
 
 ## Data
-The data are already here at [`../datasets`](../datasets) The results of all the steps are already available in the repository, you can selectively reproduce the parts you want.
+The data are already here at [`ai4material_design/datasets`](../datasets) The results of all the steps are already available in the repository, you can selectively reproduce the parts you want.
 
->### User guide
->You can find more details about Constructor Research Platform functionality in the documentation [here](https://docs.constructor.tech/articles/#!constructor-research-platform-user-guide/about-this-guide)
+## User guide
+You can find more details about Constructor Research Platform functionality in the documentation [here](https://docs.constructor.tech/articles/#!constructor-research-platform-user-guide/about-this-guide)
