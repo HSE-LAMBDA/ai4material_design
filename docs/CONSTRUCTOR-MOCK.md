@@ -5,19 +5,16 @@
 ## Table of contents
 
 - [Introduction](#introduction)
-- [General pipeline](#general-pipeline)
+- [General pipeline](##Overview)
   - [Data preprocessing: VASP -\> csv/cif -\> pickle \& matminer](#data-preprocessing-vasp---csvcif---pickle--matminer)
     - [1. Low density index](#1-low-density-index)
     - [2. VASP -\> csv/cif](#2-vasp---csvcif)
     - [3a. csv/cif -\> dataframe](#3a-csvcif---dataframe)
     - [3b. csv/cif -\> matminer](#3b-csvcif---matminer)
-  - [Computational experiments](#computational-experiments)
+  - [Models evaluation](#models-evaluation)
   - [Results analysis](#results-analysis)
   - [Data](#data)
-- [Constructor Research Platform user guide](#constructor-research-platform-user-guide)
-  - [Using terminal](#using-terminal)
-  - [WanDB](#wandb)
-  - [Using workflows](#using-workflows)
+- [Constructor Research Platform user guide](#user-guide)
 
 # Reproducing the paper
 
@@ -42,7 +39,7 @@ We compare our approach to state-of-the-art generic structure-property predictio
 
 For dataset, we use [2DMD](https://www.nature.com/articles/s41699-023-00369-1). It consists of the most popular 2D materials: MoS2, WSe2, h-BN, GaSe, InSe, and black phosphorous (BP) with point defect density in the range of 2.5% to 12.5%. We use DFT to relax the structures and compute the defect formation energy and HOMO-LUMO gap. ML algorithms predict those quantities, taking unrelaxed structures as input.
 
-# Overview 
+## Overview 
 
 The calculations in the paper occur in two stages:
 1. Firstly, we extract the relevant information about the structures and their properties from the VASP outputs, and prepare the sparse and vectorized representation of the structures.
@@ -77,7 +74,6 @@ Output location: [`ai4material_design/datasets/processed/{high,low}_density_defe
 This step computes [matminer](https://github.com/hackingmaterials/matminer) descriptors, to be used with [CatBoost](https://catboost.ai/). You can skip this step if don't plan on running CatBoost.
 
 Output location: [`ai4material_design/datasets/processed/{high,low}_density_defects/*/matminer.csv.gz`](../datasets/processed).
-
 
 ## Models evaluation
 
