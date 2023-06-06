@@ -23,8 +23,6 @@
 > This project uses lightweight workflows to demonstrate the functionality of a larger, more computationally intensive project. Certain computationally intensive steps have been omitted and replaced with pre-calculated data to reduce the computational requirements of this demo.
 > 
 >  The full version of the project, with all computationally intensive steps included, can be found [here](https://research.constructor.tech/public/project/6c2567e07ce64037b6b6edd2895b27ee). It requires approximately 16 GPU days to run. To get the resources, please contact us by clicking on the question mark icon in the bottom right corner of the page.
->
-> To upgrade from a trial to full account, please contact us by clicking on the question mark icon in the bottom right corner of the page.
 
 ## Introduction
 
