@@ -77,7 +77,7 @@ Output location: [`ai4material_design/datasets/processed/{high,low}_density_defe
 
 We train the models on the training dataset and produce predictions on the test dataset. The training and testing datasets are uniformly sampled from 2DMD, stratified with the respect to base material. Training for each model is done 12 times with different random seeds and initializations to estimate the uncertainty.
 
-Run the following workflows concurrently:
+Open the Workflow interface by clicking on the Workflow link in the top-right. Run them concurrently:
 * `4a Combined test SchNet`
 * `4b Combined test GemNet`
 * `4c Combined test CatBoost`
