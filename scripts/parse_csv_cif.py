@@ -138,7 +138,7 @@ def main():
                         help="Don't add EOS indices")
     parser.add_argument("--output-folder", type=Path,
                         help="Path where to write the output. "
-                             "The usual directory structure 'datasets/processeds/<dataset_name>'"
+                             "The usual directory structure 'datasets/processed/<dataset_name>'"
                              "will be created.")
     args = parser.parse_args()
 
