@@ -12,7 +12,7 @@ def get_frac_coords_set(structure):
     return set(map(tuple, np.round(structure.frac_coords, 3)))
 
 
-def strucure_to_dict(structure, precision=3):
+def structure_to_dict(structure, precision=3):
     res = {}
     for site in structure:
         res[tuple(np.round(site.frac_coords, precision))] = site
@@ -26,19 +26,17 @@ def get_sparse_defect(structure, unit_cell, supercell_size,
 
     reference_supercell = unit_cell.copy()
     reference_supercell.make_supercell(supercell_size)
-    # reference_sites = get_frac_coords_set(reference_supercell)
 
     defects = []
     full_were_species = []
     defect_energy_correction = 0
 
-    structure_dict = strucure_to_dict(structure)
-    reference_structure_dict = strucure_to_dict(reference_supercell)
+    structure_dict = structure_to_dict(structure)
+    reference_structure_dict = structure_to_dict(reference_supercell)
 
     for coords, reference_site in reference_structure_dict.items():
-        # Vacancy
         reference_site.properties['was'] = reference_site.specie.Z
-
+        # Vacancy
         if coords not in structure_dict:
             defects.append(
                 PeriodicSite(
