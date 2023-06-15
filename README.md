@@ -1,5 +1,10 @@
 # Sparse representation for machine learning the properties of defects in 2D materials
+# Quickstart
+Open in Constructor Research Platform (a cloud service for scientific computations)
+
 [![Open in Constructor Research](docs/research_platform_badge.svg)](https://research.constructor.tech/p/2d-defects-prediction)
+
+# Table of contents
 - Environment setup: [docs/ENVIRONMENT.md](docs/ENVIRONMENT.md)
 - Reproducing the paper: [docs/SPARSE-PAPER.md](docs/SPARSE-PAPER.md)
 - Demo project on the Constructor Research Platform [docs/CONSTRUCTOR-MOCK.md](docs/CONSTRUCTOR-MOCK.md)
