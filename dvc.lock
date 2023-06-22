@@ -963,14 +963,14 @@ stages:
       size: 142919
       nfiles: 7
     - path: scripts/parse_csv_cif.py
-      md5: 35310b0234c429c57e96eeb8fb45aa4a
-      size: 8004
+      md5: 78a8cfc0fbbc8b3e4d5314ef862be963
+      size: 7504
     outs:
     - path: datasets/processed/pilot/data.pickle.gz
-      md5: fd72bef2620d33c03f4669347962b37e
+      md5: 31909a7c4477c5ed6588c4780f112979
       size: 148530
     - path: datasets/processed/pilot/targets.csv.gz
-      md5: 21dd0acca1f4f99115331cf9ef956f45
+      md5: 76818421a9878685208bd43de1de1d87
       size: 10925
   matminer@high_density_defects/GaSe_spin_500:
     cmd: python scripts/compute_matminer_features.py --input-name high_density_defects/GaSe_spin_500
@@ -1569,3 +1569,21 @@ stages:
     - path: datasets/experiments/combined_mixed_all_train/folds.csv.gz
       md5: 9911c2326085417112dc60ecb1270007
       size: 122122
+  vacancy-pairs-configs@MoS2:
+    cmd: python scripts/defects_generation.py --output-path datasets/POSCARs/vacancy_pairs/MoS2
+      --config-path datasets/generation_configs/vacancy_pairs/MoS2.yaml
+    deps:
+    - path: datasets/generation_configs/vacancy_pairs/MoS2.yaml
+      md5: 39a05066750adad2cea3001217f6c428
+      size: 109
+    - path: defects_generation/molecules/MoS2.cif
+      md5: 862c7fffd168aab0d56a8bbd17d324ad
+      size: 812
+    - path: scripts/defects_generation.py
+      md5: 8eb8756fe248d43cb8dc3836565b1c98
+      size: 11197
+    outs:
+    - path: datasets/POSCARs/vacancy_pairs/MoS2
+      md5: cc91a04c8f533629086f0c85b9882f11.dir
+      size: 199723
+      nfiles: 17
