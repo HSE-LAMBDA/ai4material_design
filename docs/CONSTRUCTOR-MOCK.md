@@ -6,7 +6,7 @@
 
 - [Introduction](#introduction)
 - [Inference](#inference)
-- [Paper Overview](#overview)
+- [Paper Overview](#paper-overview)
   - [Data preprocessing: VASP -\> csv/cif -\> pickle \& matminer](#data-preprocessing-vasp---csvcif---pickle--matminer)
     - [1. Low density index](#1-low-density-index)
     - [2. VASP -\> csv/cif](#2-vasp---csvcif)
@@ -14,6 +14,7 @@
     - [3b. csv/cif -\> matminer](#3b-csvcif---matminer)
   - [Models evaluation](#models-evaluation)
   - [Results analysis](#results-analysis)
+  - [Final model training](#final-model-training)
   - [Data](#data)
 - [Constructor Research Platform user guide](#user-guide)
 
@@ -103,7 +104,8 @@ cd ai4material_design
 python scripts/summary_table_lean.py --experiment combined_mixed_weighted_test --targets formation_energy_per_site --stability-trials stability/schnet/25-11-2022_16-52-31/71debf15 stability/catboost/29-11-2022_13-16-01/02e5eda9 stability/gemnet/16-11-2022_20-05-04/b5723f85 stability/megnet_pytorch/sparse/05-12-2022_19-50-53/d6b7ce45 stability/megnet_pytorch/25-11-2022_11-38-18/1baefba7 --separate-by target --column-format-re stability\/\(?P\<name\>.+\)\/.+/\.+ --paper-results --multiple 1000 --format pandas_separate_std
 python scripts/summary_table_lean.py --experiment combined_mixed_weighted_test --targets homo_lumo_gap_min --stability-trials stability/schnet/25-11-2022_16-52-31/2a52dbe8 stability/catboost/29-11-2022_13-16-01/1b1af67c stability/gemnet/16-11-2022_20-05-04/c366c47e stability/megnet_pytorch/sparse/05-12-2022_19-50-53/831cc496 stability/megnet_pytorch/25-11-2022_11-38-18/1baefba7 --separate-by target --column-format-re stability\/\(?P\<name\>.+\)\/.+/\.+ --paper-results --multiple 1000 --format pandas_separate_std
 ```
-
+## Final model training
+To train the models for inference on the whole [2DMD dataset](https://doi.org/10.1038/s41699-023-00369-1), including, training, testing and validation parts, run workflow `4f Training on the full dataset`. The weights will be saved to [`ai4material_design/datasets/checkpoints/combined_mixed_all_train/`](../datasets/checkpoints/combined_mixed_all_train/).
 ## Data
 The data are at [`ai4material_design/datasets`](../datasets).
 
