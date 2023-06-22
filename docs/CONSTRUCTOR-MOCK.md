@@ -5,7 +5,8 @@
 ## Table of contents
 
 - [Introduction](#introduction)
-- [General pipeline](##Overview)
+- [Inference](#inference)
+- [Paper Overview](#overview)
   - [Data preprocessing: VASP -\> csv/cif -\> pickle \& matminer](#data-preprocessing-vasp---csvcif---pickle--matminer)
     - [1. Low density index](#1-low-density-index)
     - [2. VASP -\> csv/cif](#2-vasp---csvcif)
@@ -18,14 +19,7 @@
 
 # Reproducing the paper
 
-> **Demo project**
-> 
-> This project uses lightweight workflows to demonstrate the functionality of a larger, more computationally intensive project. Certain computationally intensive steps have been omitted and replaced with pre-calculated data to reduce the computational requirements of this demo.
-> 
->  The full version of the project, with all computationally intensive steps included, can be found [here](https://research.constructor.tech/public/project/6c2567e07ce64037b6b6edd2895b27ee). It requires approximately 16 GPU days to run. To get the resources, please contact us by clicking on the question mark icon in the bottom right corner of the page.
-
 ## Introduction
-
 In the paper we propose sparse representation as a way to reduce the computational cost and improve the accuracy of machine learning the properties of defects in 2D materials. The code in the project implements the method, and a rigorous comparison of its performance to the a set of baselines.
 
 Two-dimensional materials offer a promising platform for the next generation of (opto-) electronic devices and other high technology applications. One of the most exciting characteristics of 2D crystals is the ability to tune their properties via controllable introduction of defects. However, the search space for such structures is enormous, and ab-initio computations prohibitively expensive. We propose a machine learning approach for rapid estimation of the properties of 2D material given the lattice structure and defect configuration. The method suggests a way to represent  configuration of 2D materials with defects that allows a neural network to train quickly and accurately. We compare our methodology with the state-of-the-art approaches and demonstrate at least 3.7 times energy prediction error drop. Also, our approach is an order of magnitude more resource-efficient than its contenders both for the training and inference part.
@@ -37,7 +31,16 @@ We compare our approach to state-of-the-art generic structure-property predictio
 
 For dataset, we use [2DMD](https://www.nature.com/articles/s41699-023-00369-1). It consists of the most popular 2D materials: MoS2, WSe2, h-BN, GaSe, InSe, and black phosphorous (BP) with point defect density in the range of 2.5% to 12.5%. We use DFT to relax the structures and compute the defect formation energy and HOMO-LUMO gap. ML algorithms predict those quantities, taking unrelaxed structures as input.
 
-## Overview 
+## Inference
+The pre-trained models are available in the repository. Notebook showing the usage of the models for predictions, along with data generation, and saving to Data catalog is [here](../notebooks/Inference.ipynb) 
+
+## Paper Overview
+
+> **Demo project**
+> 
+> This project uses lightweight workflows to demonstrate the functionality of a larger, more computationally intensive project. Certain computationally intensive steps have been omitted and replaced with pre-calculated data to reduce the computational requirements of this demo.
+> 
+>  The full version of the project, with all computationally intensive steps included, can be found [here](https://research.constructor.tech/public/project/6c2567e07ce64037b6b6edd2895b27ee). It requires approximately 16 GPU days to run. To get the resources, please contact us by clicking on the question mark icon in the bottom right corner of the page.
 
 The calculations in the paper occur in two stages:
 1. Firstly, we extract the relevant information about the structures and their properties from the VASP outputs, and prepare the sparse and vectorized representation of the structures.
@@ -46,6 +49,8 @@ The calculations in the paper occur in two stages:
 ![pipeline_pic](constructor_pics/pipeline.png)
 
 Finally, we analyze the results and produce the tables and plots.
+
+The results of all the steps are already available in the repository, you can selectively reproduce the parts you want.
 
 > To do computations we use Workflows. You can find more details about Workflow in [User guide](https://docs.constructor.tech/articles/constructor-research-platform-user-guide/managing-workflows).
 
@@ -100,7 +105,7 @@ python scripts/summary_table_lean.py --experiment combined_mixed_weighted_test -
 ```
 
 ## Data
-The data are already here at [`ai4material_design/datasets`](../datasets) The results of all the steps are already available in the repository, you can selectively reproduce the parts you want.
+The data are at [`ai4material_design/datasets`](../datasets).
 
 ## User guide
 You can find more details about Constructor Research Platform functionality in the documentation [here](https://docs.constructor.tech/articles/?readerUiPreview=1#!constructor-research-platform-user-guide/about-this-guide)
