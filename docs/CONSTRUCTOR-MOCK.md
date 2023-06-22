@@ -93,7 +93,6 @@ Open the Workflow interface by clicking on the Workflow link in the top-right. R
 
 Output location: [`ai4material_design/datasets/predictions/combined_mixed_weighted_test/**`](../datasets/predictions/combined_mixed_weighted_test).
 
-
 ## Results analysis
 The notebooks are used as a source for CRP Publications, to update go to the "Publications" tab, click "Synchronize" and "Publish"
 * Aggregate performance tables [`ai4material_design/notebooks/Results tables.ipynb`](../notebooks/Results%20tables.ipynb)
