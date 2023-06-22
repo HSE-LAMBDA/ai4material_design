@@ -16,6 +16,7 @@
   - [Results analysis](#results-analysis)
   - [Final model training](#final-model-training)
   - [Data](#data)
+- [Citation](#citation)
 - [Constructor Research Platform user guide](#user-guide)
 
 # Reproducing the paper
@@ -108,6 +109,16 @@ python scripts/summary_table_lean.py --experiment combined_mixed_weighted_test -
 To train the models for inference on the whole [2DMD dataset](https://doi.org/10.1038/s41699-023-00369-1), including, training, testing and validation parts, run workflow `4f Training on the full dataset`. The weights will be saved to [`ai4material_design/datasets/checkpoints/combined_mixed_all_train/`](../datasets/checkpoints/combined_mixed_all_train/).
 ## Data
 The data are at [`ai4material_design/datasets`](../datasets).
+
+## Citation
+Please cite the following two papers if you use the code or the data:
+```
+Kazeev, N., Al-Maeeni, A., Romanov I. et al. Sparse representation for machine learning the properties of defects in 2D materials. npj Comput Mater (2023). https://doi.org/10.1038/s41524-023-01062-z
+```
+
+```
+Huang, P., Lukin, R., Faleev, M. et al. Unveiling the complex structure-property correlation of defects in 2D materials based on high throughput datasets. npj 2D Mater Appl 7, 6 (2023). https://doi.org/10.1038/s41699-023-00369-1
+```
 
 ## User guide
 You can find more details about Constructor Research Platform functionality in the documentation [here](https://docs.constructor.tech/articles/?readerUiPreview=1#!constructor-research-platform-user-guide/about-this-guide)
