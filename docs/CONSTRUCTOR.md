@@ -129,6 +129,7 @@ Open the Workflow interface by clicking on the Workflow link in the top-right. R
 * `4c Combined test CatBoost`
 * `4d Combined test MegNet full`
 * `4e Combined test MegNet sparse`
+
 Output location: [`ai4material_design/datasets/predictions/combined_mixed_weighted_test/**`](../datasets/predictions/combined_mixed_weighted_test).
 
 ## Results analysis
