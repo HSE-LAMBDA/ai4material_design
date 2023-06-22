@@ -51,7 +51,7 @@ Finally, we analyze the results and produce the tables and plots.
 The results of all the steps are already available in the repository, you can selectively reproduce the parts you want.
 ## Technical notes
 ### Terminal
-Open a terminal using the Desk menu. The commands in this guide assume the starting working directory to be `/home/coder/project` .
+Open a terminal using the Desk menu. The commands in this guide assume the starting working directory to be `/home/coder/project`
 ### WanDB
 [WanDB](https://wandb.ai/) is a service for monitoring and recording machine learning experiments we use in the project. By default, WanDB integration is disabled. To optionally enable it, set you WanDB API key in [`scripts/Rolos/wandb_config.sh`](../scripts/Rolos/wandb_config.sh), commit and push. Note that if you add collaborators to your project, they will have access to your API key.
 ### Workflows
