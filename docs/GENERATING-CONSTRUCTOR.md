@@ -24,5 +24,5 @@ xargs -a stability_trials.txt -L1 ./generate_experiments_workflow.sh
  5. Add the global README, update the relative links.
 ```bash
 cp ai4material_design/docs/CONSTRUCTOR.md README.md
-sed -i -E 's|(\[[^]]+]\()([^/h)][^)]+\))|\1ai4material_design/docs/\2|g' README.md
+sed -i -E 's|(\[[^]]+]\()([^/h#)][^)]+\))|\1ai4material_design/docs/\2|g' README.md
 ```
