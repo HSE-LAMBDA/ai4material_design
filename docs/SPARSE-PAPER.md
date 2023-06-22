@@ -1,10 +1,17 @@
 # Reproducing "Sparse representation for machine learning the properties of defects in 2D materials"
 ## Note: the data are already here
-All input, intermediate, and output data are already available in the repository, you can selectively reproduce the parts you want.
+All input, intermediate, and output data are already available in DVC, you can selectively reproduce the parts you want.
 ## Setting up the environment
 See [ENVIRONMENT.md](./ENVIRONMENT.md)
+## Inference
+The pre-trained models are available in the repository. Notebook showing the usage of the models for predictions, along with data generation is [here](../notebooks/Inference.ipynb). The weights and data indexes are in DVC:
+```bash
+dvc pull datasets/checkpoints/combined_mixed_all_train/formation_energy_per_site/megnet_pytorch/sparse/05-12-2022_19-50-53/d6b7ce45/0.pth.dvc datasets/checkpoints/combined_mixed_all_train/homo_lumo_gap_min/megnet_pytorch/sparse/05-12-2022_19-50-53/831cc496/0.pth.dvc csv-cif-low-density-8x8 csv-cif-no-spin-500-data csv-cif-spin-500-data
+```
 ## Data preprocessing
 ### VASP -> csv/cif -> pickle
+This step extracts the computed energy and HOMO-LUMO gap values from the raw VASP output, saves the unrelaxed structures in a uniform way; converts the structures from standard [CIF](https://www.iucr.org/resources/cif) format to a fast platform-specific pickle storage; preprocesses the target values, e. g. computes the formation energy per site; produces the sparse defect-only representations.
+
 ```bash
 dvc pull -R datasets/POSCARs datasets/raw_vasp/high_density_defects datasets/raw_vasp/dichalcogenides8x8_vasp_nus_202110 datasets/csv_cif/low_density_defects_Innopolis-v1/{MoS2,WSe2}
 parallel --delay 3 -j6 dvc repro processed-high-density@{} ::: hBN_spin GaSe_spin BP_spin InSe_spin MoS2 WSe2
@@ -12,13 +19,14 @@ parallel --delay 3 -j2 dvc repro processed-low-density@{} ::: MoS2 WSe2
 ```
 Note that unlike GNU Make DVC [currently](https://github.com/iterative/dvc/issues/755) doesn't internally parallelize execution, so we use GNU parallel. We also use `--delay 3` to avoid [DVC lock race](https://github.com/iterative/dvc/issues/755). Computing matmier features can easily take several days, you might want to parallelize it according to your computing setup.
 ### Matminer
-Assuming the resources are available, the step takes around 3 days, you can skip it if don't plan on running CatBoost. 
+This step computes [matminer](https://github.com/hackingmaterials/matminer) descriptors, to be used with [CatBoost](https://catboost.ai/). Assuming the resources are available, the step takes around 3 days, you can skip it if you don't plan on running CatBoost.
 ```bash
 dvc repro matminer
 ```
 ## Hyperparameter optimisation
+We use train/validation split to do a random search for hyperparameters
 ### Get the data
-```
+```bash
 dvc pull -R processed-high-density processed-low-density datasets/processed/{high,low}_density_defects datasets/experiments/combined_mixed_weighted_test.dvc datasets/experiments/combined_mixed_weighted_validation.dvc
 ``` 
 ### Generate the trials
@@ -50,7 +58,7 @@ Use `find_best_trial.py` for every model, e.g.:
 python scripts/find_best_trial.py --experiment combined_mixed_weighted_validation --trials-folder megnet_pytorch/sparse/05-12-2022_19-50-53
 ```
 ## Aggregate experiments on train/test split
-Since some models (thankfully, not ours) exhibit instability, we repeat training several times for each model - with the same parameters and training data. To fit this into the infrastrucrure we copy the trials. This step was only done on ASPIRE-1, so it would requre some modifications to run on a different cluster (e. g. replace `qsub` with `sbatch`). Note that CatBoost by default is deterministic, so you need to change the random seed manually in the copies of the trials.
+Since some models (thankfully, not ours) exhibit instability, we repeat training several times for each model - with the same parameters and training data. To fit this into the infrastructure we copy the trials. This step was only done on [ASPIRE-1](https://www.nscc.sg/aspire-1/) and [Constructor Research Platform](https://research.constructor.tech/p/2d-defects-prediction), so it would require some modifications to run on a different cluster (e. g. replace `qsub` with `sbatch`). Note that CatBoost by default is deterministic, so you need to change the random seed manually in the copies of the trials.
 ```bash
 cd scripts/ASPIRE-1
 xargs -a stability_trials.txt -L1 ./run_stability_trials.sh 
@@ -62,11 +70,12 @@ megnet_pytorch/sparse/05-12-2022_19-50-53/d6b7ce45 formation_energy_per_site 12 
 trial target total_repeats parallel_runs_per_GPU experiment
 ```
 ## Quantum oscillations aka E(distance) predictions for MoS2:
+Two S-vacancy MoS2 in test, everything else in train.
 ```bash
 xargs -a MoS2_V2_E.txt -L1 ./run_stability_trials.sh 
 ```
 ## Ablation study
-Manually prepare the model configurations (aka trials) in `trials/megnet_pytorch/ablation_study`. Put them into a `.txt` and run the experiments:
+Manually prepare the model configurations (aka trials) in `../trials/megnet_pytorch/ablation_study`. Put them into a `.txt` and run the experiments:
 ```bash
 cd scripts/ASPIRE-1
 xargs ablation_stability.txt -L1 ./run_stability_trials.sh
@@ -87,3 +96,8 @@ python scripts/summary_table_lean.py --experiment combined_mixed_weighted_test -
 [`ai4material_design/notebooks/Results tables.ipynb`](../notebooks/Results%20tables.ipynb)
 ## Quantum oscillations aka E(distance) plots
 [`ai4material_design/notebooks/MoS2_V2_plot.ipynb`](../notebooks/MoS2_V2_plot.ipynb)
+## Training the inference model
+ To on the whole [2DMD dataset](https://doi.org/10.1038/s41699-023-00369-1), run:
+```bash
+parallel -j 2 python run_experiments.py --output-folder /output --targets {1} --trials {2} --experiments combined_mixed_all_train --gpus 0 --n-jobs 4 --save-checkpoints ::: formation_energy_per_site homo_lumo_gap_min :::+ megnet_pytorch/sparse/05-12-2022_19-50-53/d6b7ce45 megnet_pytorch/sparse/05-12-2022_19-50-53/831cc496
+```

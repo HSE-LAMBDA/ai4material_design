@@ -101,7 +101,6 @@ git push
 
 Note that on CRP the the low density defects processing doesn't work (two nodes will fail), see the notes below.
 
-#### Note on low-density datasets
 The low density defects processing relies on [FUSE](https://www.kernel.org/doc/html/next/filesystems/fuse.html) to mount the data archives, which is not available on CRP, and can not be installed inside Docker. If absolutely necessary, unpack the archives, they would take around 300 Gb. The archives are also in DVC and can be downloaded with the following commands:
 
 ```bash
