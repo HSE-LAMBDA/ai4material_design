@@ -34,7 +34,7 @@ The data are not needed for predictions, and are only used to generate new struc
 # Citation
 Please cite the following two papers if you use the code or the data:
 ```
-Kazeev, N., Al-Maeeni, A., Romanov I. et al. Sparse representation for machine learning the properties of defects in 2D materials. npj Comput Mater (2023). https://doi.org/10.1038/s41524-023-01062-z
+Kazeev, N., Al-Maeeni, A.R., Romanov, I. et al. Sparse representation for machine learning the properties of defects in 2D materials. npj Comput Mater 9, 113 (2023). https://doi.org/10.1038/s41524-023-01062-z
 ```
 
 ```
