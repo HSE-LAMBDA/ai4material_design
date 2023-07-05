@@ -5,7 +5,7 @@ import pandas as pd
 import torch
 import wandb
 
-from MEGNetSparse.trainer import MEGNetTrainer
+from MEGNetSparse import MEGNetTrainer
 
 
 def get_megnet_pytorch_predictions(
