@@ -4,6 +4,7 @@ import os
 import pandas as pd
 import torch
 import wandb
+from tqdm import trange
 
 from MEGNetSparse import MEGNetTrainer
 
@@ -41,7 +42,8 @@ def get_megnet_pytorch_predictions(
     wandb.define_metric(f"{target_name} test_loss_per_epoch", step_metric='epoch')
     wandb.define_metric(f"{target_name} train_loss_per_epoch", step_metric='epoch')
 
-    for epoch in range(n_epochs):
+    for epoch in trange(n_epochs):
+        print(f'=========== {epoch} ==============')
         step_mae, _ = model.train_one_epoch()
         test_mae = model.evaluate_on_test(return_predictions=False)
 
@@ -52,7 +54,7 @@ def get_megnet_pytorch_predictions(
         })
 
         print(
-            f"Epoch: {epoch}, train loss: {step_mae}, test loss: {test_mae}"
+            f"train loss: {step_mae}, test loss: {test_mae}"
         )
 
     print('========== predicting ==============')
