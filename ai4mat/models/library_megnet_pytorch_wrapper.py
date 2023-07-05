@@ -26,7 +26,7 @@ def get_megnet_pytorch_predictions(
         raise NotImplementedError
     os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu)
     target_name = train_targets.name
-    n_epochs = model_params['epochs']
+    n_epochs = model_params['model']['epochs']
 
     model = MEGNetTrainer(model_params, f'cuda:{gpu}')
 
