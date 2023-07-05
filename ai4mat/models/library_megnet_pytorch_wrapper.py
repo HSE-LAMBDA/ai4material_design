@@ -57,4 +57,4 @@ def get_megnet_pytorch_predictions(
 
     print('========== predicting ==============')
     _, predictions = model.evaluate_on_test(return_predictions=True)
-    return predictions
+    return predictions.numpy()
