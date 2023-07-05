@@ -28,7 +28,7 @@ def get_megnet_pytorch_predictions(
     target_name = train_targets.name
     n_epochs = model_params['model']['epochs']
 
-    model = MEGNetTrainer(model_params, f'cuda:{gpu}')
+    model = MEGNetTrainer(model_params, f'cuda:{gpu}' if gpu is not None else 'cpu')
 
     train_targets = torch.tensor(train_targets.tolist()).float()
     train_structures = train_structures.tolist()
