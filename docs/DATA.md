@@ -1,4 +1,5 @@
 # Dataset
+We provide the data in two formats: [processed](#processed-data) with only the variables used in our paper for ML model evaluation and the full [raw VASP output](#raw-vasp-output).
 # Processed data
 The processed data contain the unrelaxed structures, energies, formation energies, HOMO, LUMO and derived variables.
 
