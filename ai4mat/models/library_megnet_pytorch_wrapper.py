@@ -36,7 +36,9 @@ def get_megnet_pytorch_predictions(
     test_targets = torch.tensor(test_targets.tolist())
     test_structures = test_structures.tolist()
 
-    model.prepare_data(train_structures, train_targets, test_structures, test_targets, target_name)
+    model.prepare_data(
+        train_structures, train_targets, test_structures, test_targets, target_name, train_weights, test_weights
+    )
 
     wandb.define_metric("epoch")
     wandb.define_metric(f"{target_name} test_loss_per_epoch", step_metric='epoch')
