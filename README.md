@@ -6,6 +6,7 @@ Open in Constructor Research Platform (a cloud service for scientific computatio
 
 # Table of contents
 - Environment setup: [docs/ENVIRONMENT.md](docs/ENVIRONMENT.md)
+- Data download: [docs/DATA.md](docs/DATA.md)
 - Reproducing the paper locally: [docs/SPARSE-PAPER.md](docs/SPARSE-PAPER.md)
 - [Using the pre-trained models](#using-the-pre-trained-models)
 
