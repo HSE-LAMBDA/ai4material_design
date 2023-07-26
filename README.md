@@ -22,6 +22,9 @@ We compare our approach to state-of-the-art generic structure-property predictio
 
 For dataset, we use [2DMD](https://www.nature.com/articles/s41699-023-00369-1). It consists of the most popular 2D materials: MoS2, WSe2, h-BN, GaSe, InSe, and black phosphorous (BP) with point defect density in the range of 2.5% to 12.5%. We use DFT to relax the structures and compute the defect formation energy and HOMO-LUMO gap. ML algorithms predict those quantities, taking unrelaxed structures as input.
 # Using the pre-trained models
+## Library
+Use the library https://github.com/HSE-LAMBDA/MEGNetSparse/
+## This repository
 1. Clone the repository
 2. [Set up the environment](docs/ENVIRONMENT.md)
 3. Download the weights and data:

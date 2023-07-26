@@ -198,7 +198,7 @@ stages:
       ./scripts/pack_for_rolos.sh
     deps:
       - scripts/pack_for_rolos.sh
-      - datasets/processed/high_density_defects
+      - datasets/processed/high_density_defects/*/targets.csv.gz
       - datasets/csv_cif/high_density_defects
       - datasets/processed/low_density_defects
       - datasets/csv_cif/low_density_defects
