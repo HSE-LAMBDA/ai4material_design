@@ -1,9 +1,9 @@
 model: 'megnet_pytorch'
 representation: 'sparse'
-minority_class_upsampling: true
+minority_class_upsampling: false
 model_params:
   model:
-    epochs: 400
+    epochs: 300
     train_batch_size: 128
     test_batch_size: 128
     add_z_bond_coord: true
