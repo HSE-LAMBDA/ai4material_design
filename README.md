@@ -29,7 +29,7 @@ Use the library https://github.com/HSE-LAMBDA/MEGNetSparse/
 2. [Set up the environment](docs/ENVIRONMENT.md)
 3. Download the weights and data:
 ```bash
-dvc pull datasets/checkpoints/combined_mixed_all_train/formation_energy_per_site/megnet_pytorch/sparse/05-12-2022_19-50-53/d6b7ce45/0.pth.dvc datasets/checkpoints/combined_mixed_all_train/homo_lumo_gap_min/megnet_pytorch/sparse/05-12-2022_19-50-53/831cc496/0.pth.dvc csv-cif-low-density-8x8 csv-cif-no-spin-500-data csv-cif-spin-500-data
+dvc pull datasets/checkpoints/combined_mixed_all_train/formation_energy_per_site/megnet_pytorch/sparse/05-12-2022_19-50-53/d6b7ce45/0.pth.dvc datasets/checkpoints/combined_mixed_all_train/homo_lumo_gap_min/megnet_pytorch/sparse/05-12-2022_19-50-53/831cc496/0.pth.dvc csv-cif-low-density-8x8 csv-cif-no-spin-500-data csv-cif-spin-500-data train-only-split
 ```
 The data are not needed for predictions, and are only used to generate new structures in the example notebook.
 
