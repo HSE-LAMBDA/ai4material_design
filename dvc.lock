@@ -24,7 +24,7 @@ stages:
       size: 8246
     outs:
     - path: datasets/csv_cif/high_density_defects/GaSe_spin_500
-      md5: 0cb378db6f50ed57b472842031c45880.dir
+      md5: dbb164a93796a71d0b07eac20911ea68.dir
       size: 311908
       nfiles: 5
   csv-cif-spin-500-data@InSe:
@@ -295,7 +295,7 @@ stages:
       size: 8246
     outs:
     - path: datasets/csv_cif/high_density_defects/BP_spin_500
-      md5: 8be96cf9f4e06b008267070f6850a214.dir
+      md5: ebc7a1181cec911e8864e6a5cbbe4d1a.dir
       size: 200980
       nfiles: 5
   processed-high-density@BP_spin:
