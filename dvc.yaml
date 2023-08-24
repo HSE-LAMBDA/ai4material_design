@@ -198,8 +198,8 @@ stages:
       ./scripts/pack_for_rolos.sh
     deps:
       - scripts/pack_for_rolos.sh
-      - datasets/processed/high_density_defects/{BP_spin,GaSe_spin,hBN_spin,InSe_spin,MoS2,WSe2}_500/targets.csv.gz
-      - datasets/csv_cif/high_density_defects/{BP_spin,GaSe_spin,hBN_spin,InSe_spin,MoS2,WSe2}_500
+      #- datasets/processed/high_density_defects/{BP_spin,GaSe_spin,hBN_spin,InSe_spin,MoS2,WSe2}_500/targets.csv.gz
+      #- datasets/csv_cif/high_density_defects/{BP_spin,GaSe_spin,hBN_spin,InSe_spin,MoS2,WSe2}_500
       - datasets/processed/low_density_defects
       - datasets/csv_cif/low_density_defects
     outs:

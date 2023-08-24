@@ -392,30 +392,22 @@ stages:
   rolos-2d-materials-point-defects:
     cmd: ./scripts/pack_for_rolos.sh
     deps:
-    - path: datasets/csv_cif/high_density_defects
-      md5: 95515221f39c13bec3230fe5a11ff973.dir
-      size: 2414562
-      nfiles: 45
     - path: datasets/csv_cif/low_density_defects
-      md5: f100e58960b626aac56e4399a30c2723.dir
-      size: 5521068
-      nfiles: 16
-    - path: datasets/processed/high_density_defects
-      md5: 3fed3433a7cfec65e8dceef7344ee823.dir
-      size: 3372810
-      nfiles: 19
+      md5: d93ed122c5a51917cdd48a8ab1fe3372.dir
+      size: 4528692
+      nfiles: 15
     - path: datasets/processed/low_density_defects
-      md5: 46a03de0129cba32608ad367dd07ca61.dir
-      size: 9270135
+      md5: 70cc26ced25bd2dd91e751236f48208a.dir
+      size: 9863233
       nfiles: 5
     - path: scripts/pack_for_rolos.sh
-      md5: 8fdaf32079f1198738e8d9882ae3302c
-      size: 927
+      md5: 362cc3c356bd3fab2c80998acfa391a5
+      size: 754
     outs:
     - path: datasets/others/rolos/2d-materials-point-defects
-      md5: 0b1b5dca6e37c2ad4e30d51f525c3c24.dir
-      size: 12422718
-      nfiles: 9
+      md5: 1f246bda36229607934af974b222eab9.dir
+      size: 12995090
+      nfiles: 55
   csv-cif-low-density-8x8@MoS2:
     cmd: python scripts/separate_csv_cif.py --input-folder datasets/csv_cif/dichalcogenides_x1s6_202109
       --output-folder datasets/csv_cif/low_density_defects/MoS2 --base-material MoS2
