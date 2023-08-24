@@ -296,8 +296,8 @@ stages:
       size: 8246
     outs:
     - path: datasets/csv_cif/high_density_defects/BP_spin_500
-      md5: 0cb2177580d24df58a981845a94086c7.dir
-      size: 200980
+      md5: 1245805e2be2a837e23c1123c6621d1a.dir
+      size: 200981
       nfiles: 5
   processed-high-density@BP_spin:
     cmd: 'echo "Converting the structures from csv+cif format to the platform-specific
@@ -305,19 +305,19 @@ stages:
       --input-name=high_density_defects/BP_spin_500 --normalize-homo-lumo --fill-missing-band-properties '
     deps:
     - path: datasets/csv_cif/high_density_defects/BP_spin_500
-      md5: 8be96cf9f4e06b008267070f6850a214.dir
-      size: 200980
+      md5: 1245805e2be2a837e23c1123c6621d1a.dir
+      size: 200981
       nfiles: 5
     - path: scripts/parse_csv_cif.py
       md5: 992564fb74eafa1334be936106cf74aa
       size: 7503
     outs:
     - path: datasets/processed/high_density_defects/BP_spin_500/data.pickle.gz
-      md5: f8bf45e76e236f3adbdf5c316f6b46d1
-      size: 363543
+      md5: 3a8b237d1712bc52892f2fa56e24be1b
+      size: 362618
     - path: datasets/processed/high_density_defects/BP_spin_500/targets.csv.gz
-      md5: 75e16c64bb235e0f6acf97c9e80108b5
-      size: 68399
+      md5: 3a8f20a2b5405a214d67947152bcb31b
+      size: 68317
   rolos-high-density:
     cmd: ./scripts/pack_for_rolos.sh
     deps:
