@@ -82,8 +82,8 @@ stages:
       size: 4781835
       nfiles: 502
     - path: datasets/others/pristine_high_density
-      md5: 2d5e8d944914ac80b59959fde18d7fec.dir
-      size: 568
+      md5: 21dff4f2c1233db5a0bd492fa45f042d.dir
+      size: 569
       nfiles: 2
     - path: datasets/raw_vasp/high_density_defects/hBN_spin_500
       md5: a053ff47a5f8f997ef331cfdc9981697.dir
@@ -94,8 +94,8 @@ stages:
       size: 8246
     outs:
     - path: datasets/csv_cif/high_density_defects/hBN_spin_500
-      md5: 15ffbeaf570a720ffc5140e954ef80dd.dir
-      size: 211367
+      md5: 0513ad874305bc51819edad45b2922b6.dir
+      size: 211368
       nfiles: 5
   processed-high-density-spin@hBN:
     cmd: python scripts/parse_csv_cif.py --input-name=high_density_defects/hBN_spin_500
@@ -130,23 +130,24 @@ stages:
       size: 420542
       nfiles: 2
   processed-high-density@hBN_spin:
-    cmd: python scripts/parse_csv_cif.py --input-name=high_density_defects/hBN_spin_500
-      --normalize-homo-lumo --fill-missing-band-properties
+    cmd: 'echo "Converting the structures from csv+cif format to the platform-specific
+      pickle format for high density hBN_spin dataset..." && python scripts/parse_csv_cif.py
+      --input-name=high_density_defects/hBN_spin_500 --normalize-homo-lumo --fill-missing-band-properties '
     deps:
     - path: datasets/csv_cif/high_density_defects/hBN_spin_500
-      md5: 15ffbeaf570a720ffc5140e954ef80dd.dir
-      size: 211367
+      md5: 0513ad874305bc51819edad45b2922b6.dir
+      size: 211368
       nfiles: 5
     - path: scripts/parse_csv_cif.py
-      md5: 170a8f8ad3827e1a871f7d4e5f59a374
-      size: 13765
+      md5: 992564fb74eafa1334be936106cf74aa
+      size: 7503
     outs:
     - path: datasets/processed/high_density_defects/hBN_spin_500/data.pickle.gz
-      md5: 24869a59a4282cd95f2573d8f54e6c81
-      size: 330859
+      md5: fa778bf9c97c7962cbd75d73355281ed
+      size: 330479
     - path: datasets/processed/high_density_defects/hBN_spin_500/targets.csv.gz
-      md5: 688ac6877e9c260a991fefabf175db6d
-      size: 73117
+      md5: 1395b1672afc7cc8ad412fe5ca983604
+      size: 72986
   processed-high-density@GaSe_spin:
     cmd: python scripts/parse_csv_cif.py --input-name=high_density_defects/GaSe_spin_500
       --normalize-homo-lumo --fill-missing-band-properties
