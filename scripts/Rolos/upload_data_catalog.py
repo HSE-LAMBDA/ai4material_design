@@ -69,14 +69,14 @@ def main():
     print("Reading datasets")
     with get_context(multiprocess_method).Pool(min(len(datasets), available_CPUs)) as pool:
         combined_data = pool.map(prepare_dataset, datasets)
-    print("Combining datasets")
-    combined_data_pd = pd.concat(combined_data, axis=0)
+    # print("Combining datasets")
+    # combined_data_pd = pd.concat(combined_data, axis=0)
     print("Uploading datasets")
     schema = [TableColumn(name=key, type=value) for key, value in table_structure.items()]
-    upload_data(combined_data_pd, schema, "Combined 2DMD dataset")
+    # upload_data(combined_data_pd, schema, "Combined 2DMD dataset")
     for dataset_pd, name in zip(combined_data, datasets.values()):
         upload_data(dataset_pd, schema, name)
-    #with get_context(multiprocess_method).Pool(min(len(datasets) + 1, available_CPUs)) as pool:
+    # with get_context(multiprocess_method).Pool(min(len(datasets) + 1, available_CPUs)) as pool:
     #    pool.starmap(upload_data, chain(
     #        zip(combined_data, repeat(schema), datasets.values()),
     #        ((combined_data_pd, schema, "Combined 2DMD dataset"),)))
