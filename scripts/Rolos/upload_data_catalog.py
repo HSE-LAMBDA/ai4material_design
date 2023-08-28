@@ -2,6 +2,7 @@ import pandas as pd
 import sys
 import os
 from typing import List
+import requests.exceptions
 from rolos_sdk import Dataframe, DataStorageInterface, DataStorageType, TableColumn
 from rolos_sdk.structures.object.pymatgen import PyMatGenObject
 from multiprocessing import Pool, get_context
@@ -34,10 +35,23 @@ table_structure = {
     'homo_lumo_gap_max': float
 }
 
+
 def upload_data(table_data: pd.DataFrame, table_schema: List[TableColumn], name: str) -> None:
-    with DataStorageInterface.create(DataStorageType.Datacat) as storage:
-        with Dataframe(name=name, storage=storage, schema=table_schema) as frame:
-            frame.insert(table_data.values.tolist())
+        with DataStorageInterface.create(DataStorageType.Datacat) as storage:
+            with Dataframe(name=name, storage=storage, schema=table_schema) as frame:
+                frame.insert(table_data.values.tolist())
+
+
+def retry_upload(*args, **kwargs):
+    tries = 0
+    uploaded = False
+    while tries < 5 and not uploaded:
+        try:
+            tries += 1
+            upload_data(*args, **kwargs)
+            uploaded = True
+        except requests.exceptions.JSONDecodeError:
+            continue
 
 
 def prepare_dataset(dataset):
@@ -73,14 +87,12 @@ def main():
     # combined_data_pd = pd.concat(combined_data, axis=0)
     print("Uploading datasets")
     schema = [TableColumn(name=key, type=value) for key, value in table_structure.items()]
+    # Combined never worked    
     # upload_data(combined_data_pd, schema, "Combined 2DMD dataset")
-    for dataset_pd, name in zip(combined_data, datasets.values()):
-        upload_data(dataset_pd, schema, name)
-    # with get_context(multiprocess_method).Pool(min(len(datasets) + 1, available_CPUs)) as pool:
-    #    pool.starmap(upload_data, chain(
-    #        zip(combined_data, repeat(schema), datasets.values()),
-    #        ((combined_data_pd, schema, "Combined 2DMD dataset"),)))
-
+    # for dataset_pd, name in zip(combined_data, datasets.values()):
+    #    upload_data(dataset_pd, schema, name)
+    with get_context(multiprocess_method).Pool(min(len(datasets) + 1, available_CPUs)) as pool:
+        pool.starmap(retry_upload, zip(combined_data, repeat(schema), datasets.values()))
 
 if __name__ == "__main__":
     main()
