@@ -1,6 +1,7 @@
 from typing import Union
 import os
 from pathlib import Path
+import logging
 import yaml
 import tarfile
 from tqdm import tqdm
@@ -63,3 +64,9 @@ def read_csv_cif(data_path: Union[str,Path]):
     structures[Columns()["structure"]["unrelaxed"]] =  structures.apply(
         lambda row: initial_structures[row.name], axis=1)
     return structures, read_defects_descriptions(data_path)
+
+
+def read_flat(exported_data_path: Union[str, Path]):
+    csv_cif, descriptions = read_csv_cif(exported_data_path)
+    targets = pd.read_csv(Path(exported_data_path) / "targets.csv.gz", index_col="_id")
+    return csv_cif.combine_first(targets).merge(descriptions, how="left", left_on="descriptor_id", right_index=True)
