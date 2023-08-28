@@ -42,18 +42,6 @@ def upload_data(table_data: pd.DataFrame, table_schema: List[TableColumn], name:
                 frame.insert(table_data.values.tolist())
 
 
-def retry_upload(*args, **kwargs):
-    tries = 0
-    uploaded = False
-    while tries < 5 and not uploaded:
-        try:
-            tries += 1
-            upload_data(*args, **kwargs)
-            uploaded = True
-        except requests.exceptions.JSONDecodeError:
-            continue
-
-
 def prepare_dataset(dataset):
     data = pd.read_pickle(StorageResolver()["processed"] / dataset / "data.pickle.gz")
     data_description = read_defects_descriptions(StorageResolver()["csv_cif"] / dataset)
@@ -92,7 +80,7 @@ def main():
     # for dataset_pd, name in zip(combined_data, datasets.values()):
     #    upload_data(dataset_pd, schema, name)
     with get_context(multiprocess_method).Pool(min(len(datasets) + 1, available_CPUs)) as pool:
-        pool.starmap(retry_upload, zip(combined_data, repeat(schema), datasets.values()))
+        pool.starmap(upload_data, zip(combined_data, repeat(schema), datasets.values()))
 
 if __name__ == "__main__":
     main()
