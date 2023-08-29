@@ -1,6 +1,6 @@
 model: 'megnet_pytorch'
 representation: 'sparse'
-minority_class_upsampling: false
+minority_class_upsampling: true
 model_params:
   model:
     epochs: 300

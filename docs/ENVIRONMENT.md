@@ -16,5 +16,6 @@ poetry install
 If it fails, try removing `poetry.lock`. We support multiple Python versions, so even if the lock file doesn't work, you still might be able install the packages.
 
 4. [Install pytorch](https://pytorch.org/) according to your CUDA/virtualenv/conda situatoin
-5. [Install pytorch-geometric](https://pytorch-geometric.readthedocs.io/en/latest/notes/installation.html) according to your CUDA/virtualenv/conda situation
-6. [Log in to WanDB](https://docs.wandb.ai/ref/cli/wandb-login), or set `WANDB_MODE=disabled`
+5. [Install pytorch-geometric](https://pytorch-geometric.readthedocs.io/en/latest/notes/installation.html) according to your CUDA/virtualenv/conda situation 
+6. ```pip install --no-deps MEGNetSparse```
+7. [Log in to WanDB](http s://docs.wandb.ai/ref/cli/wandb-login), or set `WANDB_MODE=disabled`
