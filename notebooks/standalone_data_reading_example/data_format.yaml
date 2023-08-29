@@ -1,0 +1,7 @@
+structure:
+  id: "_id"
+  descriptor_id: "descriptor_id"
+  unrelaxed: "initial_structure"
+  sparse_unrelaxed: "defect_representation"
+defect:
+  id: "_id"
