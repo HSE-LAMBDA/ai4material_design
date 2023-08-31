@@ -3,18 +3,32 @@ from operator import methodcaller
 from pathlib import Path
 import logging
 import pandas as pd
-from pymatgen.core.periodic_table import Element
+from pymatgen.core.periodic_table import Element, DummySpecies
 
 import sys
 sys.path.append('.')
-from ai4mat.common.eos import EOS
-from ai4mat.common.sparse_representation import get_sparse_defect
+from MEGNetSparse.dense2sparse import convert_to_sparse_representation, add_was
+from MEGNetSparse.eos import EOS
 from ai4mat.data.data import (
     get_dichalcogenides_innopolis,
     StorageResolver,
     Columns,
     get_unit_cell
 )
+
+
+SINGLE_ENENRGY_COLUMN = "chemical_potential"
+
+
+def energy_correction(structure, single_atom_energies):
+    correction = 0
+    for site in structure.sites:
+        if isinstance(site.specie, DummySpecies):
+            correction += single_atom_energies.loc[Element.from_Z(site.properties['was']), SINGLE_ENENRGY_COLUMN]
+        else:
+            correction -= single_atom_energies.loc[site.specie, SINGLE_ENENRGY_COLUMN]
+            correction += single_atom_energies.loc[Element.from_Z(site.properties['was']), SINGLE_ENENRGY_COLUMN]
+    return correction
 
 
 def parse_csv_cif(input_folder, args, dataset_name):
@@ -48,9 +62,19 @@ def parse_csv_cif(input_folder, args, dataset_name):
         unit_cell = unit_cells[defect_description.base]
         initial_energy = initial_structure_properties.at[
             (defect_description.base, defect_description.cell), "energy"]
-        defect_structure, formation_energy_part, structure_with_was = get_sparse_defect(
-            row.initial_structure, unit_cell, defect_description.cell,
-            single_atom_energies)
+        defect_structure = convert_to_sparse_representation(
+            row.initial_structure,
+            unit_cell,
+            defect_description.cell,
+            skip_eos=True,
+            copy_unit_cell_properties=True
+        )
+        structure_with_was = add_was(
+            row.initial_structure,
+            unit_cell,
+            defect_description.cell,
+        )
+        formation_energy_part = energy_correction(defect_structure, single_atom_energies)
         return defect_structure, formation_energy_part + row.energy - initial_energy, structure_with_was
 
     defect_properties = structures.apply(get_defecs_from_row,

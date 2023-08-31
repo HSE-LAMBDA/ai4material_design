@@ -14,5 +14,8 @@ def get_predictor_by_name(name):
     elif name == "megnet_pytorch":
         from ai4mat.models.megnet_pytorch_wrapper import get_megnet_pytorch_predictions
         return get_megnet_pytorch_predictions
+    elif name == "megnet_sparse":
+        from ai4mat.models.library_megnet_pytorch_wrapper import get_megnet_pytorch_predictions
+        return get_megnet_pytorch_predictions
     else:
         raise ValueError("Unknown model name")
